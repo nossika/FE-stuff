@@ -1,9 +1,9 @@
 # 杂
 [TOC]
 
-##JS（ECMA）
+## JS（ECMA）
 
-###数字转字符串 & 字符串转数字
+### 数字转字符串 & 字符串转数字
 number + "" / number.toString() / String(number)
 +string / parseFloat(string) / Number(string)
 隐式转换规则，调用to根据preferType调用toString() / valueOf()
@@ -15,7 +15,7 @@ string mode: toString => valueOf => error
 number mode: valueOf => toString => error
 
 
-###数组原型上的方法Array.prototype
+### 数组原型上的方法Array.prototype
 影响原数组 / 返回新数组 / 遍历
 find、findIndex(ES6)
 includes(ES7)
@@ -342,7 +342,8 @@ plugin编写：
 		}
 		apply(compiler) {
 			// 插件安装时调用一次，拿到compiler对象（提供webpack全局配置信息）
-			// 从compiler的hooks回调拿到compilation对象（每次文件变动重新生成，提供本次资源相关信息）
+			// 可以从compiler的hooks回调拿到compilation对象（每次文件变动重新生成，提供本次资源相关信息）
+			// 在compiler和compilation的各类hooks（基于tapable）绑定自定义事件
 		}			
 	}
 
@@ -486,9 +487,6 @@ vue中的computed具有缓存和懒计算。
 第一次被使用时，默认watcher.dirty为true，触发computed计算，并收集计算中用到的依赖（把自身关联到依赖的watcher通知列表），并存下本次计算的value值。
 当有依赖发生改动时，该computed的watcher.dirty会被设置为true，下次该computed被使用时就会被重新计算并缓存value，再把dirty重置为false。
 
-
-
-
 ### vue/react差异
 写法：webcomponent / all in js
 MVC：数据层侵入 / 纯视图
@@ -508,9 +506,13 @@ forceUpdate：componentWillUpdate -> render -> componentDidUpdate
 
 ### redux
 
-store变化时，connect依赖的state前后对比(浅比较)，若有变化，容器层发生类似setState的事件
+redux实现：
+combineReducers把多个reducer函数整合成一个大reducer函数，createStore(reducer)初始化store。
+每次调用store.dispatch(action)，该action都会通过这个大reducer（相当于通过每个子reducer），来得到各部分的新state，最后整合得到大state。
 
-缺点：action和reducer繁琐；action和reducer需要匹配自定义type来关联，而不是自动关联。
+结合react-redux：顶层state变化时，使用connect的组件会将它通过state获取到的props作前后浅比较，若有变化，该容器层props改变触发组件render，而非一有state变化就render
+
+改进点？：action和reducer繁琐；action和reducer需要匹配自定义type来关联，而不是自动关联。
 
 ### fiber
 任务分片，任务优先级，基于requestIdleCallback、requestAnimationFrame
@@ -518,6 +520,9 @@ store变化时，connect依赖的state前后对比(浅比较)，若有变化，�
 ### context
 16.3前后api对比
 解决：不符合分形、无法穿透shouldUpdateComponent
+
+### hook
+
 ### setState
 一次DOM reconciliation调用setState多次，state非立刻变化
 transaction模型,batchedUpdates(ReactDOM.unstable_batchedUpdates)
