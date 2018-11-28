@@ -1,5 +1,5 @@
 
-# JS（DOM）
+# JS（DOM/BOM）
 
 ### addEventListener参数
 
@@ -37,4 +37,7 @@ repaint: transform/visibility/background
       left += el.offsetLeft || 0;
       el = el.offsetParent;
     }
+
+
+### 区分pc/ios/android
     

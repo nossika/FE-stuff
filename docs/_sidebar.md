@@ -1,16 +1,15 @@
 
 - JS
 
-  - [ECMA](js/ecma.md)
-  - [DOM](js/dom.md)
-  - [BOM](js/bom.md)
+  - [JS(ECMA)](js/ecma.md)
+  - [JS(DOM/BOM)](js/dom.md)
   - [事件循环/引擎相关](js/engine.md)
 
 - CSS
 
   - [布局](css/layout.md)
-  - [语法](css/grammar.md)
   - [移动端](css/mobile.md)
+  - [语法](css/grammar.md)
 
 - HTML
 
