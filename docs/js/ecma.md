@@ -27,19 +27,67 @@
     proto.constructor === A
     a.constructor === A // 实际上等同于 a.__proto__.constructor
 
-### 继承
+### 继承（ES5/ES6）
 
-    function A() {}
-    const a = new A();
+ES5写法
 
+    // 定义
+    function A() { this.name = 'A' }
     A.prototype.hi = function () { console.log('hi') };
-
     function B() {}
+    const a = new A();
+    B.prototype = a; // B继承A
+    const b = new B(); // 生成实例b
+
+    // 执行
+    b.hi(); // print 'hi' （继承到了A的方法）
+    b.name; // A （也继承到了A中this定义的属性，但name属性是定义在a中，b通过原型链找到a，从而访问a.name）
+    b.constructor; // A （但构造函数指向A ）
+
+    // 原型链如下
+    b.__proto__; // a（constructor和__proto__都指向A）
+    b.__proto__.__proto__; // A.prototype
+
+ES5写法，改变一下执行顺序
+	
+    // 定义
+    function A() { this.name = 'A' }
+    A.prototype.hi = function () { console.log('hi') };
+    function B() {}
+    const a = new A();
+    const b = new B(); // 在继承前生成生成实例b
+    B.prototype = a; // B继承A
+
+    // 执行
+    b.hi(); // throw error （没有继承到A的方法）
+    b.name; // undefined
+    b.constructor; // B （构造函数正确）
+
+    // 原型链如下
+    b.__proto__; // 原B.prototype (即prototype指向被改写之前的那个对象)
+
+ES6 class（比起ES5写法，少了些容易让人困惑的地方）
+
+    // 定义
+    class A { 
+      constructor() {
+        this.name = 'A';
+      }
+      hi() {
+        console.log('hi');
+      }
+    };
+    class B extends A {};
     const b = new B();
 
-    B.prototype = a; // B原型指向实例a，继承A原型的方法
+    // 执行
+    b.hi(); // print 'hi' （继承到了A的方法）
+    b.name; // A （name直接定义在b上，即b.hasOwnProperty('name')为true）
+    b.constructor; // B （构造函数也正确）
 
-    b.hi(); // 实例b可使用从A继承来的方法
+    // 原型链如下
+    b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个对象）
+    b.__proto__.__proto__ // A.prototype
 
 ### class extends 写法
 
@@ -67,63 +115,7 @@
 
 由知识2我们知道，`Function`是构造函数`Function`的实例，所以根据知识1知道`Function.__proto__`等于`Function.prototype`；结合知识1和3，知道`Function.prototype.__proto__`等于`Object.prototype`。当沿着`Function`原型链查找到`Function.__proto__.__proto__`，也就是`Function.prototype.__proto__`，它等于`Object.prototype`，所以也返回true。
 
-### \_\_proto__ & constructor
 
-ES5写法
-
-    // 定义
-    function A() {}
-    A.hi = function () { console.log('hi') };
-    function B() {}
-    const a = new A();
-    B.prototype = a; // B继承A
-    const b = new B(); // 生成实例b
-
-    // 执行
-    b.hi(); // print 'hi' （继承到了A的方法）
-    b.constructor; // A （但构造函数指向A ）
-
-    // 原型链如下
-    b.__proto__; // a
-    b.__proto__.__proto__; // A.prototype
-    b.__proto__.__proto__.constructor; // A
-
-ES5写法，改变一下执行顺序
-	
-    // 定义
-    function A() {}
-    A.hi = function () { console.log('hi') };
-    function B() {}
-    const a = new A();
-    const b = new B(); // 在继承前生成生成实例b
-    B.prototype = a; // B继承A
-
-    // 执行
-    b.hi(); // throw error （没有继承到A的方法）
-    b.constructor; // B （构造函数正确）
-
-    // 原型链如下
-    b.__proto__; // 原B.prototype (即prototype被改写之前的那个对象)
-    b.__proto__.constructor; // B
-
-ES6 class
-
-    // 定义
-    class A { 
-      hi() {
-        console.log('hi');
-      }
-    };
-    class B extends A {};
-    const b = new B();
-
-    // 执行
-    b.hi(); // print 'hi' （继承到了A的方法）
-    b.constructor; // B （构造函数也正确）
-
-    // 原型链如下
-    b.__proto__ // B.prototype (已包含了constructor信息)
-    b.__proto__.constructor // B
 
 
 ## 类型转换
