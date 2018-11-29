@@ -29,7 +29,101 @@
 
 ### 继承
 
+    function A() {}
+    const a = new A();
+
+    A.prototype.hi = function () { console.log('hi') };
+
+    function B() {}
+    const b = new B();
+
+    B.prototype = a; // B原型指向实例a，继承A原型的方法
+
+    b.hi(); // 实例b可使用从A继承来的方法
+
 ### class extends 写法
+
+### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true？
+
+首先理解一下`instanceof`这个操作符，它会沿着前者的原型链（`__proto__`链）寻找是否满足与后者`prototype`相同的祖先，若找到就返回true，若一直到`__proto__`链遍历完还是没找到就返回false。
+
+最简单的例子
+
+    function A() {}
+    const a = new A();
+    a instanceof A // 按上述查法，找到a.__proto__等于A.prototype，查找结束，返回true
+
+需要知道的几个知识：
+
+1. 实例的`__proto__`等于其构造函数的`prototype`；
+2. 所有函数都是`Function`的实例，包括`Function`这个函数自身；
+3. 构造函数的`prototype`是一个普通对象，自然也是`Object`的实例。
+
+现在来看下问题中的`Object instanceof Function`：
+
+根据知识2，`Object`自身虽然是一个构造函数，但也是函数，是`Function`的实例，再根据知识1得出`Object.__proto__`等于`Function.prototype`，返回结果true。
+
+再看`Function instanceof Object`：
+
+由知识2我们知道，`Function`是构造函数`Function`的实例，所以根据知识1知道`Function.__proto__`等于`Function.prototype`；结合知识1和3，知道`Function.prototype.__proto__`等于`Object.prototype`。当沿着`Function`原型链查找到`Function.__proto__.__proto__`，也就是`Function.prototype.__proto__`，它等于`Object.prototype`，所以也返回true。
+
+### \_\_proto__ & constructor
+
+ES5写法
+
+    // 定义
+    function A() {}
+    A.hi = function () { console.log('hi') };
+    function B() {}
+    const a = new A();
+    B.prototype = a; // B继承A
+    const b = new B(); // 生成实例b
+
+    // 执行
+    b.hi(); // print 'hi' （继承到了A的方法）
+    b.constructor; // A （但构造函数指向A ）
+
+    // 原型链如下
+    b.__proto__; // a
+    b.__proto__.__proto__; // A.prototype
+    b.__proto__.__proto__.constructor; // A
+
+ES5写法，改变一下执行顺序
+	
+    // 定义
+    function A() {}
+    A.hi = function () { console.log('hi') };
+    function B() {}
+    const a = new A();
+    const b = new B(); // 在继承前生成生成实例b
+    B.prototype = a; // B继承A
+
+    // 执行
+    b.hi(); // throw error （没有继承到A的方法）
+    b.constructor; // B （构造函数正确）
+
+    // 原型链如下
+    b.__proto__; // 原B.prototype (即prototype被改写之前的那个对象)
+    b.__proto__.constructor; // B
+
+ES6 class
+
+    // 定义
+    class A { 
+      hi() {
+        console.log('hi');
+      }
+    };
+    class B extends A {};
+    const b = new B();
+
+    // 执行
+    b.hi(); // print 'hi' （继承到了A的方法）
+    b.constructor; // B （构造函数也正确）
+
+    // 原型链如下
+    b.__proto__ // B.prototype (已包含了constructor信息)
+    b.__proto__.constructor // B
 
 
 ## 类型转换
@@ -147,53 +241,9 @@ JS中能转换成整数的值都会用整数来存储，小数在底层用 IEEE-
 递归会产生多层函数调用栈，优化后只有一层
 
 	
-## 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回 `true` ？
 
-先理解一下 `instanceof` 这个操作符， 它会沿着前者的 `__proto__` 链寻找是否存在后者的 `prototype` ，若找到就返回 `true` ，若 `__proto__` 链遍历完还是没找到就返回 `false` 。
 
-然后还需要知道这几个点：所有函数的都是 `Function` 的实例，包括 `Function` 函数； `Function.prototype` 是 `Object` 的实例。
 
-现在来看下问题中的 `Object instanceof Function` ，因为所有函数的都是 `Function` 的实例，`Object`虽然是一个构造函数，但也是函数，所以 `Object.__proto__` 等于 `Function.prototype` ，返回结果 `true` 。
-
-再看 `Function instanceof Object` ，`Function`也是一个函数，它的原型（`Function.__proto__`）是 `Function.prototype` ,   `Function.prototype.__proto__` 是 `Object.prototype`，即 `Function.__proto__.__proto__ === Object.prototype` ，所以也返回 `true` 。
-
-## \__proto__ & constructor
-
-	function A () {};
-	function B () {};
-	const a = new A();
-	B.prototype = a;
-	const b = new B();
-
-	b.constructor; // A
-
-	b.__proto__; // a
-	b.__proto__.__proto__; // A.prototype
-	b.__proto__.__proto__.constructor; // A
-
-改变执行顺序
-	
-	function A () {};
-	function B () {};
-	const a = new A();
-	const b = new B();
-	B.prototype = a;
-
-	b.constructor; // B
-
-	b.__proto__; // B.prototype (被改写之前的那个prototype)
-	b.__proto__.constructor; // B
-
-ES6 class
-
-	class A {};
-	class B extends A {};
-	const b = new B();
-
-	b.constructor; // B
-
-	b.__proto__ // B.prototype (已包含了constructor信息)
-	b.__proto__.constructor // B
 	
 
 
