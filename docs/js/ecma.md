@@ -89,8 +89,6 @@ ES6 class（比起ES5写法，少了些容易让人困惑的地方）
     b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个对象）
     b.__proto__.__proto__ // A.prototype
 
-### class extends 写法
-
 ### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true？
 
 首先理解一下`instanceof`这个操作符，它会沿着前者的原型链（`__proto__`链）寻找是否满足与后者`prototype`相同的祖先，若找到就返回true，若一直到`__proto__`链遍历完还是没找到就返回false。
@@ -115,36 +113,33 @@ ES6 class（比起ES5写法，少了些容易让人困惑的地方）
 
 由知识2我们知道，`Function`是构造函数`Function`的实例，所以根据知识1知道`Function.__proto__`等于`Function.prototype`；结合知识1和3，知道`Function.prototype.__proto__`等于`Object.prototype`。当沿着`Function`原型链查找到`Function.__proto__.__proto__`，也就是`Function.prototype.__proto__`，它等于`Object.prototype`，所以也返回true。
 
-
-
-
 ## 类型转换
 
-#### 数字转字符串
+### 数字转字符串
 
     number + '';
     number.toString();
     String(number);
 
-#### 字符串转数字
+### 字符串转数字
 
     +string;
     Number.parseFloat(string);
     Number(string);
 
-#### (1).toString()
+### 对于基本类型的值调用方法（比如`'asd'.indexOf('s')`）
 
-基本类型在读取模式下会被包装为对应的对象，比如
+基本类型在读取模式下会被先包装为对应的对象再执行，比如
 
-    (1).toString(); // 等同于new Number(1).toString()
+    'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
 
-写入模式则无效
+而写入模式则无效
 
-    const num = 1;
-    num.prop = 2;
-    num.prop; // undefined
+    const str = 'asd';
+    str.prop = 'f';
+    str.prop; // undefined
  
-#### 隐式转换
+### 隐式转换
 
 对需要转换的值`foo`调用其内部方法`[Symbol.toPrimitive](hint)`，根据上下文决定hint取值（string/number/default）
 
@@ -154,18 +149,61 @@ string: try `foo.toString()` => try `foo.valueOf()` => throw error
 
 number/default: try `foo.valueOf()` => try `foo.String()` => throw error
 
+搬运一个MDN上的例子：
+
+    // An object without Symbol.toPrimitive property.
+    var obj1 = {};
+    console.log(+obj1);     // NaN
+    console.log(`${obj1}`); // "[object Object]"
+    console.log(obj1 + ''); // "[object Object]"
+
+    // An object with Symbol.toPrimitive property.
+    var obj2 = {
+      [Symbol.toPrimitive](hint) {
+        if (hint == 'number') {
+          return 10;
+        }
+        if (hint == 'string') {
+          return 'hello';
+        }
+        return true;
+      }
+    };
+    console.log(+obj2);     // 10        -- hint is "number"
+    console.log(`${obj2}`); // "hello"   -- hint is "string"
+    console.log(obj2 + ''); // "true"    -- hint is "default"
+
+## Number
+
+### 数字精度问题
+
+JS中能转换成整数的值都会用整数来存储，小数在底层用 IEEE-754 双精度（64位）浮点数来存储。
+
+64位：1符号位 + 11指数位 + 52有效数字位
+
+小数x转化成二进制是用 x = 1/2\*a + 1/4\*b + 1/8\*c + 1/16\*d ... 中的abcd等因子来表示。
+
+比如0.1 = 1/2\*0 + 1/4\*0 + 1/8\*0 + 1/16\*1 + 1/32\*1 + 1/64\*0  ... ，则0.1的二进制表示为00011001100...，去掉头部的0从1开始（头部的0可以在指数位表示），则有效数字部分为11001100...
+
+因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字
+
 ## Object
 
-#### 禁止修改属性
+### 禁止修改属性
 
-Object.freeze
+Object.freeze(obj)（Object.seal：同样禁止增删属性，但允许修改现有属性）
 
-defineProperty writable
+Reflect.defineProperty(obj, 'prop', { writable: false })
 
-defineProperty set
+Reflect.defineProperty(obj, 'prop', { set() {} })
 
+## 异步
 
-## Promise错误处理
+### Promise
+
+#### Promise.all/Promise.race
+
+#### Promise错误处理
 
 能否 try { new Promise(..); } catch() {} ？ 为何
 
@@ -175,15 +213,49 @@ new Promise(...).then(data => {}, error => {})
 
 new Promise(...).then(date => {}).catch(error => {})
 
-## async/await
+### async/await
 
 async(); // return promise
 
 await promise; // or await value;
 
-## setTimeout & setInterval 处理循环
+### setTimeout & setInterval 处理循环
 
 setInterval可能连续多次触发（定时推送，不管内部函数是否执行完毕，因为JS引擎和定时器是两个不同线程各自执行）
+
+## 手写函数
+
+Array.prototype.reduce
+
+    Array.prototype.reduce = function(fn, initial) {
+      const arr = this;
+      if (initial === undefined) {
+        initial = arr.shift();
+      }
+      let total = initial;
+      for (let i = 0; i < arr.length; i++) {
+        total = fn(total, arr[i], i, arr);
+      }
+      return total;
+    }
+
+String.prototype.indexOf
+
+    // 
+
+Function.prototype.bind
+
+    Function.prototype.bind = function(scope, ...bindArgs) {
+      return (...args) => this.call(scope, ...bindArgs, ...args);
+    }
+
+## 排序
+
+方法 | 平均 | 最快 | 最慢 | 空间
+:- | :-: | :-: | :-: | :-:
+快排 | NlogN | N2 | NlogN | 1
+冒泡 | N2 | N2 | N | 1
+插入 | N2 | N2 | N | 1
 
 ## import
 
@@ -199,52 +271,86 @@ setInterval可能连续多次触发（定时推送，不管内部函数是否执
 
     b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 
-详见 工程化/模块化
-
-## 数字精度
-
-JS中能转换成整数的值都会用整数来存储，小数在底层用 IEEE-754 双精度（64位）浮点数来存储。
-
-64位：1符号位+11指数位+52有效数字位
-
-小数x转化成二进制是用 x = 1/2\*a + 1/4\*b + 1/8\*c + 1/16\*d ... 中的abcd等因子来表示。
-
-比如0.1 = 1/2\*0 + 1/4\*0 + 1/8\*0 + 1/16\*1 + 1/32\*1 + 1/64\*0  ... ，则0.1的二进制表示为00011001100...，去掉头部的0从1开始（头部的0可以在指数位表示），则有效数字部分为11001100...
-
-因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字
-
-
-## 手写函数
-
-实现Array.prototype.reduce/String.prototype.indexOf/Function.prototype.bind
-
-## 排序
-
-方法 | 平均 | 最快 | 最慢 | 空间
-:- | :-: | :-: | :-: | :-:
-快排 | NlogN | N2 | NlogN | 1
-冒泡 | N2 | N2 | N | 1
-插入 | N2 | N2 | N | 1
+> 详见本书的【工程化/模块化】
 
 ## 尾调用优化
 
-最后return一个函数，不依赖其他变量
+定义：函数的return结果是调用一个函数。
 
-递归会产生多层函数调用栈，优化后只有一层
+正常情况下函数内调用函数，在内存会有一个调用栈，来保存下各个函数的调用帧。
 
+比如：
+
+    function A() {
+      return B(params) + num;
+    }
+
+当执行到return，函数A还需要对函数B的执行结果操作才能得到最终结果，因此在调用栈中会有[A,B]，等到函数B得到结果，B从栈中pop出来，才会继续函数A的计算。如果函数B中再调用其他函数，那么其调用栈会更深。
+
+如果改成
+
+    function A() {
+      return B(params, num);
+    }
+
+那么执行到return，去执行函数B时，调用栈中可以直接去掉函数A，只保留最后一层的函数B，函数B的调用结果可以当作整个调用栈的执行结果。
+
+此特性一般可以在递归中作为优化手段，把普通递归改为尾调用（尾递归），可以节省大量内存。
+
+斐波那契的例子
+
+    function fib(n) {
+      if (n === 1) return 1;
+      if (n === 2) return 2;
+      return fib(n - 1) + fib(n - 2);
+    }
+    // 普通递归：fib(5) 展开为 fib(4) + fib(3) 展开为 fib(3) + fib(2) + ... 展开为 fib(2) + fib(1) + ...
+    // 函数会一直展开，调用栈不断往上堆叠
+
+    function fib(n, result = 1, total = 1) {
+      if (n === 1) return result;
+      return fib(n - 1, result + total, result);
+    }
+
+    // 尾递归：fib(5) 替换为 fib(4, 2, 1) 替换为 fib(3, 3, 2) 替换为 fib(2, 5, 3) 替换为 fib(1, 8, 5)
+    // 始终只需要保存最后一层调用帧
+
+尾调用优化在支持ES6的环境中（严格模式下）默认开启。
+
+## WeakMap的弱引用
+
+	const map = new Map();
+	let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+	map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
 	
-
-
-
+    map.get(el); // 读取#title的信息
 	
+	el = null; // el变量清空
+	
+以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
 
+如果用WeakMap写法：
 
-## with的隐式调用
+	const weakMap = new WeakMap();
+	let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+	weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
+	
+    weakMap.get(el); // 读取#title的信息
+	
+	el = null; // el变量清空
+	
+WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
+
+这也是WeakMap不可遍历的一个原因，因为它内部的值可能随时会被GC清除。
+
+## with会隐式调用in操作
 	
 	const proxy = new Proxy({}, {
 	  get () { return 1; }
 	});
+
 	proxy.a; // 1
+
 	with (proxy) {
 	  a; // TypeError: a is not defined
 	}
@@ -253,34 +359,13 @@ JS中能转换成整数的值都会用整数来存储，小数在底层用 IEEE-
 	  has (key) { console.log(`has ${key} ?`); return true; },
 	  get () { return 1; }
 	});
+
 	proxy2.a; // 1
+
 	with (proxy2) {
 	  a; // 打印出'has a ?'并且返回 1
 	}
 	
-`with(source){prop}`被调用时，解析器会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
+`with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
 	
 	
-## WeakMap的弱引用
-
-	const map = new Map();
-	let el = document.querySelector('#title'); // el变量引用title这个DOM元素
-	map.set(el, 'some info'); // 给title加上自定义信息，map对title再次引用
-	
-	// some code...
-	
-	el = null; // el变量清空
-	
-以上例子里，垃圾回收机制（GC）会发现，虽然title节点已经不再被el变量引用，但是依然被活动的map引用着，所以title节点还会被维持在内存中不会被释放。如果用WeakMap修改：
-
-	const weakMap = new WeakMap();
-	let el = document.querySelector('#title'); // el变量引用title这个DOM元素
-	weakMap.set(el, 'some info'); // 给title加上自定义信息，weakMap对title是弱引用
-	
-	// some code...
-	
-	el = null; // el变量清空
-	
-使用了WeakMap的例子里，GC触发时会认为title节点已经没有被任何活动对象引用，可以清除。
-
-这也是WeakMap不可遍历的原因，因为它内部的值可能随时会被GC清除。
