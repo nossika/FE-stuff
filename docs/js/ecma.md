@@ -1,14 +1,5 @@
 # JS（ECMA）
 
-## 数组方法（Array.prototype）
-
-修改原数组：push / pop / shift / unshift / splice / sort / reverse
-
-返回新数组：slice / map / filter / concat
-
-数组遍历相关：forEach / map / filter / some / every / reduce / indexOf / find / includes
-
-
 ## 原型/继承
 
 ### 原型、实例、构造函数
@@ -175,17 +166,34 @@ number/default: try `foo.valueOf()` => try `foo.String()` => throw error
 
 ## Number
 
-### 数字精度问题
+### 数字精度
 
-JS中能转换成整数的值都会用整数来存储，小数在底层用 IEEE-754 双精度（64位）浮点数来存储。
+    0.1; // 0.1
+    0.2; // 0.2
+    0.1 + 0.2; // 0.30000000000000004
 
-64位：1符号位 + 11指数位 + 52有效数字位
+JS中能转换成整数的值都会用整数来存储，而小数在底层则用**IEEE-754标准**的双精度（64位）浮点数来存储。所以此问题不仅出现于JS，而是使用这个标准的所有语言。
 
-小数x转化成二进制是用 x = 1/2\*a + 1/4\*b + 1/8\*c + 1/16\*d ... 中的abcd等因子来表示。
+64位的组成：1符号位 + 11指数位 + 52有效数字位。
 
-比如0.1 = 1/2\*0 + 1/4\*0 + 1/8\*0 + 1/16\*1 + 1/32\*1 + 1/64\*0  ... ，则0.1的二进制表示为00011001100...，去掉头部的0从1开始（头部的0可以在指数位表示），则有效数字部分为11001100...
+小数x转化成二进制的过程是：把x分解成`x = 1/2*a + 1/4*b + 1/8*c + 1/16*d + ...`，用其中的abcd等因子来作为二进制数。
 
-因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字
+以小数0.1为例，`0.1 = 1/2*0 + 1/4*0 + 1/8*0 + 1/16*1 + 1/32*1 + 1/64*0 + ...` ，则0.1的二进制表示为00011001100...，去掉头部的0，从1开始算（头部的0有多少可以用指数表示），则有效数字为11001100...
+
+因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字（有效数字有限）。
+
+回到最开始的问题，因为0.1和0.2本身就不是精确的0.1和0.2（他们自身正确显示因为在某个精度舍入了，看起来像是对的数字），所以他们相加的结果也不是精确的0.3。
+
+
+## Array
+
+### 数组方法（Array.prototype）
+
+修改原数组：push / pop / shift / unshift / splice / sort / reverse
+
+返回新数组：slice / map / filter / concat
+
+数组遍历相关：forEach / map / filter / some / every / reduce / indexOf / find / includes
 
 ## Object
 
@@ -197,7 +205,64 @@ Reflect.defineProperty(obj, 'prop', { writable: false })
 
 Reflect.defineProperty(obj, 'prop', { set() {} })
 
-## 异步
+## 经典函数实现
+
+### Array.prototype.reduce
+
+    Array.prototype.reduce = function(fn, initial) {
+      const arr = this;
+      initial = initial === undefined ? arr.shift() : initial;
+      let total = initial;
+      for (let i = 0; i < arr.length; i++) {
+        total = fn(total, arr[i], i, arr);
+      }
+      return total;
+    }
+
+### Function.prototype.bind
+
+    Function.prototype.bind = function(scope) {
+      const fn = this;
+      const bindArgs = [].slice.call(arguments, 1);
+      return function() {
+        const args = [].slice.call(arguments);
+        return fn.apply(scope, bindArgs.concat(args));
+      };
+    }
+
+    // or
+
+    Function.prototype.bind = function(scope, ...bindArgs) {
+      return (...args) => this.call(scope, ...bindArgs, ...args);
+    }
+
+### String.prototype.indexOf
+
+    String.prototype.indexOf = function(match, startIndex) {
+      if (match === '') return startIndex || 0;
+      const str = this;
+      strLoop: for (let i = startIndex || 0; i < str.length; i++) {
+        if (str[i] === match[0]) {
+          matchLoop: for (let j = 1; j < match.length; j++) {
+            if (str[i + j] !== match[j]) {
+              break strLoop;
+            }
+          }
+          return i;
+        }
+      }
+      return -1;
+    }
+
+## 排序
+
+方法 | 平均 | 最快 | 最慢 | 空间
+:- | :-: | :-: | :-: | :-:
+快排 | NlogN | N2 | NlogN | 1
+冒泡 | N2 | N2 | N | 1
+插入 | N2 | N2 | N | 1
+
+## 异步处理
 
 ### Promise
 
@@ -223,51 +288,21 @@ await promise; // or await value;
 
 setInterval可能连续多次触发（定时推送，不管内部函数是否执行完毕，因为JS引擎和定时器是两个不同线程各自执行）
 
-## 手写函数
+## 模块化（import）
 
-Array.prototype.reduce
+在ES6之前，JS在语言层面并没有模块相关的规范，CommonJS和AMD是社区上较为主流的模块方案。
 
-    Array.prototype.reduce = function(fn, initial) {
-      const arr = this;
-      if (initial === undefined) {
-        initial = arr.shift();
-      }
-      let total = initial;
-      for (let i = 0; i < arr.length; i++) {
-        total = fn(total, arr[i], i, arr);
-      }
-      return total;
-    }
+静态导入（ES6标准）：
 
-String.prototype.indexOf
+    import a from './module-a';
 
-    // 
+按相关标准，静态导入是会作用于编译阶段，在代码运行之前，所以import不能被包裹在if代码块内
 
-Function.prototype.bind
+动态导入（目前还处于提案阶段）：
 
-    Function.prototype.bind = function(scope, ...bindArgs) {
-      return (...args) => this.call(scope, ...bindArgs, ...args);
-    }
+作用于运行阶段，所以import后的路径可以是拼接的字符串
 
-## 排序
-
-方法 | 平均 | 最快 | 最慢 | 空间
-:- | :-: | :-: | :-: | :-:
-快排 | NlogN | N2 | NlogN | 1
-冒泡 | N2 | N2 | N | 1
-插入 | N2 | N2 | N | 1
-
-## import
-
-静态导入
-
-    import a './module-a';
-
-按标准，静态导入是会作用于编译阶段，在代码运行之前，所以import不能被包裹在if代码块内
-
-动态导入
-
-    const b = import('./module-b'); // 得到promise
+    const b = import('./module-b'); // 得到一个promise
 
     b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 
