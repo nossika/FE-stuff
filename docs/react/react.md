@@ -75,7 +75,8 @@ transaction模型,batchedUpdates(ReactDOM.unstable_batchedUpdates)
 因为渲染时递归判断元素是否为简单值（作为text节点渲染）？是否为ReactElement实例（作为原生DOM或者组件渲染）？是否为数组（是的话调用其`Symbol.iterator`得到其子集，继续对子集元素递归以上步骤）？都为否的话则无法渲染。
 `{a: 1}`在immutable化后，是一个布署了iterator接口的Map，遍历结构类似`[["a", 1]]`，所以可以渲染成文本节点`a` 和`1`；而Object类型的`{a: 1}`则无法满足以上条件。
 
-	
+
+
 
 ### React中的setState异步
 
@@ -167,4 +168,33 @@ transaction模型,batchedUpdates(ReactDOM.unstable_batchedUpdates)
 这样就回到了大家熟悉的结果。
 
 顺带一提，这种对函数加层包装使其处于特殊环境中执行的做法，在vue中也有运用，比如vuex中的_withCommit，用于判断state的修改是来自mutation还是外部直接修改。
+
+### React中的事件合成
+
+		class App extends React.Component {
+			innerClick = e => console.log('react inner');
+			outerClick = e => console.log('react outer');
+			componentDidMount() {
+				document
+					.querySelector('#outer')
+					.addEventListener('click', e => console.log('native outer'));
+
+				window.addEventListener('click', e => console.log('native window'));
+			}
+			render() {
+				return (
+					<div id="outer" onClick={this.outerClick}>
+						<div id="inner" onClick={this.innerClick}>
+							click me
+						</div>
+					</div>
+				);
+			}
+		}
+
+		// print 'native outer' -> 'react inner' -> 'react outer' -> 'native window'
+
+React在真实的document节点监听真实click事件，真实事件冒泡到document时，React按捕获(外节点到内节点)到冒泡(内节点到外节点)的顺序，收集节点上注册的click回调进队列，然后依次调用（传递的event参数是react合成后的对象）队列内的回调，完成click事件处理。
+
+不能冒泡的事件(如focus)，可以使用对应的可冒泡事件(如focusin)来监听document。
 

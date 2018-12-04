@@ -306,7 +306,7 @@ setInterval可能连续多次触发（定时推送，不管内部函数是否执
 
     b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 
-> 详见本书的【工程化/模块化】
+> 详见【工程化/模块化】
 
 ## 尾调用优化
 

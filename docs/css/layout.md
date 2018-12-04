@@ -25,5 +25,5 @@ BFC：overflow: hidden / float: left / display: inline-block
 
 #### gpu加速
 
-详见 web/浏览器渲染
+> 详见【web/浏览器渲染】
 
