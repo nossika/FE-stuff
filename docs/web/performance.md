@@ -12,6 +12,8 @@ dns：cdn
 
 业务代码：结合框架特性
 
+长列表：分段加载（避免单线程阻塞）、只可视区域数据（避免建立多余dom）
+
 http2
 
 window.performance：measure、mark

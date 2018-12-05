@@ -205,6 +205,10 @@ Reflect.defineProperty(obj, 'prop', { writable: false })
 
 Reflect.defineProperty(obj, 'prop', { set() {} })
 
+## 作用域
+
+### 闭包
+
 ## 经典函数实现
 
 ### Array.prototype.reduce

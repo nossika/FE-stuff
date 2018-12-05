@@ -12,12 +12,3 @@
 * 渲染（DOM树，CSS树，render树）
 js解析会中断渲染（GUI渲染线程与js线程互斥）
 
-### 源码阅读
-
-main/module
-
-package.json scripts
-
-main entry
-
-submodule

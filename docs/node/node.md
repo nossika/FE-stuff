@@ -10,6 +10,12 @@ fork：特殊的spawn（node），IPC管道，可用process.send(data)和process
  
 ### package.json
 
+#### 字段含义
+
+对外入口：main/module
+
+运行：scripts
+
 #### NPM install
 `npm i`：安装pkg所有dependencies，devdependencies
 `npm i [module] [-S/-D]`：安装[module]到此目录下的node_modules并记录到pkg

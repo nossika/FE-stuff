@@ -5,17 +5,17 @@
   - [JS(DOM/BOM)](js/dom.md)
   - [事件循环/引擎相关](js/engine.md)
 
-- CSS
-
-  - [布局](css/layout.md)
-  - [移动端](css/mobile.md)
-  - [语法](css/grammar.md)
-
 - HTML
 
   - [HTML](html/html.md)
   - [Blob](html/blob.md)
   - [canvas](html/canvas.md)
+
+- CSS
+
+  - [布局](css/layout.md)
+  - [移动端](css/mobile.md)
+  - [语法](css/grammar.md)
 
 - NodeJS
 
@@ -38,6 +38,10 @@
 - Vue
 
   - [Vue](vue/vue.md)
+
+- 算法
+
+  - [算法](algorithm/algorithm.md)
 
 - 工程化
 
