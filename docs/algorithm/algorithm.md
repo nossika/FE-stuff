@@ -21,18 +21,18 @@
       // 在每个arr剩余的第一项中进行对比，最小的取出放入result，并且该数组idx+1表示该项已被取出
       for (let i = 0; i < result.length; i++) {
         let min = Infinity;
-        let minIdx = 0;
+        let minArr = 0;
 
         for (let j = 0; j < arrs.length; j++) {
           let num = arrs[j][idxArr[j]];
 
           if (min > num) {
             min = num;
-            minIdx = j;
+            minArr = j;
           }
         }
 
-        idxArr[minIdx] = idxArr[minIdx] + 1;
+        idxArr[minArr] = idxArr[minArr] + 1;
         result[i] = min;
       }
 
