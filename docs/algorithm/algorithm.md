@@ -38,14 +38,12 @@
     // todo
     // 原地快排 时间复杂度O(N*logN)，空间复杂度O(1)
 
-
-    const arr = [5,11,23,43,72,8,34,99,4,65,54];
-    
-    function quickSort(arr, begin = 0, end = arr.length - 1) {
+    function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
       if (end - begin <= 1) return;
       const benchmark = arr[begin];
-      let i = begin;
+      let i = begin + 1;
       let j = end;
+      // 每轮循环都把一个基准数和其左右数组摆对，再对左右数组递归
       while (i < j) {
         while (arr[i] < benchmark) {
           i++;
@@ -57,13 +55,15 @@
           [arr[i], arr[j]] = [arr[j], arr[i]];
         }
       }
+      if (arr[i] > benchmark) {
+        i = i - 1;
+      }
       [arr[begin], arr[i]] = [arr[i], arr[begin]];
-      console.log(i)
-      quickSort(begin, i);
-      quickSort(i + 1, end);
+      betterQuickSort(arr, begin, i - 1);
+      betterQuickSort(arr, i + 1, end);
     }
 
-    quickSort(arr);
+    betterQuickSort(arr);
 
 
 ## 多个有序数组合并
