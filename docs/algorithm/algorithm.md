@@ -35,7 +35,6 @@
 
     quickSort(arr);
     
-    // todo
     // 原地快排 时间复杂度O(N*logN)，空间复杂度O(1)
 
     function betterQuickSort(arr, begin = 0, end = arr.length - 1) {

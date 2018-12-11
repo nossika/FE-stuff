@@ -1,6 +1,6 @@
 # 语法
 
-### CSS变量
+## CSS变量
 
 变量定义和使用
 
@@ -18,10 +18,21 @@
 
 元素使用的css变量如果在多个选择器中定义，遵从css选择器优先级规则，取对该元素优先级最高的选择器中的定义
 
-### sass/less
+## 预处理器（如sass/less）
 
+### sass
 
-#### sass
+  嵌套
+
+    parent {
+      background: #fff;
+      &.red {
+        background: red;
+      }
+      child {
+        background: #eee;
+      }
+    }
 
 变量定义和使用
 
@@ -42,22 +53,18 @@
       @include rounded(6px);
     }
 
-嵌套
-
-    parent {
-      background: #fff;
-      &.red {
-        background: red;
-      }
-      child {
-        background: #eee;
-      }
-    }
-
-    
-
 模块化
 
     @import "./path/to/common.scss"
+
+## 后处理器（如PostCSS）
+
+### 和预处理器区别
+
+预处理器：高级语法css -> 普通css -> 发生产
+
+后处理器：普通css -> 拓展后的普通css -> 发生产
+
+两者结合使用：高级语法css -> 普通css -> 拓展后的普通css -> 发生产
 
 

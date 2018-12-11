@@ -258,13 +258,7 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
       return -1;
     }
 
-## 排序
 
-方法 | 平均 | 最快 | 最慢 | 空间
-:- | :-: | :-: | :-: | :-:
-快排 | NlogN | N2 | NlogN | 1
-冒泡 | N2 | N2 | N | 1
-插入 | N2 | N2 | N | 1
 
 ## 异步处理
 
@@ -274,23 +268,21 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
 
 #### Promise错误处理
 
-能否 try { new Promise(..); } catch() {} ？ 为何
+    try { new Promise(..); } catch() {} 
 
-对比
+无法捕获promise内部错误。
 
-new Promise(...).then(data => {}, error => {})
+    new Promise(...).then(handler, error => {})
 
-new Promise(...).then(date => {}).catch(error => {})
+    new Promise(...).then(handler).catch(error => {})
+
+两者区别在于前者无法捕获handler函数内发生的错误，后者可以。
 
 ### async/await
 
-async(); // return promise
+async(); // promise
 
-await promise; // or await value;
-
-### setTimeout & setInterval 处理循环
-
-setInterval可能连续多次触发（定时推送，不管内部函数是否执行完毕，因为JS引擎和定时器是两个不同线程各自执行）
+await promise; // --- or await number/string/...;
 
 ## 模块化（import）
 
@@ -358,13 +350,13 @@ setInterval可能连续多次触发（定时推送，不管内部函数是否执
 
 ## WeakMap的弱引用
 
-	const map = new Map();
-	let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-	map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
-	
+    const map = new Map();
+    let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+    map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
+
     map.get(el); // 读取#title的信息
-	
-	el = null; // el变量清空
+
+    el = null; // el变量清空
 	
 以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
 
@@ -373,9 +365,9 @@ setInterval可能连续多次触发（定时推送，不管内部函数是否执
 	const weakMap = new WeakMap();
 	let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
 	weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
-	
-    weakMap.get(el); // 读取#title的信息
-	
+
+	weakMap.get(el); // 读取#title的信息
+  
 	el = null; // el变量清空
 	
 WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
@@ -384,26 +376,26 @@ WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有�
 
 ## with会隐式调用in操作
 	
-	const proxy = new Proxy({}, {
-	  get () { return 1; }
-	});
+    const proxy = new Proxy({}, {
+      get () { return 1; }
+    });
 
-	proxy.a; // 1
+    proxy.a; // 1
 
-	with (proxy) {
-	  a; // TypeError: a is not defined
-	}
-	
-	const proxy2 = new Proxy({}, {
-	  has (key) { console.log(`has ${key} ?`); return true; },
-	  get () { return 1; }
-	});
+    with (proxy) {
+      a; // TypeError: a is not defined
+    }
 
-	proxy2.a; // 1
+    const proxy2 = new Proxy({}, {
+      has (key) { console.log(`has ${key} ?`); return true; },
+      get () { return 1; }
+    });
 
-	with (proxy2) {
-	  a; // 打印出'has a ?'并且返回 1
-	}
+    proxy2.a; // 1
+
+    with (proxy2) {
+     a; // 打印出'has a ?'并且返回 1
+    }
 	
 `with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
 	
