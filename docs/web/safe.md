@@ -20,5 +20,5 @@ dns劫持、页面内容篡改
 
 解决方案：https
 
-> 详见【web/web协议/https】
+> 详见[【web/web协议/https】](/web/protocol?id=https)
 

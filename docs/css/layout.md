@@ -42,5 +42,5 @@ dpr（window.devicePixelRatio）+ `<mete name="viewport"/>`(initial-scale)
 
 #### gpu加速
 
-> 详见【web/浏览器渲染】
+> 详见[【web/浏览器渲染】](/web/browser?id=gpu加速)
 

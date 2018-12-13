@@ -262,6 +262,8 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
 
 ## 异步处理
 
+> 此处只谈语法使用，原理相关详见[【JS/事件循环】](/js/engine?id=事件循环)
+
 ### Promise
 
 #### Promise.all/Promise.race
@@ -280,9 +282,9 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
 
 ### async/await
 
-async(); // promise
+    asyncFn(); // 返回一个promise，其resolve时机等于asyncFn内部代码（包括其await）执行完毕时
 
-await promise; // --- or await number/string/...;
+    await promise; // 或者await一个非promise变量，等同于执行await Promise.resolve(val)
 
 ## 模块化（import）
 
@@ -302,7 +304,7 @@ await promise; // --- or await number/string/...;
 
     b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 
-> 详见【工程化/模块化】
+> 详见[【工程化/模块化】](/engineer/module?id=模块化)
 
 ## 尾调用优化
 
@@ -367,7 +369,7 @@ await promise; // --- or await number/string/...;
 	weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
 
 	weakMap.get(el); // 读取#title的信息
-  
+
 	el = null; // el变量清空
 	
 WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
