@@ -49,13 +49,10 @@
   - [构建/集成](engineer/build.md)
   - [测试](engineer/test.md)
 
-- 运维
-
-  - [工具](ops/tools.md)
-
 - 其他
 
   - [PWA](others/pwa.md)
   - [GraphQL](others/graphql.md)
   - [RxJS](others/rxjs.md)
+  - [运维](others/ops.md)
 
