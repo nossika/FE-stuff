@@ -2,4 +2,6 @@
 
 开发中...
 
-[目录](_sidebar.md)
+[online版](https://nossika.com/being-a-web-developer)
+
+[本地目录](_sidebar.md)
