@@ -2,6 +2,6 @@
 
 开发中...
 
-[online版](https://nossika.com/being-a-web-developer)
+[online版](https://nossika.com/being-a-web-developer/)
 
-[本地目录](_sidebar.md)
+<!-- [github.io](https://nossika.github.io/being-a-web-developer/) -->
