@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "start": "node_modules/docsify/lib/docsify.js serve"
+    "start": "node_modules/.bin/docsify serve"
   },
   "repository": {
     "type": "git",
