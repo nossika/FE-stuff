@@ -37,7 +37,13 @@
 
 - Vue
 
-  - [Vue](vue/vue.md)
+  - [组件通信](vue/communication.md)
+  - [生命周期](vue/lifecycle.md)
+  - [API](vue/api.md)
+  - [原理相关](vue/principle.md)
+  - [VueX](vue/vuex.md)
+  - [SSR](vue/ssr.md)
+  - [对比React](vue/diff.md)
 
 - 算法
 
