@@ -2,6 +2,6 @@
 
 开发中...
 
-[online版](https://nossika.com/being-a-web-developer/)
+[online版](https://nossika.com/fe/)
 
 <!-- [github.io](https://nossika.github.io/being-a-web-developer/) -->
