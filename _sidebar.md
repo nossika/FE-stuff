@@ -20,6 +20,7 @@
 - NodeJS
 
   - [NodeJS](node/node.md)
+  - [NPM](node/npm.md)
 
 - WEB
 
@@ -33,7 +34,11 @@
 
 - React
 
-  - [React](react/react.md)
+  - [组件通信](react/communication.md)
+  - [生命周期](react/lifecycle.md)
+  - [API](react/api.md)
+  - [原理相关](react/principle.md)
+  - [第三方库](react/third-party.md)
 
 - Vue
 
