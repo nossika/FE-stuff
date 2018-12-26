@@ -5,17 +5,10 @@
   - [JS(DOM/BOM)](js/dom.md)
   - [事件循环/引擎相关](js/engine.md)
 
-- HTML
+- HTML/CSS
 
-  - [HTML](html/html.md)
-  - [Blob](html/blob.md)
-  - [canvas](html/canvas.md)
-
-- CSS
-
-  - [布局](css/layout.md)
-  - [移动端](css/mobile.md)
-  - [工具](css/tools.md)
+  - [HTML](htmlcss/html.md)
+  - [CSS](htmlcss/css.md)
 
 - NodeJS
 

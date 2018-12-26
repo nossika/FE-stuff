@@ -1,4 +1,25 @@
-# blob
+
+# HTML
+
+## CSP
+
+## script
+
+integrity
+
+defer、async
+
+crossorigin
+
+## link
+
+## input
+
+有哪些attribute
+
+## label作用
+
+## blob
 
 ### blob 、dataURL
 
@@ -15,3 +36,9 @@
 用编码（比如base64字符串）显式表示文件
 
 `new FileReader().readAsDataURL`
+
+## canvas
+
+### canvas
+
+### webgl

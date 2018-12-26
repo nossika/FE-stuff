@@ -1,35 +1,40 @@
 
-# JS（DOM/BOM）
 
-### addEventListener参数
 
-冒泡、捕获，
+## addEventListener
+
+捕获、冒泡
 
 阻止冒泡
 
-### attribute操作，class操作
+## attribute操作，class操作
 
+## NodeList vs HTMLCollection
 
-### NodeList & HTMLCollection
+NodeList: Element.querySelectorAll('div') / Element.childNodes
 
-Node.childNodes & Node.children
+HTMLCollection: Element.getElementsByTagName('div') / Element.children
 
-HTMLCollection不同：只包含elementNode（无textNode）、动态更新、namedItem方法
+HTMLCollection的特性
 
-### CSSStyleDeclaration
+- 只包含elementNode（无textNode）
+- 动态更新，当页面的元素更新时，此集合也会自动同步
+- namedItem方法
+
+## CSSStyleDeclaration
 
 CSSStyleDeclaration.setProperty('--color', 'red')
 
-### repaint & reflow
+## repaint & reflow
 
-repaint: transform/visibility/background
+只触发repaint: transform/visibility/background
 
-### 判断元素是否在可视区域
+## 判断元素是否在可视区域
 
-1. el.getBoundingClientRect
-2. 计算坐标
+1. el.getBoundingClientRect直接返回相对可视区域的offset
+2. 结合页面scroll和元素相对页面的offset计算
 
-### 计算元素在页面上的坐标
+## 计算元素在页面上的坐标
 
     let top = 0, left = 0;
     while (el && el !== document) {
@@ -39,5 +44,5 @@ repaint: transform/visibility/background
     }
 
 
-### 区分pc/ios/android
+## 区分pc/ios/android
     
