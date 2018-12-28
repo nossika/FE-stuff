@@ -37,6 +37,26 @@
 - useEffect把“绑定事件”和“解绑事件”配对，而非去didMount绑定事件再去willUnmount解绑事件
 - 不使用this来引用当前实例，逻辑转移到useState内部实现，调用useState时记录外部环境，生成的set方法包含了对外部环境的引用，所以在调用set时能通知到对应组件更新
 
+## Lazy/Suspense
+
+    // version 16.6
+
+    // import()返回一个promise，加载完毕后将结果作为promise的resolve结果
+    const OtherComponent = React.lazy(() => import('./OtherComponent'));
+
+    // Suspense内有lazy组件在加载中时，隐藏children显示fallback内容，加载完毕后再显示children
+    function MyComponent() {
+      return (
+        <div>
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <OtherComponent />
+          </React.Suspense>
+        </div>
+      );
+    }
+    
+可以手动实现lazy和suspense组件：在lazy中抛出一个异常，此异常为一个promise，文件加载完毕后将内容作为promise的resolve结果；suspense层定义didCatch来捕获这个promise，默认用fallback内容展示，在promise.then中把内容修改为children。
+
 ## Context
 
     // version 16.3
