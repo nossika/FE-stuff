@@ -4,7 +4,7 @@
 
 任务分片，任务优先级，基于requestIdleCallback、requestAnimationFrame
 
-## React中的setState异步
+## setState的异步
 
 	
 	class Comp extends React.Component {
@@ -59,7 +59,7 @@
 
 修改后的代码state的结果变了，setState似乎变成了同步执行。
 
-这是因为组件初始化时，React对其内部的函数都进行了一层**包装**，变成 initialize => perform（你自己写的代码） => close 的形式，这个起止过程就是一个**transaction**。调用setState时如果发现正**处于transaction中**，它并不会立即修改state，而是推到一个缓存数组中，在close时一并执行，造成异步的效果。而如果把这段代码放到React组件外部就失去了transaction封装，从而使setState一执行就立即修改state。
+这是因为组件初始化时，React对其内部的函数都进行了一层**包装**，变成 initialize => perform（你自己写的代码） => ending 的形式，这个起止过程就是一个**transaction**。调用setState时如果发现正**处于transaction中**，它并不会立即修改state，而是推到一个缓存数组中，在ending时一并执行，造成异步的效果。而如果把这段代码放到React组件外部就失去了transaction封装，从而使setState一执行就立即修改state。
 
 可以通过Reace提供的batchedUpdates手动包装一个transaction
 
@@ -95,7 +95,7 @@
 
 顺带一提，这种对函数加层包装使其处于特殊环境中执行的做法，在vue中也有运用，比如vuex中的_withCommit，用于判断state的修改是来自mutation还是外部直接修改。
 
-## React中的事件合成
+## 事件合成
 
 		class App extends React.Component {
 			innerClick = e => console.log('react inner');
