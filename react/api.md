@@ -88,6 +88,8 @@ transaction模型，batchedUpdates(ReactDOM.unstable_batchedUpdates)
 
 详见[【react/原理相关】](/react/principle?id=setState的异步)
 
-## pureComponent
+## pureComponent/memo
 
 相当于在普通component的基础上，自动添加shouldUpdateComponent函数，该函数对当前props/nextProps以及当前state/nextState进行浅比较（比较对象的第一层），有改变就返回true，否则返回false跳过组件更新。
+
+memo和pureComponent是同样的用途，只不过memo是用于处理函数式组件。在一次更新中，如果组件树传递给这块组件的props未改变，则不去调用此函数，直接复用之前的结果。
