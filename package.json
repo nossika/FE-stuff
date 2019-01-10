@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "docsify": "^4.8.6",
-    "docsify-cli": "^4.3.0"
+    "docsify-cli": "^4.3.0",
+    "now": "^13.0.3"
   }
 }

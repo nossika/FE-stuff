@@ -1,18 +1,22 @@
 
 # 组件通信
 
-prop
+props
 
 emit
 
-bus、vuex等第三方数据管理库
+bus
 
 watch
 
 ref
 
+provide/inject
+
+vuex
+
 broadcast+dispatch（vue1）
 
-## 父调子
+## 父comp主动触发子comp函数
 
-ref、props+watch
+ref、父props+子watch

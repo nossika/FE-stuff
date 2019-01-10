@@ -1,6 +1,6 @@
 # 组件通信
 
-prop
+props
 
 ref
 
