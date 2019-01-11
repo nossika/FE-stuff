@@ -1,7 +1,7 @@
 
 # HTML
 
-## CSP
+
 
 ## script
 
@@ -18,6 +18,35 @@ crossorigin
 有哪些attribute
 
 ## label作用
+
+## CSP
+
+
+## web component
+
+在JS中向customElements注册组件
+
+    class RedText extends HTMLElement {
+      constructor() {
+        super();
+        const shadow = this.attachShadow({ mode: 'open' });
+        const container = document.createElement('div');
+        const style = document.createElement('style');
+        container.textContent = this.textContent;
+        style.textContent = `span { color: red }`;
+        shadow.appendChild(style);
+        shadow.appendChild(span);
+      }
+    }
+
+    customElements.define('red-text', RedText);
+
+在HTML中使用已注册组件
+
+    <div>
+      <red-text>hello world</red-text>
+    </div>
+
 
 ## blob
 
