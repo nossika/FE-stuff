@@ -22,6 +22,7 @@
   - [web协议](web/protocol.md)
   - [缓存](web/cache.md)
   - [浏览器渲染](web/browser.md)
+  - [跨域](web/crossorigin.md)
   - [安全](web/safe.md)
   - [性能](web/performance.md)
   - [加密](web/encode.md)
