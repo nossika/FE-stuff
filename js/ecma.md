@@ -23,14 +23,18 @@
 ES5写法
 
     // 定义
-    function A() { this.name = 'A' }
-    A.prototype.hi = function () { console.log('hi') };
+    function A() {
+      this.name = 'A' 
+    }
+    A.prototype.hi = function () {
+      console.log('hi') 
+    };
     function B() {}
     const a = new A();
     B.prototype = a; // B继承A
     const b = new B(); // 生成实例b
 
-    // 执行
+    // 测试
     b.hi(); // print 'hi' （继承到了A的方法）
     b.name; // A （也继承到了A中this定义的属性，但name属性是定义在a中，b通过原型链找到a，从而访问a.name）
     b.constructor; // A （但构造函数指向A ）
@@ -42,14 +46,18 @@ ES5写法
 ES5写法，改变一下执行顺序
 	
     // 定义
-    function A() { this.name = 'A' }
-    A.prototype.hi = function () { console.log('hi') };
+    function A() {
+      this.name = 'A' 
+    }
+    A.prototype.hi = function () {
+      console.log('hi') 
+    };
     function B() {}
     const a = new A();
     const b = new B(); // 在继承前生成生成实例b
     B.prototype = a; // B继承A
 
-    // 执行
+    // 测试
     b.hi(); // throw error （没有继承到A的方法）
     b.name; // undefined
     b.constructor; // B （构造函数正确）
@@ -71,7 +79,7 @@ ES6 class（比起ES5写法，少了些容易让人困惑的地方）
     class B extends A {};
     const b = new B();
 
-    // 执行
+    // 测试
     b.hi(); // print 'hi' （继承到了A的方法）
     b.name; // A （name直接定义在b上，即b.hasOwnProperty('name')为true）
     b.constructor; // B （构造函数也正确）
@@ -79,6 +87,19 @@ ES6 class（比起ES5写法，少了些容易让人困惑的地方）
     // 原型链如下
     b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个对象）
     b.__proto__.__proto__ // A.prototype
+
+create写法
+
+    Object.create(proto);
+
+### 对象属性遍历
+
+- Object.keys(obj) --- 返回obj实例上的**可枚举属性**名数组
+
+- Object.getOwnPropertyNames(obj) --- 返回obj实例上的**所有属性名**数组（除了Symbol属性，它们需要通过Object.getOwnPropertySymbols(obj)获取）
+
+- for (let prop in obj) { ... } --- 遍历obj实例以及**其原型链**上所有可枚举属性
+
 
 ### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true？
 
