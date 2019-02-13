@@ -11,6 +11,55 @@
 
 更新 virtual dom，snabbdom diff，patch
 
+## dom-diff
+
+代码分离了diff和patch的逻辑，先基于vnode进行diff，再根据diff结果进行实际的patch操作，patch在不同的终端上有不同实现，但diff是统一的逻辑。
+
+传统dom-diff的时间复杂度为O(n3)
+
+- 只在新老dom的同一层级的节点比较，且对每个节点只遍历一次。实际业务中很少有跨层级移动节点的情况。
+- 新老节点如果类型/key不同，直接当做新建节点处理，不会再继续往下比较。大部分情况下，不同节点有不同内部的结构。
+
+基于此两点优化算法后，dom-diff的时间复杂度为O(n)，牺牲对比的准确性来换取性能（有时即使原节点存在，也会因没匹配到而重新创建）。
+
+### 算法实现
+
+vue中的diff算法基于开源的snabbdom修改而来，实现如下：
+
+1. 在新老vnode列表的头尾部各设置1个指针，总共4个指针：newStart/newEnd/oldStart/oldEnd
+
+2. 对这4个指针指向的vnode进行如下对比
+
+  - 如果newStart和oldStart的vnode同类型，那么复用oldStart对应的节点，对其递归diff，然后newStart++、oldStart++
+
+  - 如果newEnd和oldEnd的vnode同类型，那么复用oldEnd对应的节点，对其递归diff，然后newEnd--、oldEnd--
+
+  - 如果newStart和oldEnd的vnode同类型，那么复用oldEnd对应的节点，并将其移动到oldStart对应的节点之前，对其递归diff，然后newStart++、oldEnd--
+
+  - 如果newEnd和oldStart的vnode同类型，那么复用oldStart对应的节点，并将其移动到oldEnd对应的节点之后，对其递归diff，然后newEnd--、oldStart++
+
+  - 如果newStart的vnode有key值且能找到到key对应的oldVnode，且同类型，那么复用oldVnode对应的节点，并将其移动到oldStart对应的节点之前，对其递归diff，然后newStart++
+
+  - 如果上述条件都不成立，那么直接根据newStart的vnode创建一个新节点，插入到oldStart对应的节点之前，然后newStart++
+
+3. 重复步骤2，直到oldStart > oldEnd 或者 newStart > newEnd 时，进入步骤4
+
+4. 此时有两种情况
+
+  - 如果是oldStart > oldEnd，那么将newStart和newEnd之间的vnode都创建为新节点，插入到oldEnd之前
+
+  - 如果是newStart > newEnd，那么将oldStart和oldEnd之间的节点都作为废弃节点删除掉
+
+5. 整个diff操作完成
+
+### 例子
+
+old: a b c d e
+
+new: b c d f 
+
+todo
+
 ## watcher和virtual dom结合
 
 vue1: 每条data一个watcher，绑定到data对应的dom，data变化直接更新到dom，粒度细
@@ -48,9 +97,7 @@ vue中的computed具有缓存和懒计算。
 
 当有依赖发生改动时，该computed的watcher.dirty会被设置为true，下次该computed被使用时就会被重新计算并缓存value，再把dirty重置为false。
 
-## dom diff
 
-基于snabbdom，头尾双指针，o(n)，牺牲对比精度换取时间(更贴近数组实际操作而非完全乱序)，有key的情况
 
 ## 源码结构
 
