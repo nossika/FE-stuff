@@ -46,3 +46,15 @@ go定义函数时可以指定参数是按引用还是按值（副本）传递
     ByVal(arr, num)
     ByRef(&arr, &num)
 
+## 一些知识点
+
+### new vs make
+
+make(Type):
+
+返回类型为Type的一个初始值，适用于 slices  /  maps / channels 类型的初始化。
+
+new(Type):
+
+分配类型为Type一片新内存，返回此内存的指针，一般不直接使用new，用`a := &Type{}`即可自动完成内存分配和初始化。
+
