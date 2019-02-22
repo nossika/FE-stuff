@@ -202,8 +202,34 @@
 
 
 
+## 求字符串最长不重复子串
+
+1. 定义start、end两个指针，起始位置为0，初始化max为0
+2. 将start、end指向起始位置，初始化缓存列表
+3. end不断向后移动，并将指向的值存入缓存，直到end指向的字母已存在缓存中（说明出现了重复字符），计算end - start的值并与max比较，保留大者
+4. 起始位置+1（即start+1），重复步骤2，直到 str.length - start > max 时（此时再继续下去也不会出现更大的max），停止循环，输出max
 
 
+    function lengthOfLongestSubstring(str) {
+      let start = 0;
+      let end = 0;
+      let max = 0;
+      while (str.length - start > max) {
+        end = start;
+        const charCache = new Set();
+        while (true) {
+          const char = str[end];
+          if (!char || charCache.has(char)) {
+            max = Math.max(max, end - start);
+            break;
+          }
+          charCache.add(char);
+          end++;
+        }
+        start++;
+      }
+      return max;
+    };
 
 
 
