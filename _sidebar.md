@@ -62,5 +62,5 @@
   - [GraphQL](others/graphql.md)
   - [RxJS](others/rxjs.md)
   - [Golang](others/go.md)
-  - [运维](others/ops.md)
-
+  - [nginx](others/nginx.md)
+  - [WebAssembly](others/webassembly.md)
