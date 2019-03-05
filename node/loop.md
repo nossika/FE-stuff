@@ -7,11 +7,11 @@
 - timers：这个阶段执行timer（setTimeout、setInterval）的回调
 - I/O callbacks：执行上轮poll阶段遗留的callback
 - idle, prepare：仅node内部使用
-- poll：获取新的I/O事件。有到期timer跳转timers，有到期setImmediate跳转check，无到期定时器时node可能会在此阶段不断轮询等待I/O事件返回
+- poll：先执行poll队列的callback（I/O事件的回调）；有到期timer跳转timers阶段，有setImmediate跳转check阶段，两者都无时node可能会在此阶段轮询来等待I/O事件返回
 - check：执行 setImmediate() 的回调
 - close callbacks：执行 socket 的 close 事件回调
 
-**每个的阶段间隙都会检查并执行microtask( process.nextTick / Promise.then )**
+**每个的阶段间隙都会检查并执行nexttick和microtask**
 
     setTimeout(() => {
       console.log('timeout 1');
