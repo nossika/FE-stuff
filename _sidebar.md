@@ -47,8 +47,8 @@
   - [对比React](vue/diff.md)
 
 - 算法
-
-  - [算法](algorithm/algorithm.md)
+  - [概念](algorithm/concept.md)
+  - [应用](algorithm/application.md)
 
 - 工程化
 
