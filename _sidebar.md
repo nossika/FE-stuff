@@ -47,14 +47,22 @@
   - [对比React](vue/diff.md)
 
 - 算法
+
   - [概念](algorithm/concept.md)
   - [应用](algorithm/application.md)
+
+- 计算机基础
+
+  - [编程范式](cs/paradigm.md)
+  - [设计模式](cs/design.md)
 
 - 工程化
 
   - [模块化](engineer/module.md)
+  - [协作](engineer/coop.md)
   - [构建/集成](engineer/build.md)
   - [测试](engineer/test.md)
+  - [发布](engineer/deploy.md)
 
 - 其他
 
