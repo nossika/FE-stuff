@@ -15,7 +15,7 @@
 
 代码分离了diff和patch的逻辑，先基于vnode进行diff，再根据diff结果进行实际的patch操作，patch在不同的终端上有不同实现，但diff是统一的逻辑。
 
-传统dom-diff的时间复杂度为O(n3)
+传统dom-diff的时间复杂度为O(n<sup>3</sup>)
 
 - 只在新老dom的同一层级的节点比较，且对每个节点只遍历一次。实际业务中很少有跨层级移动节点的情况。
 - 新老节点如果类型/key不同，直接当做新建节点处理，不会再继续往下比较。大部分情况下，不同节点有不同内部的结构。
@@ -30,7 +30,7 @@ vue中的diff算法基于开源的snabbdom修改而来，实现如下：
 
 2. 对这4个指针指向的vnode进行如下对比
 
-  - 如果newStart和oldStart的vnode同类型，那么复用oldStart对应的节点，对其递归diff，然后newStart++、oldStart++
+  - 如果newStart和oldStart的vnode同类型（包括key、tag等），那么复用oldStart对应的节点，对其递归diff，然后newStart++、oldStart++
 
   - 如果newEnd和oldEnd的vnode同类型，那么复用oldEnd对应的节点，对其递归diff，然后newEnd--、oldEnd--
 
@@ -60,10 +60,11 @@ new: b c d f
 
 todo
 
-## watcher和virtual dom结合
+## watcher与响应式更新
 
-vue1: 每条data一个watcher，绑定到data对应的dom，data变化直接更新到dom，粒度细
-vue2的vdom：每条data一个watcher，每个组件也一个watcher，data只绑定到组件，data变化通知组件的watcher重新渲染，粒度适中
+data每个prop的setter与组件的watcher关联，prop变化时，通知组件的watcher来重新执行render。后面再对新老render生成的vdom进行diff，来更新dom。
+
+vue1: 在初次编译时遍历dom节点，新建watcher将dom节点与data里对应的prop的setter关联，prop变化时，通过此watcher直接更新对应的dom节点。此方法dom更新效率更高（直接更新目标dom，省去了diff过程），但初始化时间长（创建watcher与dom的一一关联）、占用内存高（内存里保留了dom的引用）、watcher和浏览器环境的dom耦合。
 
 ## dep.target
 
@@ -96,7 +97,6 @@ vue中的computed具有缓存和懒计算。
 第一次被使用时，默认watcher.dirty为true，触发computed计算，并收集计算中用到的依赖（把自身关联到依赖的watcher通知列表），并存下本次计算的value值。
 
 当有依赖发生改动时，该computed的watcher.dirty会被设置为true，下次该computed被使用时就会被重新计算并缓存value，再把dirty重置为false。
-
 
 
 ## 源码结构
