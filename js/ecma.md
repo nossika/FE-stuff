@@ -62,7 +62,7 @@ number/default: try `foo.valueOf()` => try `foo.String()` => throw error
 
 ## Number
 
-### 数字精度
+### 数字精度问题
 
     0.1; // 0.1
     0.2; // 0.2
@@ -101,17 +101,25 @@ Reflect.defineProperty(obj, 'prop', { writable: false })
 
 Reflect.defineProperty(obj, 'prop', { set() {} })
 
+### 对象属性遍历
 
+- Object.keys(obj) --- 返回obj实例上的**可枚举属性**名数组
 
+- Object.getOwnPropertyNames(obj) --- 返回obj实例上的**所有属性名**数组（除了Symbol属性，它们需要通过Object.getOwnPropertySymbols(obj)获取）
 
-
-
+- for (let prop in obj) { ... } --- 遍历obj实例以及**其原型链**上所有可枚举属性
 
 ## 原型/继承
 
+### 概念
 
+原型、实例、构造函数：每个构造函数（constructor）都有一个对应的原型对象（prototype），这个原型对象也包含着指向构造函数的指针，由构造函数生成的每个实例（instance）都包含一个指向原型对象的指针。
 
-### 原型、实例、构造函数
+原型链：对象内有一个指向原型的指针，指向的这个原型同样也有一个指针指向它自己的原型，原型继续指向下一个原型，直到顶层，这一串原型称为对象的原型链，原型链的最顶层指向null。对象（obj）的原型可以通过标准方法`Object.getPrototypeOf(obj)`得到，或者浏览器厂商约定俗成的`obj.__proto__`。
+
+访问一个对象（obj）上的属性（prop）时，首先会在这个对象本身搜寻此prop；若找不到，则会沿着obj的原型链往上查找此prop，若找到则返回，找不到则继续沿着原型链往上查找；若直到原型链顶部（null）都找不到，才会返回undefined。
+
+原型、实例、构造函数例子：
 
     function A() {} // 构造函数 constructor
 
@@ -127,7 +135,15 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
     proto.constructor === A
     a.constructor === A // 实际上等同于 a.__proto__.constructor
 
-### 继承（ES5/ES6）
+
+原型的意义：
+
+假设有一类对象都需要有同一个方法F，要生成N个此类对象。如果每一次都创建一个新的F给对象，则这个F需要N份的内存，以后也不方便统一修改；如果创建一个共用的原型，在原型上定义F，然后把对象内的某个指针指向此原型（此过程也叫继承），则这个F只需要1份内存，且这类对象都能共享这个F。
+
+
+
+
+### 继承
 
 ES5写法
 
@@ -201,16 +217,12 @@ create写法
 
     Object.create(proto);
 
-### 对象属性遍历
-
-- Object.keys(obj) --- 返回obj实例上的**可枚举属性**名数组
-
-- Object.getOwnPropertyNames(obj) --- 返回obj实例上的**所有属性名**数组（除了Symbol属性，它们需要通过Object.getOwnPropertySymbols(obj)获取）
-
-- for (let prop in obj) { ... } --- 遍历obj实例以及**其原型链**上所有可枚举属性
 
 
-### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true？
+
+### 一些问题
+
+#### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true
 
 首先理解一下`instanceof`这个操作符，它会沿着前者的原型链（`__proto__`链）寻找是否满足与后者`prototype`相同的祖先，若找到就返回true，若一直到`__proto__`链遍历完还是没找到就返回false。
 
@@ -238,9 +250,9 @@ create写法
 
 ### 闭包
 
-闭包是一个函数以及其环境（函数内依赖的变量）的总称。即使这个函数离开了创建它的上下文环境，依然可以在外部正确执行（正确访问到它依赖的变量），因为函数的作用域链会随着跟随函数一起被保留，函数依赖的变量被函数作用域包含在内。
+闭包（closure）是**一个函数以及其环境（函数内依赖的变量）的总称**。即使这个函数离开了创建它的上下文环境，依然可以在外部正确执行（正确访问到它依赖的变量），因为函数的作用域链会随着跟随函数一起被保留，函数依赖的变量也包含在函数作用域内。
 
-一般而言，一个函数A执行完毕后，A的内部变量也会被随之销毁。但如果函数A内部定义了一个函数B，且B在A执行完毕后仍是活跃状态（可被外部引用，比如『A返回B』、『把B定义为某个按钮的click回调』等情况），那么B内部引用到的变量（即使它们是A的内部变量）也会跟着B一起被保留下来，而不会随着A被销毁。只有当B被释放后，这些变量才会随之释放。
+一般而言，一个函数A执行完毕后，A的内部变量也会被随之销毁。但如果函数A内部定义了一个函数B，且B在A执行完毕后**仍是活跃状态**（可被外部引用，比如『A返回B』、『把B定义为某个按钮的click回调』等情况），那么B内部引用到的变量（即使它们是A的内部变量）也会跟着B一起被保留下来，而不会随着A被销毁。只有当B被释放后，这些变量才会随之释放。
 
 可以利用这个性质来构造函数的私有变量：
 
