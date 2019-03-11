@@ -1,6 +1,115 @@
 # JS（ECMA）
 
+## 类型转换
+
+### 数字转字符串
+
+    number + '';
+    number.toString();
+    String(number);
+
+### 字符串转数字
+
+    +string;
+    Number.parseFloat(string);
+    Number(string);
+
+### 对于基本类型的值调用方法（比如`'asd'.indexOf('s')`）
+
+基本类型在读取模式下会被先包装为对应的对象再执行，比如
+
+    'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
+
+而写入模式则无效
+
+    const str = 'asd';
+    str.prop = 'f';
+    str.prop; // undefined
+ 
+### 隐式转换
+
+对需要转换的值`foo`调用其内部方法`[Symbol.toPrimitive](hint)`，根据上下文决定hint取值（string/number/default）
+
+默认的toPrimitive试着调用foo的toString和valueOf转换为基本值，转换失败则抛错：
+
+string: try `foo.toString()` => try `foo.valueOf()` => throw error
+
+number/default: try `foo.valueOf()` => try `foo.String()` => throw error
+
+搬运一个MDN上的例子：
+
+    // An object without Symbol.toPrimitive property.
+    var obj1 = {};
+    console.log(+obj1);     // NaN
+    console.log(`${obj1}`); // "[object Object]"
+    console.log(obj1 + ''); // "[object Object]"
+
+    // An object with Symbol.toPrimitive property.
+    var obj2 = {
+      [Symbol.toPrimitive](hint) {
+        if (hint == 'number') {
+          return 10;
+        }
+        if (hint == 'string') {
+          return 'hello';
+        }
+        return true;
+      }
+    };
+    console.log(+obj2);     // 10        -- hint is "number"
+    console.log(`${obj2}`); // "hello"   -- hint is "string"
+    console.log(obj2 + ''); // "true"    -- hint is "default"
+
+## Number
+
+### 数字精度
+
+    0.1; // 0.1
+    0.2; // 0.2
+    0.1 + 0.2; // 0.30000000000000004
+
+JS中能转换成整数的值都会用整数来存储，而小数在底层则用**IEEE-754标准**的双精度（64位）浮点数来存储。所以此问题不仅出现于JS，而是使用这个标准的所有语言。
+
+64位的组成：1符号位 + 11指数位 + 52有效数字位。
+
+小数x转化成二进制的过程是：把x分解成`x = 1/2*a + 1/4*b + 1/8*c + 1/16*d + ...`，用其中的abcd等因子来作为二进制数。
+
+以小数0.1为例，`0.1 = 1/2*0 + 1/4*0 + 1/8*0 + 1/16*1 + 1/32*1 + 1/64*0 + ...` ，则0.1的二进制表示为00011001100...，去掉头部的0，从1开始算（头部的0有多少可以用指数表示），则有效数字为11001100...
+
+因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字（有效数字有限）。
+
+回到最开始的问题，因为0.1和0.2本身就不是精确的0.1和0.2（他们自身正确显示因为在某个精度舍入了，看起来像是对的数字），所以他们相加的结果也不是精确的0.3。
+
+
+## Array
+
+### 数组方法（Array.prototype）
+
+修改原数组：push / pop / shift / unshift / splice / sort / reverse
+
+返回新数组：slice / map / filter / concat
+
+数组遍历相关：forEach / map / filter / some / every / reduce / indexOf / find / includes
+
+## Object
+
+### 禁止修改属性
+
+Object.freeze(obj)（Object.seal：同样禁止增删属性，但允许修改现有属性）
+
+Reflect.defineProperty(obj, 'prop', { writable: false })
+
+Reflect.defineProperty(obj, 'prop', { set() {} })
+
+
+
+
+
+
+
 ## 原型/继承
+
+
 
 ### 原型、实例、构造函数
 
@@ -125,160 +234,35 @@ create写法
 
 由知识2我们知道，`Function`是构造函数`Function`的实例，所以根据知识1知道`Function.__proto__`等于`Function.prototype`；结合知识1和3，知道`Function.prototype.__proto__`等于`Object.prototype`。当沿着`Function`原型链查找到`Function.__proto__.__proto__`，也就是`Function.prototype.__proto__`，它等于`Object.prototype`，所以也返回true。
 
-## 类型转换
-
-### 数字转字符串
-
-    number + '';
-    number.toString();
-    String(number);
-
-### 字符串转数字
-
-    +string;
-    Number.parseFloat(string);
-    Number(string);
-
-### 对于基本类型的值调用方法（比如`'asd'.indexOf('s')`）
-
-基本类型在读取模式下会被先包装为对应的对象再执行，比如
-
-    'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
-
-而写入模式则无效
-
-    const str = 'asd';
-    str.prop = 'f';
-    str.prop; // undefined
- 
-### 隐式转换
-
-对需要转换的值`foo`调用其内部方法`[Symbol.toPrimitive](hint)`，根据上下文决定hint取值（string/number/default）
-
-默认的toPrimitive试着调用foo的toString和valueOf转换为基本值，转换失败则抛错：
-
-string: try `foo.toString()` => try `foo.valueOf()` => throw error
-
-number/default: try `foo.valueOf()` => try `foo.String()` => throw error
-
-搬运一个MDN上的例子：
-
-    // An object without Symbol.toPrimitive property.
-    var obj1 = {};
-    console.log(+obj1);     // NaN
-    console.log(`${obj1}`); // "[object Object]"
-    console.log(obj1 + ''); // "[object Object]"
-
-    // An object with Symbol.toPrimitive property.
-    var obj2 = {
-      [Symbol.toPrimitive](hint) {
-        if (hint == 'number') {
-          return 10;
-        }
-        if (hint == 'string') {
-          return 'hello';
-        }
-        return true;
-      }
-    };
-    console.log(+obj2);     // 10        -- hint is "number"
-    console.log(`${obj2}`); // "hello"   -- hint is "string"
-    console.log(obj2 + ''); // "true"    -- hint is "default"
-
-## Number
-
-### 数字精度
-
-    0.1; // 0.1
-    0.2; // 0.2
-    0.1 + 0.2; // 0.30000000000000004
-
-JS中能转换成整数的值都会用整数来存储，而小数在底层则用**IEEE-754标准**的双精度（64位）浮点数来存储。所以此问题不仅出现于JS，而是使用这个标准的所有语言。
-
-64位的组成：1符号位 + 11指数位 + 52有效数字位。
-
-小数x转化成二进制的过程是：把x分解成`x = 1/2*a + 1/4*b + 1/8*c + 1/16*d + ...`，用其中的abcd等因子来作为二进制数。
-
-以小数0.1为例，`0.1 = 1/2*0 + 1/4*0 + 1/8*0 + 1/16*1 + 1/32*1 + 1/64*0 + ...` ，则0.1的二进制表示为00011001100...，去掉头部的0，从1开始算（头部的0有多少可以用指数表示），则有效数字为11001100...
-
-因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字（有效数字有限）。
-
-回到最开始的问题，因为0.1和0.2本身就不是精确的0.1和0.2（他们自身正确显示因为在某个精度舍入了，看起来像是对的数字），所以他们相加的结果也不是精确的0.3。
-
-
-## Array
-
-### 数组方法（Array.prototype）
-
-修改原数组：push / pop / shift / unshift / splice / sort / reverse
-
-返回新数组：slice / map / filter / concat
-
-数组遍历相关：forEach / map / filter / some / every / reduce / indexOf / find / includes
-
-## Object
-
-### 禁止修改属性
-
-Object.freeze(obj)（Object.seal：同样禁止增删属性，但允许修改现有属性）
-
-Reflect.defineProperty(obj, 'prop', { writable: false })
-
-Reflect.defineProperty(obj, 'prop', { set() {} })
-
 ## 作用域
 
 ### 闭包
 
-## 经典函数实现
+闭包是一个函数以及其环境（函数内依赖的变量）的总称。即使这个函数离开了创建它的上下文环境，依然可以在外部正确执行（正确访问到它依赖的变量），因为函数的作用域链会随着跟随函数一起被保留，函数依赖的变量被函数作用域包含在内。
 
-### Array.prototype.reduce
+一般而言，一个函数A执行完毕后，A的内部变量也会被随之销毁。但如果函数A内部定义了一个函数B，且B在A执行完毕后仍是活跃状态（可被外部引用，比如『A返回B』、『把B定义为某个按钮的click回调』等情况），那么B内部引用到的变量（即使它们是A的内部变量）也会跟着B一起被保留下来，而不会随着A被销毁。只有当B被释放后，这些变量才会随之释放。
 
-    Array.prototype.reduce = function(fn, initial) {
-      const arr = this;
-      initial = initial === undefined ? arr.shift() : initial;
-      let total = initial;
-      for (let i = 0; i < arr.length; i++) {
-        total = fn(total, arr[i], i, arr);
+可以利用这个性质来构造函数的私有变量：
+
+    function getFn() {
+      let count = 0; // count只有在fnWithCounter内能访问，外部无法读取或修改
+      function fnWithCounter() {
+        count++;
+        console.log('count: ', count);
+        let innerCount = 0; // 这个innerCount与count不同的是，它在fnWithCounter每次执行都会重新创建和销毁，而count可以被持久保留
+        // do sth.
       }
-      return total;
+      return fnWithCounter;
     }
 
-### Function.prototype.bind
+    const fnWithCounter = getFn();
 
-    Function.prototype.bind = function(scope) {
-      const fn = this;
-      const bindArgs = [].slice.call(arguments, 1);
-      return function() {
-        const args = [].slice.call(arguments);
-        return fn.apply(scope, bindArgs.concat(args));
-      };
-    }
+    // 此时getFn虽然执行完毕，但其内部创建的count变量和fnWithCounter函数一起被保留下来
 
-    // or
+    fnWithCounter();
+    fnWithCounter();
 
-    Function.prototype.bind = function(scope, ...bindArgs) {
-      return (...args) => this.call(scope, ...bindArgs, ...args);
-    }
-
-### String.prototype.indexOf
-
-    String.prototype.indexOf = function(match, startIndex) {
-      if (match === '') return startIndex || 0;
-      const str = this;
-      strLoop: for (let i = startIndex || 0; i < str.length; i++) {
-        if (str[i] === match[0]) {
-          matchLoop: for (let j = 1; j < match.length; j++) {
-            if (str[i + j] !== match[j]) {
-              break strLoop;
-            }
-          }
-          return i;
-        }
-      }
-      return -1;
-    }
-
+    fnWithCounter = null; // 如果执行了这句来释放函数，使原fnWithCounter指向的函数成为非活跃状态（无法从根被访问到），则垃圾回收器可能在下次回收时，释放此函数和其环境占用的内存。
 
 
 ## 异步处理
@@ -370,6 +354,59 @@ Reflect.defineProperty(obj, 'prop', { set() {} })
     // 始终只需要保存最后一层调用帧
 
 尾调用优化在支持ES6的环境中（严格模式下）默认开启。
+
+
+## 经典函数实现
+
+### Array.prototype.reduce
+
+    Array.prototype.reduce = function(fn, initial) {
+      const arr = this;
+      initial = initial === undefined ? arr.shift() : initial;
+      let total = initial;
+      for (let i = 0; i < arr.length; i++) {
+        total = fn(total, arr[i], i, arr);
+      }
+      return total;
+    }
+
+### Function.prototype.bind
+
+    Function.prototype.bind = function(scope) {
+      const fn = this;
+      const bindArgs = [].slice.call(arguments, 1);
+      return function() {
+        const args = [].slice.call(arguments);
+        return fn.apply(scope, bindArgs.concat(args));
+      };
+    }
+
+    // or
+
+    Function.prototype.bind = function(scope, ...bindArgs) {
+      return (...args) => this.call(scope, ...bindArgs, ...args);
+    }
+
+### String.prototype.indexOf
+
+    String.prototype.indexOf = function(match, startIndex) {
+      if (match === '') return startIndex || 0;
+      const str = this;
+      strLoop: for (let i = startIndex || 0; i < str.length; i++) {
+        if (str[i] === match[0]) {
+          matchLoop: for (let j = 1; j < match.length; j++) {
+            if (str[i + j] !== match[j]) {
+              break strLoop;
+            }
+          }
+          return i;
+        }
+      }
+      return -1;
+    }
+
+
+
 
 ## WeakMap的弱引用
 
