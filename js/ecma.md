@@ -417,7 +417,23 @@ create写法
       return -1;
     }
 
+### Array.prototype.flat
 
+    Array.prototype.flat = function(depth = 1) {
+      const arr = this;
+      const newArr = [];
+      function flat(curArr, curDepth = 0) {
+        curArr.forEach(item => {
+          if (!(item instanceof Array) || (curDepth >= depth)) {
+            newArr.push(item);
+            return;
+          }
+          flat(item, curDepth + 1);
+        });
+      }
+      flat(arr);
+      return newArr;
+    }
 
 
 ## WeakMap的弱引用
