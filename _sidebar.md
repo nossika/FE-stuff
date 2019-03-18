@@ -19,7 +19,7 @@
 
 - WEB
 
-  - [web协议](web/protocol.md)
+  - [协议](web/protocol.md)
   - [缓存](web/cache.md)
   - [浏览器渲染](web/browser.md)
   - [跨域](web/crossorigin.md)

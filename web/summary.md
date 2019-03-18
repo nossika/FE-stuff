@@ -2,11 +2,16 @@
 
 ## 输入url => 页面展示
 
+* dhcp
+
+* arp
+
 * 缓存查询
 * dns
-* 打开tcp（tcp/ip协议）
-后台负载均衡
-* browser主进程发起请求 => 结果转交给render进程（tab页进程）处理
+* 路由映射，打开tcp（tcp/ip协议）
+* browser主进程发起请求
+* 后台负载均衡
+* 结果转交给render进程（tab页进程）处理
 浏览器多进程（主进程，tab页，GPU等），tab页多线程（js引擎、GUI渲染、http请求、定时器、事件调度等）
 
 * 渲染（DOM树，CSS树，render树）
@@ -44,3 +49,38 @@ js解析会中断渲染（GUI渲染线程与js线程互斥）
 3. sso.com根据cookie判断用户X已登陆，带上ticket重定向到b.com
 4. b.com根据ticket向sso.com验证用户X，验证成功
 5. b.com保存用户X状态并签发cookie，完成登陆
+
+## 登陆
+
+登陆的一种实现：
+
+C
+
+gen randomKey
+
+encodeKey = psw
+
+H(id+randomKey)
+
+S
+
+decodeKey = psw
+
+decode id + randomKey
+
+encodeKey = randomKey
+
+gen syncKey
+
+H(syncKey)
+
+C 
+
+decodeKey = randomKey
+
+decode syncKey
+
+
+票据的一种实现：
+
+登陆后，服务端生成票据，传给客户端保存，票据中记录登陆序列。若客户端数据泄露被copy进行登陆，服务端序列增加，下次客户端再次登陆，则因为序列对不上要求客户端输入密码重新登陆，重新生成票据。
