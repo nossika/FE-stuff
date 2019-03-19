@@ -2,6 +2,8 @@
 
 ## Hooks
 
+用法：
+
     // version 16.7
 
     function Example() {
@@ -14,7 +16,7 @@
         const subscription = message$.subscribe();
 
         // 可以返回一个函数来消除副作用，如解绑事件    
-        // 每次render前都会调用，来消除上个副作用，当然在卸载时也会调用
+        // 每次render前都会调用（如果useEffect使用了第二个参数指定依赖，则只在依赖变化时调用），来消除上个副作用，当然在卸载时也会调用
         return () => {
           subscription.unsubscribe();
         };
@@ -31,11 +33,22 @@
     }
 
 
-相比class组件写法
+相比传统的class组件写法：
 
 - useState使“状态”与“修改状态的逻辑”配对，使state能以更细的粒度划分管理，而非统一用一个大的state和setState来管理
 - useEffect把“绑定事件”和“解绑事件”配对，而非去didMount绑定事件再去willUnmount解绑事件
 - 不使用this来引用当前实例，逻辑转移到useState内部实现，调用useState时记录外部环境，生成的set方法包含了对外部环境的引用，所以在调用set时能通知到对应组件更新
+
+
+useRef除了用来做DOM节点的引用，还可以用来保持状态（类似state）：
+
+    
+    function Example() {
+      const ref = React.useRef(0);
+      ref.current = ref.current + 1; // ref.current在每次Example渲染时都会递增而不是被重置，ref不允许被写入current以外的字段
+      return null;
+    }
+
 
 ## Lazy/Suspense
 
