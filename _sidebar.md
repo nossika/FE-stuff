@@ -35,6 +35,7 @@
   - [API](react/api.md)
   - [原理相关](react/principle.md)
   - [第三方库](react/third-party.md)
+  - [对比Vue](react/diff.md)
 
 - Vue
 
