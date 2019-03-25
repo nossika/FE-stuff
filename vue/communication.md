@@ -1,22 +1,33 @@
 
 # 组件通信
 
-props
+## 父传递信息给子
 
-emit
+父设置 props + 子 props/$attr
 
-bus
+父设置 props + 子 watch 监听
 
-watch
+## 父访问子
 
-ref
+$ref
 
-provide/inject
+vm.$children[childIndex]
 
-vuex
+## 子传递信息给父
 
-broadcast+dispatch（vue1）
+子 vm.$emit + 父设置 v-on 监听
 
-## 父comp主动触发子comp函数
+## 子访问父
 
-ref、父props+子watch
+vm.$parent
+
+## 跨层级传递
+
+祖先 provide + 子孙 inject
+
+$on + $emit：在某实例设置vm.$on，传递实例vm，利用vm.$emit传递事件
+
+bus（新建一个Vue实例来传递事件，即$on + $emit的一种普遍用法）
+
+VueX
+
