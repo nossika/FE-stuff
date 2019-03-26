@@ -4,6 +4,9 @@
 
 任务分片，任务优先级，基于requestIdleCallback、requestAnimationFrame
 
+
+
+
 ## setState的异步
 
 	
@@ -94,6 +97,75 @@
 这样就回到了大家熟悉的结果。
 
 顺带一提，这种对函数加层包装使其处于特殊环境中执行的做法，在vue中也有运用，比如vuex中的_withCommit，用于判断state的修改是来自mutation还是外部直接修改。
+
+## JSX => DOM
+
+JSX源代码：
+
+		render() {
+			return (
+				<section className="wrapper">
+					<Header type={1}>Hello world</Header>
+					<p>This</p>
+					is JSX
+				</section>
+			)
+		}
+
+经过babel编译后的代码：
+
+		render() {
+			return (
+				React.createElement(
+					'section',
+					{ className: 'wrapper' },
+					React.createElement(
+						Header,
+						{ type: 1 },
+						'hello world',
+					),
+					React.createElement(
+						'p',
+						null,
+						'This',
+					),
+					'is JSX',
+				);
+			);
+		}
+
+执行render()后的返回值类似如下结构，用来表示虚拟DOM树：
+
+		{
+			type: 'section',
+			props: {
+				className: 'wrapper',
+				children: [
+					{
+						type: Header,
+						props: {
+							type: 1,
+							children: 'Hello World',
+						},
+					},
+					{
+						type: 'p',
+						props: {
+							children: 'This',
+						},
+					},
+					'is JSX',
+				],
+			},
+		}
+
+
+在ReactDOM.render初次渲染时，ReactDOM把虚拟DOM树转化为真实的DOM渲染到页面：遇到文本节点、type为原生DOM的节点可直接转化，遇到type为组件类型的节点则通过组件函数（class组件用render返回值，函数组件用直接返回值
+，返回值里还有组件类型则继续递归，最后总会以原生DOM或者文本节点结束）来创建DOM。
+
+状态更新时，则通过更新前后虚拟DOM树的diff比较，来按需更新真实DOM。
+
+
 
 ## 事件合成
 

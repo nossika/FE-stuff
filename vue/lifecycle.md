@@ -7,6 +7,8 @@
 
 - beforeCreate()
 - created()
+- serverPrefetch()
+（服务端渲染仅执行到此）
 - beforeMount()
 - mounted()
 
