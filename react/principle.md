@@ -100,64 +100,70 @@
 
 ## JSX => DOM
 
-JSX源代码：
+1. JSX源代码
 
-		render() {
-			return (
-				<section className="wrapper">
-					<Header type={1}>Hello world</Header>
-					<p>This</p>
-					is JSX
-				</section>
-			)
-		}
 
-经过babel编译后的代码：
+    render() {
+      return (
+        <section className="wrapper">
+          <Header type={1}>Hello World</Header>
+          <p>This</p>
+          is JSX
+        </section>
+      )
+    }
 
-		render() {
-			return (
-				React.createElement(
-					'section',
-					{ className: 'wrapper' },
-					React.createElement(
-						Header,
-						{ type: 1 },
-						'hello world',
-					),
-					React.createElement(
-						'p',
-						null,
-						'This',
-					),
-					'is JSX',
-				);
-			);
-		}
 
-执行render()后的返回值类似如下结构，用来表示虚拟DOM树：
+2. 经过babel编译后的代码
 
-		{
-			type: 'section',
-			props: {
-				className: 'wrapper',
-				children: [
-					{
-						type: Header,
-						props: {
-							type: 1,
-							children: 'Hello World',
-						},
-					},
-					{
-						type: 'p',
-						props: {
-							children: 'This',
-						},
-					},
-					'is JSX',
-				],
-			},
-		}
+
+    render() {
+      return (
+        React.createElement(
+          'section',
+          { className: 'wrapper' },
+          React.createElement(
+            Header,
+            { type: 1 },
+            'Hello World',
+          ),
+          React.createElement(
+            'p',
+            null,
+            'This',
+          ),
+          'is JSX',
+        );
+      );
+    }
+
+
+3. 执行render()后的返回值类似如下结构，用来表示虚拟DOM树
+
+
+    {
+      type: 'section',
+      props: {
+        className: 'wrapper',
+        children: [
+          {
+            type: Header,
+            props: {
+              type: 1,
+              children: 'Hello World',
+            },
+          },
+          {
+            type: 'p',
+            props: {
+              children: 'This',
+            },
+          },
+          'is JSX',
+        ],
+      },
+    }
+
 
 
 在ReactDOM.render初次渲染时，ReactDOM把虚拟DOM树转化为真实的DOM渲染到页面：遇到文本节点、type为原生DOM的节点可直接转化，遇到type为组件类型的节点则通过组件函数（class组件用render返回值，函数组件用直接返回值
@@ -169,28 +175,30 @@ JSX源代码：
 
 ## 事件合成
 
-		class App extends React.Component {
-			innerClick = e => console.log('react inner');
-			outerClick = e => console.log('react outer');
-			componentDidMount() {
-				document
-					.querySelector('#outer')
-					.addEventListener('click', e => console.log('native outer'));
 
-				window.addEventListener('click', e => console.log('native window'));
-			}
-			render() {
-				return (
-					<div id="outer" onClick={this.outerClick}>
-						<div id="inner" onClick={this.innerClick}>
-							click me
-						</div>
-					</div>
-				);
-			}
-		}
+    class App extends React.Component {
+      innerClick = e => console.log('react inner');
+      outerClick = e => console.log('react outer');
+      componentDidMount() {
+        document
+          .querySelector('#outer')
+          .addEventListener('click', e => console.log('native outer'));
 
-		// print 'native outer' -> 'react inner' -> 'react outer' -> 'native window'
+        window.addEventListener('click', e => console.log('native window'));
+      }
+      render() {
+        return (
+          <div id="outer" onClick={this.outerClick}>
+            <div id="inner" onClick={this.innerClick}>
+              click me
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // print 'native outer' -> 'react inner' -> 'react outer' -> 'native window'
+    
 
 React在真实的document节点监听真实click事件，真实事件冒泡到document时，React按捕获(外节点到内节点)到冒泡(内节点到外节点)的顺序，收集节点上注册的click回调进队列，然后依次调用（传递的event参数是react合成后的对象）队列内的回调，完成click事件处理。
 
