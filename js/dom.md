@@ -51,8 +51,11 @@ geolocation 获取地理位置（需要用户手动许可）
 
 ### 判断元素是否在可视区域
 
-1. el.getBoundingClientRect直接返回相对可视区域的offset
-2. 结合页面scroll和元素相对页面的offset计算
+el.getBoundingClientRect直接返回相对可视区域的offset
+
+IntersectionObserver
+
+结合页面scroll和元素相对页面的offset计算
 
 ### 计算元素在页面上的坐标
 
