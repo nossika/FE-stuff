@@ -97,3 +97,68 @@
 5. 把编译后的文件和配置信息（包括Huffman树）打包成为最后的输出文件，完成压缩。
 6. 解压时，根据配置信息对编译后的文件进行还原，得到原文件。
 
+
+## 经典排序
+
+### 快速排序
+
+
+普通快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(log<sup>n</sup>)
+
+
+    const arr = [5,11,23,43,72,8,34,99,4,65,54];
+
+    function quickSort(arr) {
+      arr = arr.slice();
+      function sort(arr) {
+        if (arr.length <= 1) return arr;
+        const mid = arr.shift();
+        const left = [];
+        const right = [];
+        arr.forEach(num => {
+          if (num < mid) {
+            left.push(num);
+          } else {
+            right.push(num);
+          }
+        });
+        return [...sort(left), mid, ...sort(right)];
+      }
+      return sort(arr);
+    }
+
+    quickSort(arr);
+
+    
+原地快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)
+
+
+    function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
+      if (end - begin <= 1) return;
+      const benchmark = arr[begin];
+      let i = begin + 1;
+      let j = end;
+      // 每轮循环都把一个基准数和其左右数组摆对，再对左右数组递归
+      while (i < j) {
+        while (arr[i] < benchmark) {
+          i++;
+        }
+        while (arr[j] > benchmark) {
+          j--;
+        }
+        if (i < j) {
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+      if (arr[i] > benchmark) {
+        i = i - 1;
+      }
+      [arr[begin], arr[i]] = [arr[i], arr[begin]];
+      betterQuickSort(arr, begin, i - 1);
+      betterQuickSort(arr, i + 1, end);
+    }
+
+    betterQuickSort(arr);
+
+
+

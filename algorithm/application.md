@@ -1,62 +1,181 @@
 # 算法
 
-## 经典排序
+## 背包最大价值问题
 
-### 快速排序
+有n个有各自价值和重量的物品，以及一个固定容量的背包，可以自由选择物品来放入背包，求背包能达到的最大价值。
 
-    // 普通快排 时间复杂度O(N*logN)，空间复杂度O(logN)
+假设数据如下：
 
-    const arr = [5,11,23,43,72,8,34,99,4,65,54];
+    // 物品列表items: Array<[价值, 重量]>
+    const items = [[1,1],[3,4],[2,3],[30,48],[21,36],[12,11],[10,12],[15,16],[6, 12],[8, 22]];
 
-    function quickSort(arr) {
-      arr = arr.slice();
-      function sort(arr) {
-        if (arr.length <= 1) return arr;
-        const mid = arr.shift();
-        const left = [];
-        const right = [];
-        arr.forEach(num => {
-          if (num < mid) {
-            left.push(num);
-          } else {
-            right.push(num);
+    // 背包容量capacity
+    const capacity = 39;
+
+
+### 1. 求最大值
+
+对于前i个物品而言（假设第i个物品的价值为v[i]，重量为w[i]），此时最大值等于不放入第i个物品时的最大值和放入第i个物品时的最大值两者中取大。可以如下状态转移方程表示：
+
+`f(i, capacity) = max{ f(i - 1, capacity), f(i - 1, capacity - w[i]) + v[i] }`
+
+
+    function getVal(i, capacity) {
+      const [weight, value] = items[i];
+      if (i === 0) {
+        if (capacity < weight) return 0;
+        return value;
+      }
+      return capacity >= weight ? Math.max(getVal(i - 1, capacity), getVal(i - 1, capacity - weight) + value) : getVal(i - 1, capacity);
+    }
+
+    getVal(items.length - 1, capacity); // 75
+
+### 2. 求最大值及其方案
+
+在算法1的基础上加入bag数组来记录当前解法用到的物品
+
+    function getVal(i, capacity, bag) {
+      const [weight, value] = items[i];
+
+      if (i === 0) {
+        if (capacity < weight) return [0, bag];
+        return [value, bag.concat(0)];
+      }
+
+      let [unputVal, unputBag] = getVal(i - 1, capacity, bag);
+
+      if (capacity >= weight) {
+        let [putVal, putBag] = getVal(i - 1, capacity - weight, bag);
+        putVal += value;
+      
+        if (putVal > unputVal) {
+          return [putVal, putBag.concat(i)];
+        } else {
+          return [unputVal, unputBag];
+        }
+      } else {
+        return [unputVal, unputBag];
+      }
+    }
+
+    getVal(items.length - 1, capacity, []); // [75, [0, 1, 4, 8, 9]]
+
+### 3. 物品带数量时的最大值
+
+基于算法1作拓展，此时物品i不再是放入或者不放入（放入0个或1个），而是可以放入k个，k是一个有限整数集合，满足`0 <= k <= limit`且`w[i] * k <= capacity`，则状态转移方程应该改为
+
+`f(i, capacity) = max{ f(i - 1, capacity - w[i] * k) + v[i] * k } (0 <= k <= limit & w[i] * k <= capacity)`
+
+
+    // 带数量的物品列表itemsWithLimit: Array<[价值, 重量, 数量]>
+    const itemsWithLimit = [[1,1,3],[3,4,5],[2,3,1],[30,48,1],[21,36,2]];
+
+    function getVal(i, capacity) {
+      const [weight, value, limit] = itemsWithLimit[i];
+      if (i === 0) {
+        return Math.min((capacity / weight | 0), limit) * value;
+      }
+      const solutions = [];
+      for (let k = 0; weight * k <= capacity && k <= limit; k++) {
+        solutions.push(getVal(i - 1, capacity - weight * k) + value * k);
+      }
+      return Math.max(...solutions);
+    }
+
+    getVal(itemsWithLimit.length - 1, capacity); // 58
+
+
+
+## 硬币凑整问题
+
+有i种面值不同的硬币，数量不限，需要用这i种硬币凑出刚好为n的数额
+
+假设数据如下：
+
+
+    // 硬币种类coins: Array<面值>
+    const coins = [1, 2, 5, 10, 20];
+
+    // 目标数额n
+    const n = 98;
+
+
+### 1. 求全部解法数量
+
+使用前i种coin的解法数 = 仅使用前i-1种coin的解法数 + 用上第i种coin的解法数
+
+
+    function coinsSolutions(coins, n) {
+
+      // 保证coins数组是升序的
+      coins.sort((a, b) => a - b);
+
+      // 用于存放函数use1 use2 use3...use{i}，函数参数为目标数值n，返回值为仅用前i种coin能凑出的解法数
+      const solutions = {};
+
+      for (let [index, value] of coins.entries()) {
+        
+        // 只用第一种coin时特殊处理，如果n能被面值整除，则返回解法数为1，否则返回解法数0
+        if (index === 0) {
+          solutions['use1'] = function(n) {
+            return n % value === 0 ? 1 : 0;
           }
-        });
-        return [...sort(left), mid, ...sort(right)];
+          continue;
+        }
+
+        // 使用前i种coin的解法数 = 仅使用前i-1种coin的解法数 + 用上第i种coin的解法数
+        // (JS相关)可使用new Function来动态定义函数，因为new Function内的作用域默认为全局作用域，无法访问solutions对象，这里使用with+bind的写法来把solutions传进其作用域
+        solutions['use' + (index + 1)] = new Function(
+          'n', 
+          `with(this){
+            let result = 0;
+            for (let i = n; i >= 0; i = i - ${value}) {
+              result += use${index}(i);
+            }
+            return result;
+          }`
+        ).bind(solutions);
       }
-      return sort(arr);
+
+      // 最后的解等于所有coin种类都用上的解
+      return solutions['use' + coins.length](n);
+    } 
+
+
+### 2. 求最少使用的硬币数
+
+此问题解法和背包问题类似，每个硬币数量对应的value为1，求最小value。
+
+使用前i种硬币凑成的数额n = (仅使用前i-1种硬币凑成n - coins[i] * k) + (单独使用k个第i种硬币凑成coins[i] * k)
+
+即前i种硬币凑成n的最少硬币个数的状态转移方程为：
+
+`f(n, i) = min{ f(n - coins[i] * k, i - 1) + k } (k >= 0 & coins[i] * k <= n)`
+
+
+
+    function coinsMinSolution(coins, n) {
+      coins.sort((a, b) => a - b);
+
+      function getMin(n, i) {
+        // 仅使用第1种硬币时，n能整除面值，则数量为n/面值，否则设为无穷大，在后面的Math.min比较时忽略此解法 
+        if (i === 0) {
+          return n % coins[0] === 0 ? n / coins[0] : Infinity;
+        }
+
+        // 写出状态转移方程，循环k来测试它，找出其最小值
+        const solutions = [];
+        for (let k = 0; coins[i] * k <= n; k++) {
+          solutions.push(getMin(n - coins[i] * k, i - 1) + k);
+        }
+        return Math.min(...solutions);
+      }
+
+      return getMin(n, coins.length - 1);
     }
 
-    quickSort(arr);
-    
-    // 原地快排 时间复杂度O(N*logN)，空间复杂度O(1)
 
-    function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
-      if (end - begin <= 1) return;
-      const benchmark = arr[begin];
-      let i = begin + 1;
-      let j = end;
-      // 每轮循环都把一个基准数和其左右数组摆对，再对左右数组递归
-      while (i < j) {
-        while (arr[i] < benchmark) {
-          i++;
-        }
-        while (arr[j] > benchmark) {
-          j--;
-        }
-        if (i < j) {
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-      }
-      if (arr[i] > benchmark) {
-        i = i - 1;
-      }
-      [arr[begin], arr[i]] = [arr[i], arr[begin]];
-      betterQuickSort(arr, begin, i - 1);
-      betterQuickSort(arr, i + 1, end);
-    }
-
-    betterQuickSort(arr);
 
 
 ## 多个有序数组合并
@@ -95,93 +214,6 @@
 
 
 
-## 背包问题
-
-有n个有各自价值和重量的物品，以及一个固定容量的背包，可以自由选择物品来放入背包，求背包能达到的最大价值。
-
-假设数据如下：
-
-    // 物品列表: Array<[价值, 重量]>
-    const items = [[1,1],[3,4],[2,3],[30,48],[21,36],[12,11],[10,12],[15,16],[6, 12],[8, 22]];
-
-    // 背包容量
-    const capacity = 39;
-
-
-### 1. 求最大值
-
-对于前i个物品而言（假设第i个物品的价值为v[i]，重量为w[i]），此时最大值等于不放入第i个物品时的最大值和放入第i个物品时的最大值两者中取大。可以如下公式表示：
-
-`f(i, capacity) = max{f(i - 1, capacity), f(i - 1, capacity - w[i]) + v[i]}`
-
-
-    function getVal1(i, capacity) {
-      const [weight, value] = items[i];
-      if (i === 0) {
-        if (capacity < weight) return 0;
-        return value;
-      }
-      return capacity >= weight ? Math.max(getVal1(i - 1, capacity), getVal1(i - 1, capacity - weight) + value) : getVal1(i - 1, capacity);
-    }
-
-    getVal1(items.length - 1, capacity); // 75
-
-### 2. 求最大值及其方案
-
-在算法1的基础上加入bag数组来记录当前解法用到的物品
-
-    function getVal2(i, capacity, bag) {
-      const [weight, value] = items[i];
-
-      if (i === 0) {
-        if (capacity < weight) return [0, bag];
-        return [value, bag.concat(0)];
-      }
-
-      let [unputVal, unputBag] = getVal2(i - 1, capacity, bag);
-
-      if (capacity >= weight) {
-        let [putVal, putBag] = getVal2(i - 1, capacity - weight, bag);
-        putVal += value;
-      
-        if (putVal > unputVal) {
-          return [putVal, putBag.concat(i)];
-        } else {
-          return [unputVal, unputBag];
-        }
-      } else {
-        return [unputVal, unputBag];
-      }
-    }
-
-    getVal2(items.length - 1, capacity, []); // [75, [0, 1, 4, 8, 9]]
-
-### 3. 物品带数量时的最大值
-
-基于算法1作拓展，此时物品i不再是放入或者不放入（放入0个或1个），而是可以放入k个，k是一个有限整数集合，满足`0 < k < limit`且`0 < k * w[i] < capacity`，则公式应该改为
-
-`f(i, capacity) = max{f(i - 1, capacity - w[i] * k) + v[i] * k}`
-
-
-    // 带数量的物品列表: Array<[价值, 重量, 数量]>
-    const itemsWithLimit = [[1,1,3],[3,4,5],[2,3,1],[30,48,1],[21,36,2]];
-
-    function getVal3(i, capacity) {
-      const [weight, value, limit] = itemsWithLimit[i];
-      if (i === 0) {
-        return (capacity / weight | 0) * value;
-      }
-      const solutions = [];
-      for (let k = 0; k * weight < capacity && k < limit; k++) {
-        solutions.push(getVal3(i - 1, capacity - k * weight) + k * value);
-      }
-      return Math.max(...solutions);
-    }
-
-    getVal3(itemsWithLimit.length - 1, capacity); // 58
-
-
-
 ## 求字符串最长不重复子串
 
 1. 定义start、end两个指针，起始位置为0，初始化max为0
@@ -212,4 +244,4 @@
     };
 
 
-
+    
