@@ -214,6 +214,42 @@
 
 
 
+## 连续子数组的最大和
+
+
+用f(i)表示arr中以第i项为结尾的连续子数组的最大和，则其状态转移方程如下
+
+`f(i) = max{ f(i - 1) + arr[i], arr[i] }`
+
+求出每一个f(i)的值，再从中取最大值作为最后结果
+
+`result = max{ f(i) } (0 <= i <= arr.length - 1)`
+
+
+    function getMax(arr) {
+
+      // 设置缓存数组，cache[i]表示以第i项为结尾的连续子数组的最大和
+      const cache = [];
+
+      function getMaxEndWithIndex(i) {
+        if (i === 0) {
+          cache[i] = arr[i];
+        }
+        if (!cache[i]) {
+          cache[i] = Math.max(getMaxEndWithIndex(i - 1) + arr[i], arr[i]);
+        }
+        return cache[i];
+      }
+
+      // 计算包含最后一项的子数组的最大和，因为每一项的结果都依赖于前一项，利用此过程递归求出所有项的结果
+      getMaxEndWithIndex(arr.length - 1);
+      
+      return Math.max(...cache);
+
+    }
+
+
+
 ## 求字符串最长不重复子串
 
 1. 定义start、end两个指针，起始位置为0，初始化max为0
