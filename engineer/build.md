@@ -1,31 +1,17 @@
 
-# 构建工具
+# 构建
 
-### webpack
+## webpack
 
-#### 配置
+### entry、output
 
 多入口配置
 
-loader作用，对特定文件编译，流式
+### loader
 
-plugin作用 ，全局作用，在complition不同阶段起作用
+对指定文件自定义编译，多个loader流式工作
 
-#### 实现代码分割
-
-splitChunk：单页：用test提取公共文件，减小文件体积，配合chunkhash，浏览器缓存公共文件；多入口：用minChunks提取出多次引用的文件
-
-ddl：ddl.config打包公共文件生成manifest，config引用这个manifest，不会对公共文件再次打包，提高编译速度
-
-#### definePlugin:
-
-一般用于定义一些全局字段，和process.env（模仿node环境）。
-
-这些配置是在编译阶段静态直接转换，而非生成全局变量，比如模块中`process.env.NODE_ENV`编译后会直接被替换为定义的值，而`process.env['NODE' + '_ENV']`则不会
-
-#### loader
-
-webpack中使用loader：
+#### 使用
 
 	config = {
 		entry: '',
@@ -49,7 +35,7 @@ webpack中使用loader：
 
 编译过程中遇到匹配某rule的test的文件，会使用rule的use中设置的loader（可以是多个loader，从后往前）来加载这个文件。loader从node_module里的对应loader名调用。
 
-loader编写：
+#### 编写
 
 	module.export = function(content, map, meta) { 
 		// do sth
@@ -71,9 +57,12 @@ file-loader（二进制loader）：
 
 文件内容content为二进制数据。引用webpack自带的loader-utils库，调用其`interpolateName`方法得到其hash名，调用`this.emitFile`把二进制content生成新file输出到output指定的目录下，最终结合config中的publicPath得到新file的可访问路径，最终组合成`module.exports = fileOutputPath`格式的数据返回
 
-#### plugin
+### plugin
 
-plugin使用：
+插手构建过程，在complition各阶段添加钩子函数来改变构建逻辑
+
+
+#### 使用
 
 		config = {
 			entry: '',
@@ -83,7 +72,7 @@ plugin使用：
 			],
 		}
 
-plugin编写：
+#### 编写
 
 	class {
 		constructor(options) {
@@ -96,26 +85,58 @@ plugin编写：
 		}			
 	}
 
+	
+#### definePlugin
 
-### rollup
+一般用于定义一些全局字段，和process.env（模仿node环境）。
 
-适合库而非应用（app），treeshaking，缺少懒加载
+这些配置是在编译阶段静态直接转换，而非生成全局变量，比如模块中`process.env.NODE_ENV`编译后会直接被替换为定义的值，而`process.env['NODE' + '_ENV']`则不会
 
-### webpack&rollup
 
-treeshaking + 去除无用if代码
+### 代码分割
 
-### gulp
+optimization.splitChunks 整体控制模块的独立打包规则，比如提取多页项目的公共依赖
+
+cacheGroups.vendor 分割出不常改变的公共文件单独打包，利于被浏览器缓存
+
+页面中import('./module') 手动分割模块，webpack编译时会单独打包此module
+
+可用webpack-bundle-analyzer分析打包结果
+
+### 编译速度优化
+
+ddl：ddl.config打包公共文件生成manifest，config引用这个manifest，省去对公共文件再次打包的时间
+
+## rollup
+
+更纯粹的打包工具，适合库而非应用（app）
+
+## gulp
 
 流式任务
 
-### babel
+## 代码体积优化
 
-polyfill关系：babel只转语法，polyfill拓展原型和全局对象
+treeshaking去除无用代码，前提需要模块无副作用
+
+模块扁平化，比如能直接返回值的模块，引用它时直接引用返回值，而不是引用模块
+
+单例模式引用模块
+
+提升各模块中的polyfill函数来共用
+
+代码压缩
+
+
+## babel
+
+和polyfill关系：babel只转语法，polyfill拓展原型和全局对象
 
 原理：text => tokens => ast => ast(transformed) => text
 
-#### babel如何在浏览器运行？（https://unpkg.com/babel-standalone@6.26.0/babel.js）
+### babel如何直接运行于浏览器？
+
+以此版本 https://unpkg.com/babel-standalone@6.26.0/babel.js 的babel为例：
 
 1. 监听`DOMContentLoaded`事件，事件触发后会选取所有`type`为`text/jsx`和`text/babel`的`script`存入jsxScripts数组。
 2. 遍历数组，将`scriptEl.innerHTML`作为源码调用babel核心方法编译为结果代码（带`src`的`script`用ajax异步获取content作为源码，在回调中处理编译）。

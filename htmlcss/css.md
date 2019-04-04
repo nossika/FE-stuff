@@ -1,5 +1,11 @@
 
-## 布局方式（float、flex、gird）
+## 布局方式
+
+流式+float
+
+flex
+
+gird
 
 ## 盒模型
 
@@ -38,13 +44,21 @@
 
 ### GPU加速
 
-> 详见[【web/浏览器渲染】](/web/browser?id=GPU加速)
+> 详见[【Web/浏览器渲染】](/web/browser?id=GPU加速)
 
-## 移动端
+## 选择器优先级
 
-### flexible方案
+当多条css规则的属性冲突时，以选择器合计优先级最高的那条规则为准。且直接定义在目标元素上的样式，永远高于从父级继承的（即使父级的那条规则优先级更高）。
 
-通过dpr来设置根节点的font-size + viewport的scale，页面使用设计图尺寸转换得到的rem，完成一个设计图到多种屏幕的适配
+1. !important
+2. #id
+3. 
+  1. :hove
+  2. [data="value"]
+  3. .class
+4. 
+  1. ::before
+  2. div
 
 ## CSS变量
 
@@ -134,13 +148,21 @@
 
 两者结合使用：高级语法css -> 普通css -> 拓展后的普通css -> 发生产
 
-## 案例实践
+## 移动端
 
-### 左边定宽右边自适应多种实现
+### flexible方案
+
+通过dpr来设置根节点的font-size + viewport的scale，页面使用设计图尺寸转换得到的rem，完成一个设计图到多种屏幕的适配
+
+## 应用
+
+### 元素居中
+
+### 左边定宽右边自适应
 
 flex、calc、absolute
 
-### retina 画0.5px
+### retina画0.5px
 
 dpr（window.devicePixelRatio）+ `<mete name="viewport"/>`(initial-scale)
 

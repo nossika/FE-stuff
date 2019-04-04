@@ -1,13 +1,12 @@
 
 
 
-## addEventListener
+## 事件冒泡、事件委托
 
-捕获、冒泡
+捕获、冒泡、阻止冒泡
 
-阻止冒泡
+事件委托
 
-## attribute操作，class操作
 
 ## NodeList vs HTMLCollection
 
@@ -20,6 +19,9 @@ HTMLCollection的特性
 - 只包含elementNode（无textNode）
 - 动态更新，当页面的元素更新时，此集合也会自动同步
 - namedItem方法
+
+## attribute操作，class操作
+
 
 ## CSS Object Model
 

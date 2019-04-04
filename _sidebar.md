@@ -10,16 +10,10 @@
   - [HTML](htmlcss/html.md)
   - [CSS](htmlcss/css.md)
 
-- NodeJS
 
-  - [事件循环](node/loop.md)
-  - [模块](node/module.md)
-  - [NPM](node/npm.md)
-  - [应用](node/app.md)
+- Web
 
-- WEB
-
-  - [协议](web/protocol.md)
+  - [HTTP](web/protocol.md)
   - [缓存](web/cache.md)
   - [浏览器渲染](web/browser.md)
   - [跨域](web/crossorigin.md)
@@ -34,7 +28,7 @@
   - [生命周期](react/lifecycle.md)
   - [API](react/api.md)
   - [原理相关](react/principle.md)
-  - [第三方库](react/third-party.md)
+  - [第三方库](react/lib.md)
   - [对比Vue](react/diff.md)
 
 - Vue
@@ -43,7 +37,7 @@
   - [生命周期](vue/lifecycle.md)
   - [API](vue/api.md)
   - [原理相关](vue/principle.md)
-  - [VueX](vue/vuex.md)
+  - [官方库](vue/lib.md)
   - [SSR](vue/ssr.md)
   - [对比React](vue/diff.md)
 
@@ -60,10 +54,17 @@
 - 工程化
 
   - [模块化](engineer/module.md)
+  - [构建](engineer/build.md)
   - [协作](engineer/coop.md)
-  - [构建/集成](engineer/build.md)
   - [测试](engineer/test.md)
   - [发布](engineer/deploy.md)
+
+- NodeJS
+
+  - [事件循环](node/loop.md)
+  - [模块](node/module.md)
+  - [NPM](node/npm.md)
+  - [应用](node/app.md)
 
 - 其他
 

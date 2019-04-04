@@ -1,23 +1,47 @@
 
 # HTML
 
+## 语义化
 
+## meta
+
+charset
+
+name、content：keywords、viewport、robots
+
+http-equiv 充当http头部，优先级低于真正http头部
 
 ## script
 
-integrity
+defer、async 脚本延迟加载
 
-defer、async
+integrity 脚本完整性检测
 
-crossorigin
+crossorigin 允许获取跨域脚本的报错
 
-## link
+## blob
 
-## input
+### blob 、dataURL
 
-有哪些attribute
+#### blob
 
-## label作用
+提供内存地址，数据保存在页面内存
+
+`new Blob([...data],  {...options})` 自动垃圾回收
+
+`URL.createObjectURL(file)` 用URL.revokeObjectURL手动回收
+
+#### dataURL
+
+用编码（比如base64字符串）显式表示文件
+
+`new FileReader().readAsDataURL`
+
+## canvas
+
+### 2d
+
+### webgl
 
 
 
@@ -151,26 +175,22 @@ crossorigin
 
 
 
-## blob
+## 其他常用标签
 
-### blob 、dataURL
+### input
 
-#### blob
+### a
 
-提供内存地址，数据保存在页面内存
+### table
 
-`new Blob([...data],  {...options})` 自动垃圾回收
+Table对象
 
-`URL.createObjectURL(file)` 用URL.revokeObjectURL手动回收
+### form
 
-#### dataURL
+Form对象
 
-用编码（比如base64字符串）显式表示文件
+### video / audio
 
-`new FileReader().readAsDataURL`
+Video / Audio 对象
 
-## canvas
-
-### canvas
-
-### webgl
+### iframe

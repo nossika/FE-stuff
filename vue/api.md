@@ -22,13 +22,15 @@ slot-scope用法
 
 $slots返回值（render函数）
 
-## css scope
+## computed
+
+## watch
+
+## scoped style
 
 ## mixins
 
 ## Vue.directive
-
-## provide/inject
 
 ## $parent/$children
 
