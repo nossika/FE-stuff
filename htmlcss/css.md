@@ -38,13 +38,11 @@ gird
 
 一般元素的css属性改变都会引发reflow&repaint，除了少数只触发repaint的属性: transform/visibility/background等。
 
-浏览器一般也会对reflow做优化，css相关操作都被推入队列，当一定时间或者累积一定数量时，才会对其进行一次批量处理，这样多次css操作只需要一次reflow&repaint。
+浏览器一般也会对渲染做优化，对元素样式的修改都被推入队列，当一定时间或者累积一定数量时，才会对其进行一次批量处理，这样多次样式修改操作只需要一次reflow&repaint。
 
 当访问一些布局相关的信息的API时，比如clientWidth、offsetWidth、scrollWidth、getComputedStyle()等，浏览器为保证获取到的数据正确，会立刻清空队列进行一次reflow&repaint。
 
-### GPU加速
-
-> 详见[【Web/浏览器渲染】](/web/browser?id=GPU加速)
+> 详见[【页面渲染】](/htmlcss/render?id=GPU加速)
 
 ## 选择器优先级
 

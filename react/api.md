@@ -37,7 +37,7 @@ Hooks相比传统的class组件写法：
 
 
 - 去掉生命周期的概念，不再关心组件到底在执行willMount还是didUpdate，副作用统一放到useEffect管理。
-- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【React/原理相关】](/react/principle?id=hooks实现状态保存)）。
+- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【Hooks实现】](/react/principle?id=hooks实现)）。
 - 组件状态粒度更细，useState使“状态”与“修改状态的逻辑”配对，而非统一用一个大的state和setState来管理，使state能以更细的粒度划分管理。
 - 事件配对，useEffect把“绑定事件”和“解绑事件”配对，而非把两者分散写到didMount和willUnmount中，使相关代码能够以更统一的方式组织。
 
@@ -91,7 +91,7 @@ Hooks相比传统的class组件写法：
 
 transaction模型，batchedUpdates(ReactDOM.unstable_batchedUpdates)
 
-详见[【react/原理相关】](/react/principle?id=setState的异步)
+> 详见[【setState的异步】](/react/principle?id=setState的异步)
 
 ## pureComponent/memo
 

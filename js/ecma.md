@@ -302,7 +302,7 @@ create写法
 
 ## 异步处理
 
-> 此处只谈语法使用，原理相关详见[【JS/事件循环】](/js/engine?id=事件循环)
+> 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](/js/thread?id=事件循环)
 
 ### Promise
 
@@ -326,7 +326,7 @@ create写法
 
     await promise; // 或者await一个非promise变量，等同于执行await Promise.resolve(val)
 
-## 模块化（import）
+## 模块化
 
 在ES6之前，JS在语言层面并没有模块相关的规范，CommonJS和AMD是社区上较为主流的模块方案。
 
@@ -344,7 +344,7 @@ create写法
 
     b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 
-> 详见[【工程化/模块化】](/engineer/module?id=模块化)
+> 其他模块化方案详见[【模块化】](/engineer/module?id=模块化)
 
 ## 尾调用优化
 

@@ -1,6 +1,6 @@
 # 事件循环
 
-## 事件循环阶段
+## 按阶段轮换
 
 基于libuv库实现
 
@@ -11,7 +11,9 @@
 - check：执行 setImmediate() 的回调
 - close callbacks：执行 socket 的 close 事件回调
 
-**每个的阶段间隙都会检查并执行nexttick和microtask**
+不同于浏览器，这里**每个的阶段间隙都会检查并执行nexttick和microtask**
+
+举个例子：
 
     setTimeout(() => {
       console.log('timeout 1');
@@ -27,7 +29,7 @@
 
 timeout 1 / promise 1 / timeout 2 / promise 2，在node中运行结果：timeout 1 / timeout 2 / promise 1 / promise 2
 
-node会在timers阶段统一检查当前是否有到期的定时器任务，有的话会把它们放在同一次task中执行（不同于浏览器，一个定时器任务单独算一个task，在task间隙执行microtask）
+node会在timers阶段统一检查当前是否有到期的定时器任务，有的话会把它们放在同一次task中执行，并在task间隙执行清空microtask。
 
 
 

@@ -1,7 +1,7 @@
 # 原理相关
 
 
-## Hooks实现状态保存
+## Hooks实现
 
 class组件的状态保存在实例上，但Hooks实现的组件看起来是个纯函数，内部的状态却也可以保存，比如下面例子中，每次点击button都会重新调用函数App，而App内的count可以正确计数，不会因重新调用App而重置。
 
@@ -24,7 +24,7 @@ class组件的状态保存在实例上，但Hooks实现的组件看起来是个�
 
 因为组件中的Hook函数被调用时，经React内部处理，状态被保存在**组件的FiberNode**中，在其memoizedState属性以**链表**形式依次保存每个Hook对应的状态；组件下次render时，按序取出状态和各个Hook**一一对应**，即实现状态保存。这也是Hook函数不能写在条件或循环中的原因，因为同个组件中的每次render必须保证各Hook调用的**顺序一致**，否则对应关系就乱了。
 
-FiberNode可通过[【React/Fiber】](/react/principle?id=fibernode)来了解。
+> FiberNode详见[【FiberNode】](/react/principle?id=fibernode)。
 
 ## Fiber
 
@@ -159,7 +159,9 @@ FiberNode通过sibling、child、return这3个指针，把DOM的树形结构转�
 
 顺带一提，这种对函数加层包装使其处于特殊环境中执行的做法，在vue中也有运用，比如vuex中的_withCommit，用于判断state的修改是来自mutation还是外部直接修改。
 
-## JSX => DOM
+## DOM-diff
+
+JSX => JS => ReactElement => diff
 
 1. JSX源代码
 
@@ -232,7 +234,7 @@ FiberNode通过sibling、child、return这3个指针，把DOM的树形结构转�
 
 状态更新时，则通过更新前后虚拟DOM的diff比较，来按需更新真实DOM。
 
-diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【Vue/DOM-diff】](/vue/principle?id=dom-diff)。
+> diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](/vue/principle?id=dom-diff)。
 
 
 ## 事件合成

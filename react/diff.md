@@ -1,3 +1,3 @@
 # Vue vs React
 
-> 详见[【Vue/Vue vs React】](/vue/diff)
+> 详见[【Vue vs React】](/vue/diff)

@@ -1,5 +1,6 @@
 # web性能分析/优化
 
+
 定位：chrome的network、performance、memory
 
 解决：
@@ -17,3 +18,18 @@ dns：cdn
 http2
 
 window.performance：measure、mark
+
+
+## 首次渲染指标
+
+DOMContentLoaded
+
+onload
+
+首次绘制（First Paint，FP）
+
+首次内容绘制（First Contentful Paint，FCP）
+
+首次有意义绘制（First Meaningful Paint，FMP）
+
+首次交互（Time to First Interactive，TTFI）
