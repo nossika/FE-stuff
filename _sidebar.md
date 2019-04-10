@@ -19,9 +19,8 @@
   - [跨域](web/crossorigin.md)
   - [安全](web/safe.md)
   - [性能](web/performance.md)
-  - [加密](web/encode.md)
   - [CDN](web/cdn.md)
-  - [综合](web/summary.md)
+  - [综合应用](web/summary.md)
 
 - React
 

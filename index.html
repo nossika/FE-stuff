@@ -13,15 +13,22 @@
   <script>
     window.$docsify = {
       loadSidebar: true,
-      coverpage: true,
       subMaxLevel: 2,
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md',
       },
-      name: '',
-      repo: ''
-    }
+      name: '前端工程师的自我修养',
+      repo: 'nossika/being-a-web-developer',
+      auto2top: true,
+      homepage: '_coverpage.md',
+      search: {
+        placeholder: '搜索全文...',
+        noData: '无搜索结果',
+      },
+    };
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/zoom-image.min.js"></script>
 </body>
 </html>

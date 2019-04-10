@@ -37,5 +37,12 @@ dns劫持、页面内容篡改
 
 解决方案：https
 
-> 详见[Web/HTTPS】](/web/protocol?id=https)
+> 详见[【Web/HTTPS】](/web/protocol?id=https)
 
+## 内容加密
+
+密钥：对称加密、非对称加密
+
+算法：RSA、ECC
+
+RSA算法详见[【RSA加密】](/algorithm/concept?id=rsa加密)

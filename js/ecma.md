@@ -4,6 +4,7 @@
 
 ### 数字转字符串
 
+
     number + '';
     number.toString();
     String(number);
