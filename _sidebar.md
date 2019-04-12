@@ -58,6 +58,7 @@
   - [协作](engineer/coop.md)
   - [测试](engineer/test.md)
   - [发布](engineer/deploy.md)
+  - [监控](engineer/monitor.md)
 
 - NodeJS
 
