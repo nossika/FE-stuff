@@ -237,6 +237,38 @@ JSX => JS => ReactElement => diff
 > diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](/vue/principle?id=dom-diff)。
 
 
+## React element中的Symbol
+
+React element的$$typeof是一个Symbol类型的值。
+
+因为React组件在render时，允许传递一个React element对象作为参数。
+
+
+    render() {
+      // ...
+      return <div>{ data }</div>;
+    }
+
+
+这个data的值可以是string，也可以是一个React element结构的对象。
+
+比如data用jsx表示：
+
+    data = <div>hello</div>;
+
+当运行时，data的值会生成为React element，类似如下结构：
+
+    data = {
+      type: 'div',
+      props: {
+        children: 'hello',
+      },
+    };
+
+直接使用如果此对象去渲染的话，当data是从服务端获取的any类型，且此值来自用户的输入，则用户可以构造出一个React element植入html到他人的页面，带来安全问题。如果在React element中增加一个无法被序列化的标记（Symbol、Function、Set等均可），来表示其是在客户端的代码里生成的，通过判断此标记来决定是否渲染这个React element，则可以防止此问题发生。
+
+
+
 ## 事件合成
 
 
@@ -273,5 +305,14 @@ React**在真实的document节点**监听真实click事件，真实事件冒泡�
 不能冒泡的事件(如focus)，可以使用对应的可冒泡事件(如focusin)来监听document。
 
 对React合成事件进行stopPropagation()只能阻止event在React组件上继续冒泡，但**无法阻止其在真实DOM节点的冒泡**，因为React的事件是发生在document节点，事件已经冒泡到document了。所以尽量不要把React组件的事件监听和真实DOM的事件监听混用，容易搞混事件次序。
+
+## 区分class组件和function组件
+
+在React.Component的原型上定义isReactComponent字段。对于一个组件构造函数A，通过判断A.prototype && A.prototype.isReactComponent来区分是否为class组件，因为class组件extends了React.Component。
+
+如果用A.prototype instanceof React.Component判断更严谨，但如果同个项目中有多个React副本，则此判断会有问题。
+
+
+
 
 
