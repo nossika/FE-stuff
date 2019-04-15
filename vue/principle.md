@@ -60,31 +60,34 @@ new: b c d f
 
 todo
 
-## watcher与响应式更新
+## 响应式更新
+
+监听对象变化：
+
+对对象各个key递归使用Object.defineProperty监听其getter和setter。
+
+监听数组变化：
+
+改写数组的原型上的push、pop、reverse等方法，监听数组api的调用。但不监听直接对数组下标修改的变化（`arr[1]=2`），其实同样可以通过defineProperty的方式来监听，arr当做对象，下标当做key，但出于性能考虑没有这么实现。
+
+Proxy：
+
+Vue3用Proxy来改写响应式逻辑，Proxy能把对象和数组的监听统一处理，也可监听到通过数组下标作的修改，省去对数组的特殊操作。
+
+
+### watcher
 
 data每个prop的setter与组件的watcher关联，prop变化时，通知组件的watcher来重新执行render。后面再对新老render生成的vdom进行diff，来更新dom。
 
-vue1: 在初次编译时遍历dom节点，新建watcher将dom节点与data里对应的prop的setter关联，prop变化时，通过此watcher直接更新对应的dom节点。此方法dom更新效率更高（直接更新目标dom，省去了diff过程），但初始化时间长（创建watcher与dom的一一关联）、占用内存高（内存里保留了dom的引用）、watcher和浏览器环境的dom耦合。
+Vue1做法: 在初次编译时遍历dom节点，新建watcher将dom节点与data里对应的prop的setter关联，prop变化时，通过此watcher直接更新对应的dom节点。此方法dom更新效率更高（直接更新目标dom，省去了diff过程），但初始化时间长（创建watcher与dom的一一关联）、占用内存高（内存里保留了dom的引用）、watcher和浏览器环境的dom耦合。
 
-## dep.target
+### dep.target
 
-正常：data监听setter和绑定dep，编译模板时AST解析调用了哪些data属性，去给它们添加dep
+一般做法：data监听setter和绑定dep，编译模板时AST解析调用了哪些data属性，去给它们添加dep
 
-Vue：data还监听了getter，编译模板时会触发getter，getter里通过target判断是否处于编译中，是的话把target指向的watcher添加到对应的dep，编译前后会改写target
+Vue做法：data还监听了getter，编译模板时会触发getter，getter里通过target判断是否处于编译中，是的话把target指向的watcher添加到对应的dep，编译前后会改写target
 
-## nextTick
-
-（内部实现micro：Promise，macro：MessageChannel、setTimeout）
-
-定义microFunc macroFunc
-
-执行nextTick时，推入callbacks并触发一次（根据pending变量判断）在下轮执行flushCallbacks
-
-flushCallbacks清空callbacks，依次执行callbacks（先清空来保证出现nextTick嵌套时的执行次序）
-
-数据变动优先使用micro，可以在一轮事件循环内改变完data，只触发一次重渲染
-
-## computed
+### computed
 
 vue中的computed具有缓存和懒计算。
 
@@ -97,6 +100,19 @@ vue中的computed具有缓存和懒计算。
 第一次被使用时，默认watcher.dirty为true，触发computed计算，并收集计算中用到的依赖（把自身关联到依赖的watcher通知列表），并存下本次计算的value值。
 
 当有依赖发生改动时，该computed的watcher.dirty会被设置为true，下次该computed被使用时就会被重新计算并缓存value，再把dirty重置为false。
+
+
+## nextTick
+
+（内部实现micro：Promise，macro：MessageChannel、setTimeout）
+
+定义microFunc macroFunc
+
+执行nextTick时，推入callbacks并触发一次（根据pending变量判断）在下轮执行flushCallbacks
+
+flushCallbacks清空callbacks，依次执行callbacks（先清空来保证出现nextTick嵌套时的执行次序）
+
+数据变动优先使用micro，可以在一轮事件循环内改变完data，只触发一次重渲染
 
 
 ## 源码结构
