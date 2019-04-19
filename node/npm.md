@@ -31,9 +31,13 @@ npm install之后，`my-bin.js`会被复制到`node_modules/.bin`下成为shell�
 
 - `npm i`：安装package.json中所有dependencies和devDependencies
 
+- `npm i --production`：仅安装dependencies
+
 - `npm i [module] [-S/-D] [-g]`：安装指定[module]到此目录下的node_modules，-S/-D表示并记录到package.json，-g表示是否安装到全局
 
 - `npm uninstall [module] [-g]`：卸载指定[module]
+
+
 
 ### version
 
