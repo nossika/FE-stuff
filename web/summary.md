@@ -11,27 +11,17 @@
 3. 客户端接收到授权码，在后台向第三方发出请求，包含授权码和自身身份信息，第三方验证通过后，返回访问令牌给客户端。
 4. 客户端将访问令牌与用户关联，此后客户端能通过该令牌请求第三方内容，即用户可在客户端上获取/操作自己在第三方的资源。
 
-## 单点登陆（SSO）
+## 集中式认证服务（CAS）
 
-目的：系统A:a.com / 系统B:b.com / 认证中心:sso.com，让系统A和系统B共享用户登陆状态。
+![event loop](../resources/auth/cas.png)
 
-实现：
+- 当Client没有Server的有效session，也没有CAS的有效session：1 -> 11。
 
-访问系统A：
-1. 用户X访问a.com
-2. a.com根据cookie判断用户X未登录，跳转sso.com
-3. sso.com根据cookie判断用户X未登录，渲染登陆页
-4. 用户X输入登陆信息，提交
-5. sso.com保存用户X状态并签发cookie，然后带上ticket重定向到a.com
-6. a.com根据ticket向sso.com验证用户X，验证成功
-7. a.com保存用户X状态并签发cookie，完成登陆
+- 当Client没有Server的有效session，但有CAS的有效session（比如之前登录过Server A，现在要登录Server B，Server A和B共用一套CAS）：1、2、3(带CAS的session)、6（验证session有效，直接生成ticket）、7、8、9、10、11
 
-访问系统B：
-1. 用户X访问b.com
-2. b.com根据cookie判断用户X未登录，跳转sso.com
-3. sso.com根据cookie判断用户X已登陆，带上ticket重定向到b.com
-4. b.com根据ticket向sso.com验证用户X，验证成功
-5. b.com保存用户X状态并签发cookie，完成登陆
+- 当Client有Server的有效session：11
+
+实际场景中一条链路上可能有多层的Server，可以把此架构中的Client和Server看成整体，作为上层的Client，继续往下层的Server拓展。
 
 ## 登陆
 
