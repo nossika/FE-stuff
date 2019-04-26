@@ -20,7 +20,7 @@
   - [安全](web/safe.md)
   - [性能](web/performance.md)
   - [CDN](web/cdn.md)
-  - [综合应用](web/summary.md)
+  - [权限](web/auth.md)
 
 - React
 
