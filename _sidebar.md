@@ -43,8 +43,9 @@
 
 - 算法
 
-  - [概念](algorithm/concept.md)
-  - [应用](algorithm/application.md)
+  - [数据结构](algorithm/structure.md)
+  - [一些概念](algorithm/concept.md)
+  - [算法题](algorithm/application.md)
 
 - 计算机基础
 
