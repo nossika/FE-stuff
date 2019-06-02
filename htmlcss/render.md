@@ -1,155 +1,211 @@
-# 页面渲染
+# 浏览器渲染
 
-不同浏览器的内核不同，对渲染的实现略有差异，这里以chrome为例。
+浏览器因内核不同对渲染的实现会略有差异，这里以chrome(74)为例。
 
-## 渲染过程
+## 渲染步骤
 
 ![render-process](../resources/browser-render/render-process.png)
 
-页面渲染的几个关键步骤
+渲染的几个关键步骤
 
-1. recalculate style (style)：计算应用到各元素的css规则
-2. layout：重新计算各元素位置（即reflow，当仅repaint时此步会跳过）
+1. recalculate style (style)：结合DOM和CSSOM，确定各元素应用的CSS规则
+2. layout：重新计算各元素位置来布局页面，也称reflow
 3. update layer tree (layer)：更新渲染树
-4. paint：绘制元素
-5. composite layers (composite)：把各个图层合成为最终结果
+4. paint：绘制各个图层
+5. composite layers (composite)：把各个图层合成为完整页面
+
+渲染过程中，layout可能被跳过，比如对样式的修改不影响layout时，则只需repaint而不需reflow。可以借助 [CSS Triggers](https://csstriggers.com/) 查看哪些CSS属性会影响layout。paint也可能被跳过，比如只需重绘合成层的内容时。
 
 ## 渲染时机
 
-当JS修改了元素样式，浏览器并不是立刻将新样式渲染在屏幕上，而是把render tree的flag标记为dirty。在**下一个渲染时机**如果判断此flag为true，就执行完整渲染过程。
+当DOM或者CSSOM被修改，浏览器并不是立刻将改变渲染到屏幕上，而是把render flag标记为true。在**下一个渲染时机**如果判断此flag为true，就执行完整渲染过程，再重置render flag。
 
-**渲染时机**一般在每轮事件循环（task）的结束前，但如果此时距离上次渲染的时间点不足1帧（1帧一般为16.66ms左右，不同浏览器和显示器下会有差异），则渲染推迟到下1帧的时间点。因为这1帧时间内可能样式还会再次被修改，每次修改都立刻渲染是无意义的，两次渲染的时间间隔应大于等于1帧。
+**渲染时机**一般是在下次屏幕刷新前。两次刷新间隔的时间为1帧，1帧的最小值一般为16.66ms左右，因硬件而异。渲染也会受主线程繁忙程度的影响，因为渲染线程和JS执行线程是互斥的，在JS执行线程结束前主线程不会去调起渲染线程。
 
-但有时渲染过程中的layout会被**提前**，而不是等到达渲染时机再执行。比如在**同一轮task里**，修改了layout相关样式后，又**对layout相关属性进行了读取**，则浏览器会立刻执行recalculate style和layout来返回准确的laytou数据，但也只是提前了这2个步骤，后续步骤不影响。
+但有时渲染过程中的recalculate style、layout会被**提前**，而不是等到达渲染时机再执行。比如修改了layout相关样式后，未到渲染时机就**对layout相关属性进行了读取**，则浏览器会立刻执行recalculate style和layout来返回准确的layout信息。
 
-渲染过程中的layout可能被跳过，比如对样式的修改不影响layout，则只需repaint而不需reflow。
+## 硬件加速
+
+浏览器会按规则把页面分为多个图层。满足某些规则的节点会升级为合成层，交由GPU绘制，即硬件加速。最终呈现的页面是多个图层复合的结果。合成层上的某些样式变动只需重绘这个层，再把各层重新复合即可。
+
+节点升级为合成层的情况有：
+
+- transform
+- opacity
+- will-change
+- canvas元素
+- 有比自己index低的合成层
+- etc.
+
+使用合成层能提高页面动画性能，但其创建需要额外开销，应结合实际需要合理利用。
 
 
-### 结合例子
+## 结合例子
 
 
-创建一个div为例子，在body上绑定click事件对div进行修改
+创建一个div为例子，在body的click事件对div进行修改
 
+    // 创建测试div
     const div = document.createElement('div');
     div.style.cssText = 'width: 100px; height: 100px; background: red';
     document.body.appendChild(div);
 
+    // 对div样式进行修改
     document.body.addEventListener('click', () => {
-      // do something...
+      // ...
     });
 
 
-在click回调中，分别采用如下代码来测试，用chrome的performance工具分析结果
+在click回调中，分别采用如下代码来测试，用chrome的performance工具分析结果。一个task条表示一轮事件循环，一个frame条表示实际一帧图像的持续时间。
 
-1. 多轮task
+### 1、单次渲染
 
 
     document.body.addEventListener('click', () => {
-      div.style.height = 110 + 'px'; // step 1
+      div.style.height = '110px'; // step 1
+    });
+
+
+  ![normal](../resources/browser-render/screenshot/normal.jpg)
+
+  一个基本的渲染例子，`step 1`之后浏览器执行了完整的5个渲染步骤。
+
+### 2、多轮task下的渲染
+
+
+    document.body.addEventListener('click', () => {
+      div.style.height = '110px'; // step 1
       setTimeout(() => {
-        div.style.height = 120 + 'px'; // step 2
-          setTimeout(() => {
-            div.style.height = 130 + 'px'; // step 3
-          }, 0);
-      }, 0);
-    });
-
-
-
-![result](../resources/browser-render/screenshot/set-timeout.jpg)
-
-在step 1当轮事件循环结束后，浏览器重新执行了完整的5步渲染过程。
-
-然而step 2执行以后一直到step 3执行（即使step 2那轮的事件循环已结束），浏览器都没有渲染，直到step 3执行以后才再次渲染，因为step 2执行完距离上次渲染完毕的时间还不到1帧，所以浏览器忽略了这次渲染（但对DOM、CSSOM的改动是实时生效的，只是没有去渲染）。
-
-2. 多轮task中，强制读取layout
-
-
-    document.body.addEventListener('click', () => {
-      div.style.height = 110 + 'px'; // step 1
-      console.log(div.offsetHeight);
-      setTimeout(() => {
-        div.style.height = 120 + 'px'; // step 2
-        console.log(div.offsetHeight);
-          setTimeout(() => {
-            div.style.height = 130 + 'px'; // step 3
-            console.log(div.offsetHeight);
-          }, 0);
-      }, 0);
-    });
-
-
-![result](../resources/browser-render/screenshot/set-timeout-force.jpg)
-
-和第一种写法唯一不同的地方在于，每个step后面都加上了对layout的读取。结果不同的是，每次执行读取，浏览器都会立刻强制提前执行style和layout来保证读取到正确的结果，后面的步骤不变。
-
-3. 带有microTask的task
-
-
-    document.body.addEventListener('click', () => {
-      div.style.height = 110 + 'px'; // step 1
-      Promise.resolve().then(() => {
-        div.style.height = 120 + 'px'; // step 2
-        Promise.resolve().then(() => {
-          div.style.height = 130 + 'px'; // step 3
+        div.style.height = '120px'; // step 2
+        setTimeout(() => {
+          div.style.height = '130px'; // step 3
         });
       });
     });
 
-![result](../resources/browser-render/screenshot/promise.jpg)
 
-在带有microTask的情况中，step 1和作为microTask的step 2、step 3都执行完毕，也就是当轮事件循环结束后，才进行渲染。其实和把3步step都用同步执行的结果是一样的。
 
-4. 多轮task，只进行repaint
+![multi-task](../resources/browser-render/screenshot/multi-task.jpg)
+
+同例子1，`step 1`之后，浏览器同样执行了完整的5个渲染步骤。
+
+但`step 2`执行后并没有渲染，直到`step 3`执行后的一段时间才渲染，因为这时才到达渲染时机。
+
+从frames栏看到，从`step 2`执行到`step 3`执行到再次渲染的这14.0ms期间，页面上显示的一直是110px的div，执行完第二次渲染后，直接变为130px的div。
+
+
+### 3、提前读取layout相关属性
+
+
+    document.body.addEventListener('click', () => {
+      div.style.height = '110px'; // step 1
+      console.log(div.offsetHeight);
+      setTimeout(() => {
+        div.style.height = '120px'; // step 2
+        console.log(div.offsetHeight);
+        setTimeout(() => {
+          div.style.height = '130px'; // step 3
+          console.log(div.offsetHeight);
+        });
+      });
+    });
+
+
+![force-layout](../resources/browser-render/screenshot/force-layout.jpg)
+
+
+对例子2稍加改动，在每个step后面都加上了对layout属性的读取。
+
+结果是每次读取时，如果render flag为true，浏览器都会立刻强制执行style和layout来保证返回正确的数据。但仅提前了这2个步骤，后续步骤不变。
+
+
+### 4、仅修改非layout相关属性
 
 
     document.body.addEventListener('click', () => {
       div.style.background = '#123'; // step 1
       setTimeout(() => {
         div.style.background = '#456'; // step 2
-          setTimeout(() => {
-            div.style.background = '#789'; // step 3
-          }, 0);
-      }, 0);
+        setTimeout(() => {
+          div.style.background = '#789'; // step 3
+        });
+      });
     });
 
-![result](../resources/browser-render/screenshot/skip-layout.jpg)
+![skip-layout](../resources/browser-render/screenshot/skip-layout.jpg)
 
-和第一种写法唯一不同的地方在于，每个step是对background（非layout属性）修改，而非对height修改，结果浏览器渲染过程跳过了layout这一步来提高性能。
+把例子2中对div的height属性改动变成对background属性（非layout相关属性）改动。
 
-5. 使用requestAnimationFrame
+结果渲染过程跳过了layout这一步。
+
+### 5、使用合成层
 
 
     document.body.addEventListener('click', () => {
-      div.style.height = 110 + 'px'; // step 1
-      requestAnimationFrame(() => {
-        div.style.height = 120 + 'px'; // step 2
-        requestAnimationFrame(() => {
-          div.style.height = 130 + 'px'; // step 3
+      div.style.transform = 'scaleY(1.1)'; // step 1
+      setTimeout(() => {
+        div.style.transform = 'scaleY(1.2)';  // step 2
+        setTimeout(() => {
+          div.style.transform = 'scaleY(1.3)';  // step 3
         });
       });
     });
 
 
-![result](../resources/browser-render/screenshot/request-animation-frame.jpg)
-
-step 1执行完毕后浏览器执行了style和layout，由于有requestAnimationFrame任务，则在本次页面绘制前（执行layer前）会先执行这个回调，执行完回调再继续执行layer、paint、composite。
-
-但如果在一次requestAnimationFrame执行过程中，又执行了新的requestAnimationFrame，则新的回调会在下次绘制前执行，而非本次绘制。
+![composite](../resources/browser-render/screenshot/composite.jpg)
 
 
-## GPU加速
+把例子2中对div的height属性改动变成对tansform属性（合成层属性）改动。
 
-dom的绘制信息会被分成多个格栅上传GPU绘制。
+执行`step 1`后，第一次渲染依然是5步完整的渲染步骤，因为此前div没有transform属性，还处于大图层中，这次渲染后才把div提升为合成层。
 
-浏览器会按规则把页面分为多个合成层，合成层上的变动只需重绘这个层。
+第二次渲染时，div已经是合成层，对合成层的transform改动不会影响其他图层，渲染过程跳过了layout和paint。
 
-### 创建合成层
 
-某些情况下节点会被单独升级为合成层（比如：transform、opacity、canvas标签、手动加上will-change、有个比自己index低的合成层时 等），浏览器会独立绘制各个合成层，最后再复合而成最终页面，合成层内的dom变动只需要重绘这个层，更高效。
+### 6、使用requestAnimationFrame控制时机
 
-### 结论
 
-- 尽量多用transform
-- 在合理时机设置will-change
-- 把合成层的index尽可能调高（避免自动创建不必要的合成层）
+    document.body.addEventListener('click', () => {
+      div.style.height = '110px'; // step 1
+      requestAnimationFrame(() => {
+        div.style.height = '120px'; // step 2
+        requestAnimationFrame(() => {
+          div.style.height = '130px'; // step 3
+        });
+      });
+    });
+
+
+![raf](../resources/browser-render/screenshot/raf.jpg)
+
+
+把例子2中各step的执行时机从setTimeout回调改为requestAnimationFrame（以下简称rAF）回调。rAF回调中的任务会在下个渲染时机执行。
+
+`step 1`执行完后到达第一个渲染时机时，浏览器先执行了style & layout，接着不是执行layer，而是执行rAF任务（执行`step 2`并新增一个rAF任务），再重新进行渲染。然后是等到第二个渲染时机，执行第二个rAF任务（执行`step 3`），再进行渲染。
+
+使用rAF替代定时器来实现动画，能保证rAF任务中的改动结果一定会被渲染，因为rAF任务的执行和渲染的频率是同步的，不会像例子2中`step 2`的改动被忽略，从而有更流畅的动画表现。当然这里讨论的是用JS去改样式，如果能直接用CSS的animation替代效果更佳。
+
+
+### 7、阻塞渲染
+
+
+    document.body.addEventListener('click', () => {
+      div.style.height = '110px'; // step 1
+      let i = 0;
+      while (i++ < 100000000) {}
+    });
+
+![busy](../resources/browser-render/screenshot/busy.jpg)
+
+一轮task中如果进行了长耗时的计算，浏览器会一直等到计算完成才执行渲染，这会导致一帧图像持续的时间过长，也就是页面卡顿现象。
+
+可以通过把任务拆分到多个task分段执行，或放到web worker执行来解决。
+
+## 小结
+
+- 避免频繁对layout相关属性的读取。
+- 可以的话，样式需求优先用非layout相关属性去实现。
+- 持续修改样式来实现动画时，使用requestAnimationFrame来替代定时器。
+- 合理利用合成层（优先用transform实现动画；在合理时机设置节点的will-change；合成层的index尽可能调高，避免上层创建不必要的合成层）。
+- 耗时较长的任务尽量拆分到多个task中分段执行，或放到web worker执行。
+

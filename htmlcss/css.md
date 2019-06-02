@@ -42,7 +42,7 @@ gird
 
 当访问一些布局相关的信息的API时，比如clientWidth、offsetWidth、scrollWidth、getComputedStyle()等，浏览器为保证获取到的数据正确，会立刻清空队列进行一次reflow&repaint。
 
-> 详见[【页面渲染】](/htmlcss/render?id=GPU加速)
+> 详见[【页面渲染】](/htmlcss/render)
 
 ## 选择器优先级
 

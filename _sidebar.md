@@ -10,7 +10,7 @@
 
   - [HTML](htmlcss/html.md)
   - [CSS](htmlcss/css.md)
-  - [页面渲染](htmlcss/render.md)
+  - [浏览器渲染](htmlcss/render.md)
 
 - Web
 
