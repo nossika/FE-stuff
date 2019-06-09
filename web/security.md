@@ -51,7 +51,7 @@
 
 解决方案：https
 
-> 详见[【Web/HTTPS】](/web/protocol?id=https)
+> 详见[【Web/HTTPS】](/web/protocol.html#https)
 
 ## 内容加密
 
@@ -59,4 +59,4 @@
 
 算法：RSA、ECC
 
-RSA算法详见[【RSA加密】](/algorithm/concept?id=rsa加密)
+RSA算法详见[【RSA加密】](/algorithm/concept.html#rsa加密)

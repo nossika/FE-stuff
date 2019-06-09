@@ -1,32 +1,38 @@
-# JS（ECMA）
+# JS(ECMA)
 
 ## 类型转换
 
 ### 数字转字符串
 
-
-    number + '';
-    number.toString();
-    String(number);
+```js
+number + '';
+number.toString();
+String(number);
+```
 
 ### 字符串转数字
 
-    +string;
-    Number.parseFloat(string);
-    Number(string);
+```js
++string;
+Number.parseFloat(string);
+Number(string);
+```
 
 ### 对于基本类型的值调用方法（比如`'asd'.indexOf('s')`）
 
 基本类型在读取模式下会被先包装为对应的对象再执行，比如
 
-    'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
+```js
+'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
+```
 
 而写入模式则无效
 
-    const str = 'asd';
-    str.prop = 'f';
-    str.prop; // undefined
- 
+```js
+const str = 'asd';
+str.prop = 'f';
+str.prop; // undefined
+```
 ### 隐式转换
 
 对需要转换的值`foo`调用其内部方法`[Symbol.toPrimitive](hint)`，根据上下文决定hint取值（string/number/default）
@@ -39,35 +45,39 @@ number/default: try `foo.valueOf()` => try `foo.String()` => throw error
 
 搬运一个MDN上的例子：
 
-    // An object without Symbol.toPrimitive property.
-    var obj1 = {};
-    console.log(+obj1);     // NaN
-    console.log(`${obj1}`); // "[object Object]"
-    console.log(obj1 + ''); // "[object Object]"
+```js
+// An object without Symbol.toPrimitive property.
+var obj1 = {};
+console.log(+obj1);     // NaN
+console.log(`${obj1}`); // "[object Object]"
+console.log(obj1 + ''); // "[object Object]"
 
-    // An object with Symbol.toPrimitive property.
-    var obj2 = {
-      [Symbol.toPrimitive](hint) {
-        if (hint == 'number') {
-          return 10;
-        }
-        if (hint == 'string') {
-          return 'hello';
-        }
-        return true;
-      }
-    };
-    console.log(+obj2);     // 10        -- hint is "number"
-    console.log(`${obj2}`); // "hello"   -- hint is "string"
-    console.log(obj2 + ''); // "true"    -- hint is "default"
+// An object with Symbol.toPrimitive property.
+var obj2 = {
+  [Symbol.toPrimitive](hint) {
+    if (hint == 'number') {
+      return 10;
+    }
+    if (hint == 'string') {
+      return 'hello';
+    }
+    return true;
+  }
+};
+console.log(+obj2);     // 10        -- hint is "number"
+console.log(`${obj2}`); // "hello"   -- hint is "string"
+console.log(obj2 + ''); // "true"    -- hint is "default"
+```
 
 ## Number
 
 ### 数字精度问题
 
-    0.1; // 0.1
-    0.2; // 0.2
-    0.1 + 0.2; // 0.30000000000000004
+```js
+0.1; // 0.1
+0.2; // 0.2
+0.1 + 0.2; // 0.30000000000000004
+```
 
 JS中能转换成整数的值都会用整数来存储，而小数在底层则用**IEEE-754标准**的双精度（64位）浮点数来存储。所以此问题不仅出现于JS，而是使用这个标准的所有语言。
 
@@ -128,19 +138,23 @@ JS里可以直接创建对象，再设置对象的原型实现继承我，原型
 
 原型、实例、构造函数例子：
 
-    function A() {} // 构造函数 constructor
+```js
+function A() {} // 构造函数 constructor
 
-    const a = new A(); // 实例 instance
+const a = new A(); // 实例 instance
 
-    const protoA = A.prototype; // 原型 prototype
+const protoA = A.prototype; // 原型 prototype
+```
 
 三者相互访问:
 
-    Object.getPrototypeOf(a) === protoA
-    A.prototype === protoA
+```js
+Object.getPrototypeOf(a) === protoA
+A.prototype === protoA
 
-    proto.constructor === A
-    a.constructor === A // 实际上等同于 a.__proto__.constructor
+proto.constructor === A
+a.constructor === A // 实际上等同于 a.__proto__.constructor
+```
 
 ![prototype](../resources/js/prototype.png)
 
@@ -155,75 +169,83 @@ JS里可以直接创建对象，再设置对象的原型实现继承我，原型
 
 ES5写法
 
-    // 定义
-    function A() {
-      this.name = 'A' 
-    }
-    A.prototype.hi = function () {
-      console.log('hi') 
-    };
-    function B() {}
-    const a = new A();
-    B.prototype = a; // B继承A
-    const b = new B(); // 生成实例b
+```js
+// 定义
+function A() {
+  this.name = 'A' 
+}
+A.prototype.hi = function () {
+  console.log('hi') 
+};
+function B() {}
+const a = new A();
+B.prototype = a; // B继承A
+const b = new B(); // 生成实例b
 
-    // 测试
-    b.hi(); // print 'hi' （继承到了A的方法）
-    b.name; // A （也继承到了A中this定义的属性，但name属性是定义在a中，b通过原型链找到a，从而访问a.name）
-    b.constructor; // A （但构造函数指向A ）
+// 测试
+b.hi(); // print 'hi' （继承到了A的方法）
+b.name; // A （也继承到了A中this定义的属性，但name属性是定义在a中，b通过原型链找到a，从而访问a.name）
+b.constructor; // A （但构造函数指向A ）
 
-    // 原型链如下
-    b.__proto__; // a（constructor和__proto__都指向A）
-    b.__proto__.__proto__; // A.prototype
+// 原型链如下
+b.__proto__; // a（constructor和__proto__都指向A）
+b.__proto__.__proto__; // A.prototype
+```
 
 ES5写法，改变一下执行顺序
 	
-    // 定义
-    function A() {
-      this.name = 'A' 
-    }
-    A.prototype.hi = function () {
-      console.log('hi') 
-    };
-    function B() {}
-    const a = new A();
-    const b = new B(); // 在继承前生成生成实例b
-    B.prototype = a; // B继承A
+```js
+// 定义
+function A() {
+  this.name = 'A' 
+}
+A.prototype.hi = function () {
+  console.log('hi') 
+};
+function B() {}
+const a = new A();
+const b = new B(); // 在继承前生成生成实例b
+B.prototype = a; // B继承A
 
-    // 测试
-    b.hi(); // throw error （没有继承到A的方法）
-    b.name; // undefined
-    b.constructor; // B （构造函数正确）
+// 测试
+b.hi(); // throw error （没有继承到A的方法）
+b.name; // undefined
+b.constructor; // B （构造函数正确）
 
-    // 原型链如下
-    b.__proto__; // 原B.prototype (即prototype指向被改写之前的那个对象)
+// 原型链如下
+b.__proto__; // 原B.prototype (即prototype指向被改写之前的那个对象)
+```
 
 ES6 class（比起ES5写法，少了些容易让人困惑的地方）
 
-    // 定义
-    class A { 
-      constructor() {
-        this.name = 'A';
-      }
-      hi() {
-        console.log('hi');
-      }
-    };
-    class B extends A {};
-    const b = new B();
+```js
+// 定义
+class A { 
+  constructor() {
+    this.name = 'A';
+  }
+  hi() {
+    console.log('hi');
+  }
+};
+class B extends A {};
+const b = new B();
 
-    // 测试
-    b.hi(); // print 'hi' （继承到了A的方法）
-    b.name; // A （name直接定义在b上，即b.hasOwnProperty('name')为true）
-    b.constructor; // B （构造函数也正确）
+// 测试
+b.hi(); // print 'hi' （继承到了A的方法）
+b.name; // A （name直接定义在b上，即b.hasOwnProperty('name')为true）
+b.constructor; // B （构造函数也正确）
 
-    // 原型链如下
-    b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个对象）
-    b.__proto__.__proto__ // A.prototype
+// 原型链如下
+b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个对象）
+b.__proto__.__proto__ // A.prototype
+```
 
 create写法
 
-    Object.create(proto);
+```js
+Object.create(proto);
+```
 
 
 
@@ -235,9 +257,11 @@ create写法
 
 最简单的例子
 
-    function A() {}
-    const a = new A();
-    a instanceof A // 按上述查法，找到a.__proto__等于A.prototype，查找结束，返回true
+```js
+function A() {}
+const a = new A();
+a instanceof A // 按上述查法，找到a.__proto__等于A.prototype，查找结束，返回true
+```
 
 需要知道的几个知识：
 
@@ -259,25 +283,28 @@ create写法
 
 作用域可以用树状结构表示，比如如下例子：
 
-    // ...
-    
-    function A() {
+```js
 
-      function B1() {
+// ...
 
-        function C1() { }
+function A() {
 
-        function C2() { }
+  function B1() {
 
-      }
+    function C1() { }
 
-      function B2() { }
+    function C2() { }
 
-      function B3() { }
+  }
 
-      // ...
+  function B2() { }
 
-    }
+  function B3() { }
+
+  // ...
+
+}
+```
 
 它的作用域如图：
 
@@ -296,30 +323,31 @@ create写法
 
 可以利用这个性质来构造函数的私有变量：
 
-    function getFn() {
-      let count = 0; // count只有在fnWithCounter内能访问，外部无法读取或修改
-      function fnWithCounter() {
-        count++;
-        console.log('count: ', count);
-        let innerCount = 0; // 这个innerCount与count不同的是，它在fnWithCounter每次执行都会重新创建和销毁，而count可以被持久保留
-        // do sth.
-      }
-      return fnWithCounter;
-    }
+```js
+function getFn() {
+  let count = 0; // count只有在fnWithCounter内能访问，外部无法读取或修改
+  function fnWithCounter() {
+    count++;
+    console.log('count: ', count);
+    let innerCount = 0; // 这个innerCount与count不同的是，它在fnWithCounter每次执行都会重新创建和销毁，而count可以被持久保留
+    // do sth.
+  }
+  return fnWithCounter;
+}
 
-    const fnWithCounter = getFn();
+const fnWithCounter = getFn();
 
-    // 此时getFn虽然执行完毕，但其内部创建的count变量和fnWithCounter函数一起被保留下来
+// 此时getFn虽然执行完毕，但其内部创建的count变量和fnWithCounter函数一起被保留下来
 
-    fnWithCounter();
-    fnWithCounter();
+fnWithCounter();
+fnWithCounter();
 
-    fnWithCounter = null; // 如果执行了这句来释放函数，使原fnWithCounter指向的函数成为非活跃状态（无法从根被访问到），则垃圾回收器可能在下次回收时，释放此函数和其环境占用的内存。
-
+fnWithCounter = null; // 如果执行了这句来释放函数，使原fnWithCounter指向的函数成为非活跃状态（无法从根被访问到），则垃圾回收器可能在下次回收时，释放此函数和其环境占用的内存。
+```
 
 ## 异步处理
 
-> 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](/js/thread?id=事件循环)
+> 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](/js/thread.html#事件循环)
 
 ### Promise
 
@@ -327,21 +355,27 @@ create写法
 
 #### Promise错误处理
 
-    try { new Promise(..); } catch() {} 
+```js
+try { new Promise(..); } catch() {} 
+```
 
 无法捕获promise内部错误。
 
-    new Promise(...).then(handler, error => {})
+```js
+new Promise(...).then(handler, error => {})
 
-    new Promise(...).then(handler).catch(error => {})
+new Promise(...).then(handler).catch(error => {})
+```
 
 两者区别在于前者无法捕获handler函数内发生的错误，后者可以。
 
 ### async/await
 
-    asyncFn(); // 返回一个promise，其resolve时机等于asyncFn内部代码（包括其await）执行完毕时
+```js
+asyncFn(); // 返回一个promise，其resolve时机等于asyncFn内部代码（包括其await）执行完毕时
 
-    await promise; // 或者await一个非promise变量，等同于执行await Promise.resolve(val)
+await promise; // 或者await一个非promise变量，等同于执行await Promise.resolve(val)
+```
 
 ## 模块化
 
@@ -349,7 +383,9 @@ create写法
 
 静态导入（ES6标准）：
 
-    import a from './module-a';
+```js
+import a from './module-a';
+```
 
 按相关标准，静态导入是会作用于编译阶段，在代码运行之前，所以import不能被包裹在if代码块内
 
@@ -357,11 +393,13 @@ create写法
 
 作用于运行阶段，所以import后的路径可以是拼接的字符串
 
-    const b = import('./module-b'); // 得到一个promise
+```js
+const b = import('./module-b'); // 得到一个promise
 
-    b.then(content => { ... }) // module-b的内容content作为promise的结果返回
+b.then(content => { ... }) // module-b的内容content作为promise的结果返回
+```
 
-> 其他模块化方案详见[【模块化】](/engineer/module?id=模块化)
+> 其他模块化方案详见[【模块化】](/engineer/module.html#模块化)
 
 ## 尾调用优化
 
@@ -392,22 +430,23 @@ create写法
 
 斐波那契数例子：
 
+```js
+function fib(n) {
+  if (n === 1) return 1;
+  if (n === 2) return 2;
+  return fib(n - 1) + fib(n - 2);
+}
+// 普通递归：fib(5) 展开为 fib(4) + fib(3) 展开为 fib(3) + fib(2) + ... 展开为 fib(2) + fib(1) + ...
+// 函数会一直展开，调用栈不断往上堆叠
 
-    function fib(n) {
-      if (n === 1) return 1;
-      if (n === 2) return 2;
-      return fib(n - 1) + fib(n - 2);
-    }
-    // 普通递归：fib(5) 展开为 fib(4) + fib(3) 展开为 fib(3) + fib(2) + ... 展开为 fib(2) + fib(1) + ...
-    // 函数会一直展开，调用栈不断往上堆叠
+function fib(n, result = 1, total = 1) {
+  if (n === 1) return result;
+  return fib(n - 1, result + total, result);
+}
 
-    function fib(n, result = 1, total = 1) {
-      if (n === 1) return result;
-      return fib(n - 1, result + total, result);
-    }
-
-    // 尾递归：fib(5) 替换为 fib(4, 2, 1) 替换为 fib(3, 3, 2) 替换为 fib(2, 5, 3) 替换为 fib(1, 8, 5)
-    // 始终只需要保存最后一层调用帧
+// 尾递归：fib(5) 替换为 fib(4, 2, 1) 替换为 fib(3, 3, 2) 替换为 fib(2, 5, 3) 替换为 fib(1, 8, 5)
+// 始终只需要保存最后一层调用帧
+```
 
 尾调用优化在支持ES6的环境中（严格模式下）默认开启。
 
@@ -416,119 +455,132 @@ create写法
 
 ### Array.prototype.reduce
 
-    Array.prototype.reduce = function(fn, initial) {
-      const arr = this;
-      initial = initial === undefined ? arr.shift() : initial;
-      let total = initial;
-      for (let i = 0; i < arr.length; i++) {
-        total = fn(total, arr[i], i, arr);
-      }
-      return total;
-    }
+```js
+Array.prototype.reduce = function(fn, initial) {
+  const arr = this;
+  initial = initial === undefined ? arr.shift() : initial;
+  let total = initial;
+  for (let i = 0; i < arr.length; i++) {
+    total = fn(total, arr[i], i, arr);
+  }
+  return total;
+}
+```
 
 ### Function.prototype.bind
 
-    Function.prototype.bind = function(scope) {
-      const fn = this;
-      const bindArgs = [].slice.call(arguments, 1);
-      return function() {
-        const args = [].slice.call(arguments);
-        return fn.apply(scope, bindArgs.concat(args));
-      };
-    }
+```js
+Function.prototype.bind = function(scope) {
+  const fn = this;
+  const bindArgs = [].slice.call(arguments, 1);
+  return function() {
+    const args = [].slice.call(arguments);
+    return fn.apply(scope, bindArgs.concat(args));
+  };
+}
 
-    // or
+// or
 
-    Function.prototype.bind = function(scope, ...bindArgs) {
-      return (...args) => this.call(scope, ...bindArgs, ...args);
-    }
+Function.prototype.bind = function(scope, ...bindArgs) {
+  return (...args) => this.call(scope, ...bindArgs, ...args);
+}
+```
 
 ### String.prototype.indexOf
 
-    String.prototype.indexOf = function(match, startIndex) {
-      if (match === '') return startIndex || 0;
-      const str = this;
-      strLoop: for (let i = startIndex || 0; i < str.length; i++) {
-        if (str[i] === match[0]) {
-          matchLoop: for (let j = 1; j < match.length; j++) {
-            if (str[i + j] !== match[j]) {
-              break strLoop;
-            }
-          }
-          return i;
+```js
+String.prototype.indexOf = function(match, startIndex) {
+  if (match === '') return startIndex || 0;
+  const str = this;
+  strLoop: for (let i = startIndex || 0; i < str.length; i++) {
+    if (str[i] === match[0]) {
+      matchLoop: for (let j = 1; j < match.length; j++) {
+        if (str[i + j] !== match[j]) {
+          break strLoop;
         }
       }
-      return -1;
+      return i;
     }
+  }
+  return -1;
+}
+```
 
 ### Array.prototype.flat
 
-    Array.prototype.flat = function(depth = 1) {
-      const arr = this;
-      const newArr = [];
-      function flat(curArr, curDepth = 0) {
-        curArr.forEach(item => {
-          if (!(item instanceof Array) || (curDepth >= depth)) {
-            newArr.push(item);
-            return;
-          }
-          flat(item, curDepth + 1);
-        });
+```js
+Array.prototype.flat = function(depth = 1) {
+  const arr = this;
+  const newArr = [];
+  function flat(curArr, curDepth = 0) {
+    curArr.forEach(item => {
+      if (!(item instanceof Array) || (curDepth >= depth)) {
+        newArr.push(item);
+        return;
       }
-      flat(arr);
-      return newArr;
-    }
-
+      flat(item, curDepth + 1);
+    });
+  }
+  flat(arr);
+  return newArr;
+}
+```
 
 ## WeakMap的弱引用
 
-    const map = new Map();
-    let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-    map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
+```js
+const map = new Map();
+let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
 
-    map.get(el); // 读取#title的信息
+map.get(el); // 读取#title的信息
 
-    el = null; // el变量清空
-	
+el = null; // el变量清空
+```
+
 以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
 
 如果用WeakMap写法：
 
-	const weakMap = new WeakMap();
-	let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-	weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
+```js
+const weakMap = new WeakMap();
+let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
 
-	weakMap.get(el); // 读取#title的信息
+weakMap.get(el); // 读取#title的信息
 
-	el = null; // el变量清空
-	
+el = null; // el变量清空
+```
+
 WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
 
 这也是WeakMap不可遍历的一个原因，因为它内部的值可能随时会被GC清除。
 
 ## with会隐式调用in操作
 	
-    const proxy = new Proxy({}, {
-      get () { return 1; }
-    });
+```js
+const proxy = new Proxy({}, {
+  get () { return 1; }
+});
 
-    proxy.a; // 1
+proxy.a; // 1
 
-    with (proxy) {
-      a; // TypeError: a is not defined
-    }
+with (proxy) {
+  a; // TypeError: a is not defined
+}
 
-    const proxy2 = new Proxy({}, {
-      has (key) { console.log(`has ${key} ?`); return true; },
-      get () { return 1; }
-    });
+const proxy2 = new Proxy({}, {
+  has (key) { console.log(`has ${key} ?`); return true; },
+  get () { return 1; }
+});
 
-    proxy2.a; // 1
+proxy2.a; // 1
 
-    with (proxy2) {
-     a; // 打印出'has a ?'并且返回 1
-    }
-	
+with (proxy2) {
+ a; // 打印出'has a ?'并且返回 1
+}
+```
+
 `with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
 
 

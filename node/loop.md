@@ -17,15 +17,16 @@
 
 举个例子：
 
-    setTimeout(() => {
-      console.log('timeout 1');
-      Promise.resolve().then(() => console.log('promise 1'));
-    });
-    setTimeout(() => {
-      console.log('timeout 2');
-      Promise.resolve().then(() => console.log('promise 2'));
-    });
-
+```js
+setTimeout(() => {
+  console.log('timeout 1');
+  Promise.resolve().then(() => console.log('promise 1'));
+});
+setTimeout(() => {
+  console.log('timeout 2');
+  Promise.resolve().then(() => console.log('promise 2'));
+});
+```
 
 以上例子在浏览器中运行结果：
 

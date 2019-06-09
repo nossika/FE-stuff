@@ -1,9 +1,5 @@
 # NPM
 
-
-
-
-
 ## package.json
 
 ### module & main
@@ -12,9 +8,11 @@ main指向此包被外部导入时的入口文件，cjs格式；module是esm格�
 
 ### scripts
 	
-	scripts: {
-	  "test": "node bin/test.js --hot"
-	}
+```
+scripts: {
+	"test": "node bin/test.js --hot"
+}
+```
 
 在包根目录可通过`npm run test`来快捷执行script中test指向的命令`node bin/test.js --hot`，在`test.js`中可用process.argvs读取到命令行参数`--hot`
 	
@@ -30,27 +28,35 @@ main指向此包被外部导入时的入口文件，cjs格式；module是esm格�
 
 > `cli.js`中的文件首行应加上`#!/usr/bin/env node`表示该脚本以node环境运行
 
-		// my-bin 的 package.json
-		bin: {
-		  "my-bin": "bin/cli.js"
-		}
+```
+// my-bin 的 package.json
+bin: {
+	"my-bin": "bin/cli.js"
+}
+```
 
 用户在自己项目执行`npm i my-bin`后，npm会将之前的`cli.js`复制到项目根目录下的`/node_module/.bin`，并重命名为`my-bin`；如果执行全局安装`npm i -g my-bin`，则会将其安装到全局的node目录下。
 
 用户可以在项目根目录打开命令行手动调用
 
-		$ ./node_module/.bin/my-bin
+```
+$ ./node_module/.bin/my-bin
+```
 
 来执行my-bin，也可以写在package.json的script中来调用（script里不必写出my-bin的完整路径，因为`npm run test`时已经把`./node_module/.bin`添加到环境依赖了）
 
-		// 用户项目 的 package.json
-		scripts: {
-		  "test": "my-bin"
-		}
+```
+// 用户项目 的 package.json
+scripts: {
+	"test": "my-bin"
+}
+```
 
 如果是全局安装，node已经默认把全局目录下的bin写进环境依赖了，直接在命令行里
 
-		$ my-bin
+```
+$ my-bin
+```
 
 就能调用。
 

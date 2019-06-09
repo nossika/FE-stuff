@@ -19,10 +19,12 @@ SSR过程：
 
 ## 静态页渲染
 
-    const renderer = require('vue-server-renderer').createRenderer();
-    renderer.renderToString(app, (err, html) => {
-      // send html to client
-    });
+```js
+const renderer = require('vue-server-renderer').createRenderer();
+renderer.renderToString(app, (err, html) => {
+  // send html to client
+});
+```
 
 此方式只适用于渲染不需要交互的静态页面，可以开启缓存提高性能。
 
@@ -36,106 +38,106 @@ SSR过程：
 
 - **create-app.js**只提供一个`createApp`函数，不做其他有副作用的或者和运行环境有关的事情。
 
-
-    export function createApp() {
-      const app = new Vue({
-        render: h => h(App),
-        store: createStore(),
-        router: createRouter(),
-      });
-      return app;
-    }
-    
+```js
+export function createApp() {
+  const app = new Vue({
+    render: h => h(App),
+    store: createStore(),
+    router: createRouter(),
+  });
+  return app;
+}
+```
 
 - **entry-server.js**需要对`createApp`函数做一层封装，使其变成能够根据传入的store和router参数来初始化app，并注册匹配路由和预获取组件数据（asyncData）。
 
+```js
+export default (context = {}) => {
+  const app = createApp();
+  const store = app.$store;
+  const router = app.$router;
 
-    export default (context = {}) => {
-      const app = createApp();
-      const store = app.$store;
-      const router = app.$router;
+  context.path && router.replace(context.path);
+  // 将context传入的state作为初始化state
+  context.state && store.replaceState(context.state);
 
-      context.path && router.replace(context.path);
-      // 将context传入的state作为初始化state
-      context.state && store.replaceState(context.state);
-
-      return new Promise((resolve, reject) => {
-        router.onReady(() => {
-          // 预先把匹配到路由信息加载到router返回给客户端，客户端在router.onReady后执行app渲染，才能完全匹配上ssr的dom
-          const matchedComponents = router.getMatchedComponents().filter(item => item !== null);
-          Promise.all(matchedComponents.map(comp => {
-            if (comp.asyncData) {
-              // 组件内部的asyncData可能会对state再次操作，返回给客户端的是这些操作后的state，通过window.__INITIAL_STATE__取值
-              return comp.asyncData({
-                store,
-                route: router.currentRoute,
-              });
-            }
-          })).then(() => {
-            resolve(app);
-          }).catch(reject);
-        }, reject);
-      });
-    }
-
+  return new Promise((resolve, reject) => {
+    router.onReady(() => {
+      // 预先把匹配到路由信息加载到router返回给客户端，客户端在router.onReady后执行app渲染，才能完全匹配上ssr的dom
+      const matchedComponents = router.getMatchedComponents().filter(item => item !== null);
+      Promise.all(matchedComponents.map(comp => {
+        if (comp.asyncData) {
+          // 组件内部的asyncData可能会对state再次操作，返回给客户端的是这些操作后的state，通过window.__INITIAL_STATE__取值
+          return comp.asyncData({
+            store,
+            route: router.currentRoute,
+          });
+        }
+      })).then(() => {
+        resolve(app);
+      }).catch(reject);
+    }, reject);
+  });
+}
+```
 
 - **entry-client.js**需要调用`createApp`函数来在客户端完成Vue实例化，然后等待\_\_INITIAL_STATE__初始化store、router.onReady（加载注册路由）、预获取组件数据这几个操作执行完毕后，再执行$mount操作，以保证客户端渲染结果和服务端的完全一致。
 
+```js
+const app = createApp();
 
-    const app = createApp();
+if (window.__INITIAL_STATE__) {
+  app.$store.replaceState(window.__INITIAL_STATE__);
+}
 
-    if (window.__INITIAL_STATE__) {
-      app.$store.replaceState(window.__INITIAL_STATE__);
-    }
+const router = app.$router;
+const store = app.$store;
 
-    const router = app.$router;
-    const store = app.$store;
-
-    // 等路由异步组件加载完再执行app.$mount操作，以保持和服务端渲染结果一致
-    router.onReady(() => {
-      // 路由跳转前先执行完asyncData(如果有)再渲染，以保持和服务端渲染的行为一致（也是执行完asyncData再返回）
-      router.beforeResolve((to, from, next) => {
-        const matched = router.getMatchedComponents(to);
-        const prevMatched = router.getMatchedComponents(from);
-        let diffed = false;
-        const activated = matched.filter((c, i) => {
-          return diffed || (diffed = (prevMatched[i] !== c));
-        });
-
-        if (!activated.length) {
-          return next();
-        }
-
-        Promise.all(activated.map(comp => {
-          if (comp && comp.asyncData) {
-            return comp.asyncData({ store, route: to });
-          }
-        })).then(() => {
-          next();
-        }).catch(next);
-      })
-
-      app.$mount('#app');
+// 等路由异步组件加载完再执行app.$mount操作，以保持和服务端渲染结果一致
+router.onReady(() => {
+  // 路由跳转前先执行完asyncData(如果有)再渲染，以保持和服务端渲染的行为一致（也是执行完asyncData再返回）
+  router.beforeResolve((to, from, next) => {
+    const matched = router.getMatchedComponents(to);
+    const prevMatched = router.getMatchedComponents(from);
+    let diffed = false;
+    const activated = matched.filter((c, i) => {
+      return diffed || (diffed = (prevMatched[i] !== c));
     });
 
+    if (!activated.length) {
+      return next();
+    }
+
+    Promise.all(activated.map(comp => {
+      if (comp && comp.asyncData) {
+        return comp.asyncData({ store, route: to });
+      }
+    })).then(() => {
+      next();
+    }).catch(next);
+  })
+
+  app.$mount('#app');
+});
+```
 
 - webpack的打包配置也需要分成**client.config.js**和**server.config.js**，需要各自加上官方提供的对应plugin，注意**server.config.js**中要去掉MiniCssExtractPlugin这类外置资源的插件。打包出来的文件可以放在同一文件夹，包含**vue-ssr-client-manifest.json**（客户端依赖的资源map）、**vue-ssr-server-bundle.json**（服务端需要的app创建方法）和一些chunks文件。
 
 - 服务端代码通过`require('vue-server-renderer').createBundleRenderer`引用打包后的vue-ssr-server-bundle.json、vue-ssr-client-manifest.json，计算出渲染完成的HTML并注入资源依赖后，返回给客户端。
 
+```js
+const renderer = createBundleRenderer(path.resolve(__dirname, '../dist/vue-ssr-server-bundle.json'), {
+  template: fs.readFileSync(path.resolve(__dirname, '../src/index.html'), 'utf-8'), // html模板
+  clientManifest: require('../dist/vue-ssr-client-manifest.json'), // 客户端依赖，服务端完成首页渲染之后，客户端路由变化的新页面由客户端代码去渲染
+});
 
-    const renderer = createBundleRenderer(path.resolve(__dirname, '../dist/vue-ssr-server-bundle.json'), {
-      template: fs.readFileSync(path.resolve(__dirname, '../src/index.html'), 'utf-8'), // html模板
-      clientManifest: require('../dist/vue-ssr-client-manifest.json'), // 客户端依赖，服务端完成首页渲染之后，客户端路由变化的新页面由客户端代码去渲染
-    });
-
-    const htmlStr = await renderer.renderToString({
-      state: {
-        user: 'my friend',
-      },
-      path: ctx.req.url,
-    });
-
+const htmlStr = await renderer.renderToString({
+  state: {
+    user: 'my friend',
+  },
+  path: ctx.req.url,
+});
+```
 
 
 上述例子已上传到[vue-ssr-demo](https://github.com/nossika/vue-ssr-demo)，可结合代码查看。

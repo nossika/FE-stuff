@@ -12,19 +12,27 @@
 
 从仓库拉取镜像（registry_url未指定时从默认镜像源拉取；tag_name未指定时，默认为latest标签）：
 
-    docker pull [registry_url]registry_name[:tag_name]
+```
+docker pull [registry_url]registry_name[:tag_name]
+```
 
 根据本地Dockerfile构建镜像：
 
-    docker build dockerfile_path -t image_name
+```
+docker build dockerfile_path -t image_name
+```
 
 列出已安装的镜像：
 
-    docker image ls
+```
+docker image ls
+```
 
 删除某镜像：
 
-    docker image rm image_id
+```
+docker image rm image_id
+```
 
 ### 容器 container
 
@@ -32,19 +40,27 @@
 
 运行容器：
 
-    docker run -p outer_port:inner_port image_name
+```
+docker run -p outer_port:inner_port image_name
+```
 
 查看所有容器（-a表示包括已停止容器）：
 
-    docker container ls -a
+```
+docker container ls -a
+```
 
 停止容器（容器停止后默认不会被自动删除，因为可能还要查看日志文件）：
 
-    docker container stop container_id
+```
+docker container stop container_id
+```
 
 删除容器：
 
-    docker container rm container_id
+```
+docker container rm container_id
+```
 
 
 ## Dockerfile
@@ -55,13 +71,14 @@ Dockerfile可用来自定义一个镜像。
 
 以一个node程序的Dockerfile为例子：
 
-    FROM node:latest
-    COPY . /app
-    WORKDIR /app
-    RUN npm install
-    CMD node index.js
-    EXPOSE 8888
-
+```
+FROM node:latest
+COPY . /app
+WORKDIR /app
+RUN npm install
+CMD node index.js
+EXPOSE 8888
+```
 
 - FROM node:latest
 

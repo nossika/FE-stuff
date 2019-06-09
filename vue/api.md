@@ -9,16 +9,17 @@
 
 slot-scope用法
 
-    <!--组件-->
-    <div>
-      <slot name="a" :id="123"/>
-    </div>
+```html
+<!--组件-->
+<div>
+  <slot name="a" :id="123"/>
+</div>
 
-
-    <!--页面-->
-    <div>
-      <div slot="a" slot-scope="d">{{d.id}}</div>
-    </div>
+<!--页面-->
+<div>
+  <div slot="a" slot-scope="d">{{d.id}}</div>
+</div>
+```
 
 $slots返回值（render函数）
 

@@ -2,5 +2,5 @@
 
 ## CDN
 
-详见[【CDN】](/web/cdn)
+详见[【CDN】](/web/cdn.html)
 

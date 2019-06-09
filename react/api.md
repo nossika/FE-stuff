@@ -4,80 +4,84 @@
 
 用法：
 
-    // version 16.7
+```jsx
+// version 16.7
 
-    function Example() {
-      // 定义state中的某个字段和修改该字段的方法
-      const [count, setCount] = React.useState(0);
+function Example() {
+  // 定义state中的某个字段和修改该字段的方法
+  const [count, setCount] = React.useState(0);
 
-      React.useEffect(() => {
-        // 执行带副作用的逻辑，如绑定事件
-        // 初次mount和每次render都会调用
-        const subscription = message$.subscribe();
+  React.useEffect(() => {
+    // 执行带副作用的逻辑，如绑定事件
+    // 初次mount和每次render都会调用
+    const subscription = message$.subscribe();
 
-        // 可以返回一个函数来消除副作用，如解绑事件    
-        // 每次render前都会调用（如果useEffect使用了第二个参数指定依赖，则只在依赖变化时调用），来消除上个副作用，当然在卸载时也会调用
-        return () => {
-          subscription.unsubscribe();
-        };
-      });
+    // 可以返回一个函数来消除副作用，如解绑事件    
+    // 每次render前都会调用（如果useEffect使用了第二个参数指定依赖，则只在依赖变化时调用），来消除上个副作用，当然在卸载时也会调用
+    return () => {
+      subscription.unsubscribe();
+    };
+  });
 
-      return (
-        <div>
-          <p>You clicked {count} times</p>
-          <button onClick={() => setCount(count + 1)}>
-            Click me
-          </button>
-        </div>
-      );
-    }
-
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
 
 Hooks相比传统的class组件写法：
 
 
 - 去掉生命周期的概念，不再关心组件到底在执行willMount还是didUpdate，副作用统一放到useEffect管理。
-- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【Hooks实现】](/react/principle?id=hooks实现)）。
+- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【Hooks实现】](/react/principle.html#hooks实现)）。
 - 组件状态粒度更细，useState使“状态”与“修改状态的逻辑”配对，而非统一用一个大的state和setState来管理，使state能以更细的粒度划分管理。
 - 事件配对，useEffect把“绑定事件”和“解绑事件”配对，而非把两者分散写到didMount和willUnmount中，使相关代码能够以更统一的方式组织。
 
 
 ## Lazy/Suspense
 
-    // version 16.6
+```jsx
+// version 16.6
 
-    // import()返回一个promise，加载完毕后将结果作为promise的resolve结果
-    const OtherComponent = React.lazy(() => import('./OtherComponent'));
+// import()返回一个promise，加载完毕后将结果作为promise的resolve结果
+const OtherComponent = React.lazy(() => import('./OtherComponent'));
 
-    // Suspense内有lazy组件在加载中时，隐藏children显示fallback内容，加载完毕后再显示children
-    function MyComponent() {
-      return (
-        <div>
-          <React.Suspense fallback={<div>Loading...</div>}>
-            <OtherComponent />
-          </React.Suspense>
-        </div>
-      );
-    }
-    
+// Suspense内有lazy组件在加载中时，隐藏children显示fallback内容，加载完毕后再显示children
+function MyComponent() {
+  return (
+    <div>
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <OtherComponent />
+      </React.Suspense>
+    </div>
+  );
+}
+```
+
 可以手动实现lazy和suspense组件：在lazy中抛出一个异常，此异常为一个promise，文件加载完毕后将内容作为promise的resolve结果；suspense层定义didCatch来捕获这个promise，默认用fallback内容展示，在promise.then中把内容修改为children。
 
 ## Context
 
-    // version 16.3
-    // 定义Context
-    const MyContext = React.createContext(defaultValue);
+```jsx
+// version 16.3
+// 定义Context
+const MyContext = React.createContext(defaultValue);
 
-    // 祖先层
-    <MyContext.Provider value={/* some value */}>
-      {/* render something */}
-    </MyContext.Provider>
+// 祖先层
+<MyContext.Provider value={/* some value */}>
+  {/* render something */}
+</MyContext.Provider>
 
-    // 使用层
-    <MyContext.Consumer>
-      {value => /* render something based on the context value */}
-    </MyContext.Consumer>
-
+// 使用层
+<MyContext.Consumer>
+  {value => /* render something based on the context value */}
+</MyContext.Consumer>
+```
 
 相比老context用法
 
@@ -91,7 +95,7 @@ Hooks相比传统的class组件写法：
 
 transaction模型，batchedUpdates(ReactDOM.unstable_batchedUpdates)
 
-> 详见[【setState的异步】](/react/principle?id=setState的异步)
+> 详见[【setState的异步】](/react/principle.html#setstate的异步)
 
 ## pureComponent/memo
 

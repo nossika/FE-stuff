@@ -45,44 +45,45 @@
 
 创建一个div为例子，在body的click事件对div进行修改
 
-    // 创建测试div
-    const div = document.createElement('div');
-    div.style.cssText = 'width: 100px; height: 100px; background: red';
-    document.body.appendChild(div);
+```js
+// 创建测试div
+const div = document.createElement('div');
+div.style.cssText = 'width: 100px; height: 100px; background: red';
+document.body.appendChild(div);
 
-    // 对div样式进行修改
-    document.body.addEventListener('click', () => {
-      // ...
-    });
-
+// 对div样式进行修改
+document.body.addEventListener('click', () => {
+  // ...
+});
+```
 
 在click回调中，分别采用如下代码来测试，用chrome的performance工具分析结果。一个task条表示一轮事件循环，一个frame条表示实际一帧图像的持续时间。
 
 ### 1、单次渲染
 
+```js
+document.body.addEventListener('click', () => {
+  div.style.height = '110px'; // step 1
+});
+```
 
-    document.body.addEventListener('click', () => {
-      div.style.height = '110px'; // step 1
-    });
+![normal](../resources/browser-render/screenshot/normal.jpg)
 
-
-  ![normal](../resources/browser-render/screenshot/normal.jpg)
-
-  一个基本的渲染例子，`step 1`之后浏览器执行了完整的5个渲染步骤。
+一个基本的渲染例子，`step 1`之后浏览器执行了完整的5个渲染步骤。
 
 ### 2、多轮task下的渲染
 
-
-    document.body.addEventListener('click', () => {
-      div.style.height = '110px'; // step 1
-      setTimeout(() => {
-        div.style.height = '120px'; // step 2
-        setTimeout(() => {
-          div.style.height = '130px'; // step 3
-        });
-      });
+```js
+document.body.addEventListener('click', () => {
+  div.style.height = '110px'; // step 1
+  setTimeout(() => {
+    div.style.height = '120px'; // step 2
+    setTimeout(() => {
+      div.style.height = '130px'; // step 3
     });
-
+  });
+});
+```
 
 
 ![multi-task](../resources/browser-render/screenshot/multi-task.jpg)
@@ -96,20 +97,20 @@
 
 ### 3、提前读取layout相关属性
 
-
-    document.body.addEventListener('click', () => {
-      div.style.height = '110px'; // step 1
+```js
+document.body.addEventListener('click', () => {
+  div.style.height = '110px'; // step 1
+  console.log(div.offsetHeight);
+  setTimeout(() => {
+    div.style.height = '120px'; // step 2
+    console.log(div.offsetHeight);
+    setTimeout(() => {
+      div.style.height = '130px'; // step 3
       console.log(div.offsetHeight);
-      setTimeout(() => {
-        div.style.height = '120px'; // step 2
-        console.log(div.offsetHeight);
-        setTimeout(() => {
-          div.style.height = '130px'; // step 3
-          console.log(div.offsetHeight);
-        });
-      });
     });
-
+  });
+});
+```
 
 ![force-layout](../resources/browser-render/screenshot/force-layout.jpg)
 
@@ -121,16 +122,17 @@
 
 ### 4、仅修改非layout相关属性
 
-
-    document.body.addEventListener('click', () => {
-      div.style.background = '#123'; // step 1
-      setTimeout(() => {
-        div.style.background = '#456'; // step 2
-        setTimeout(() => {
-          div.style.background = '#789'; // step 3
-        });
-      });
+```js
+document.body.addEventListener('click', () => {
+  div.style.background = '#123'; // step 1
+  setTimeout(() => {
+    div.style.background = '#456'; // step 2
+    setTimeout(() => {
+      div.style.background = '#789'; // step 3
     });
+  });
+});
+```
 
 ![skip-layout](../resources/browser-render/screenshot/skip-layout.jpg)
 
@@ -140,17 +142,17 @@
 
 ### 5、使用合成层
 
-
-    document.body.addEventListener('click', () => {
-      div.style.transform = 'scaleY(1.1)'; // step 1
-      setTimeout(() => {
-        div.style.transform = 'scaleY(1.2)';  // step 2
-        setTimeout(() => {
-          div.style.transform = 'scaleY(1.3)';  // step 3
-        });
-      });
+```js
+document.body.addEventListener('click', () => {
+  div.style.transform = 'scaleY(1.1)'; // step 1
+  setTimeout(() => {
+    div.style.transform = 'scaleY(1.2)';  // step 2
+    setTimeout(() => {
+      div.style.transform = 'scaleY(1.3)';  // step 3
     });
-
+  });
+});
+```
 
 ![composite](../resources/browser-render/screenshot/composite.jpg)
 
@@ -164,17 +166,17 @@
 
 ### 6、使用requestAnimationFrame控制时机
 
-
-    document.body.addEventListener('click', () => {
-      div.style.height = '110px'; // step 1
-      requestAnimationFrame(() => {
-        div.style.height = '120px'; // step 2
-        requestAnimationFrame(() => {
-          div.style.height = '130px'; // step 3
-        });
-      });
+```js
+document.body.addEventListener('click', () => {
+  div.style.height = '110px'; // step 1
+  requestAnimationFrame(() => {
+    div.style.height = '120px'; // step 2
+    requestAnimationFrame(() => {
+      div.style.height = '130px'; // step 3
     });
-
+  });
+});
+```
 
 ![raf](../resources/browser-render/screenshot/raf.jpg)
 
@@ -188,12 +190,13 @@
 
 ### 7、阻塞渲染
 
-
-    document.body.addEventListener('click', () => {
-      div.style.height = '110px'; // step 1
-      let i = 0;
-      while (i++ < 100000000) {}
-    });
+```js
+document.body.addEventListener('click', () => {
+  div.style.height = '110px'; // step 1
+  let i = 0;
+  while (i++ < 100000000) {}
+});
+```
 
 ![busy](../resources/browser-render/screenshot/busy.jpg)
 

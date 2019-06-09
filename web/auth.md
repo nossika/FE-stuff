@@ -27,16 +27,16 @@
 
 登陆的一种实现：
 
-C
-
+Client
+```
 gen randomKey
 
 encodeKey = psw
 
 H(id+randomKey)
-
-S
-
+```
+Server
+```
 decodeKey = psw
 
 decode id + randomKey
@@ -46,13 +46,13 @@ encodeKey = randomKey
 gen syncKey
 
 H(syncKey)
-
-C 
-
+```
+Client
+```
 decodeKey = randomKey
 
 decode syncKey
-
+```
 
 票据的一种实现：
 
