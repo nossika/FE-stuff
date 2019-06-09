@@ -14,6 +14,11 @@ header(content-type/accept-encoding/user-agent/cookie/access-control-allow-origi
 
 cookie
 
+
+### http code VS body code
+
+可以类比TCP/QUIC，在 直接利用现有协议/在协议下层精细化封装 之间的取舍。
+
 ## TCP/UDP
 
 都基于IP的传输层协议，传输数据给应用层协议使用。
