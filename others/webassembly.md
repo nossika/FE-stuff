@@ -9,21 +9,30 @@ WebAssembly允许在浏览器中运行一些低级别但性能更高的语言（
 
 2. 在JS中引入wasm（在浏览器还未实现`<script type="module"/>`前，用fetch引入）
   
-    const bytes = await fetch(wasmUrl).then(res => res.arrayBuffer());
+```js
+const bytes = await fetch(wasmUrl).then(res => res.arrayBuffer());
+```
 
 3. 使用WebAssembly解析二进制文件为module
 
-    const module = await WebAssembly.compile(bytes);
+```js
+const module = await WebAssembly.compile(bytes);
+```
 
 4. 实例化module
 
-    const instance = await WebAssembly.instantiate(module, {});
+```js
+const instance = await WebAssembly.instantiate(module, {});
+```
 
 5. 使用实例上提供的方法
 
-    const exports = instance.exports;
+```js
+const exports = instance.exports;
 
-    exports.add(1, 2); // 这里的add方法来自原始模块中的定义
+exports.add(1, 2); // 这里的add方法来自原始模块中的定义
+```
+
 
 
 

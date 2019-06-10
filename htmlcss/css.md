@@ -1,3 +1,4 @@
+# CSS
 
 ## 布局方式
 
@@ -42,7 +43,7 @@ gird
 
 当访问一些布局相关的信息的API时，比如clientWidth、offsetWidth、scrollWidth、getComputedStyle()等，浏览器为保证获取到的数据正确，会立刻清空队列进行一次reflow&repaint。
 
-> 详见[【页面渲染】](/htmlcss/render)
+> 详见[【页面渲染】](/htmlcss/render.html)
 
 ## 选择器优先级
 
@@ -62,17 +63,19 @@ gird
 
 变量定义和使用
 
-    :root {
-      --main-color: #ddd;
-    }
+```css
+:root {
+  --main-color: #ddd;
+}
 
-    selector1 {
-      --main-color: #ddd;
-    }
+selector1 {
+  --main-color: #ddd;
+}
 
-    selector2 {
-      background-color: var(--main-color);
-    }
+selector2 {
+  background-color: var(--main-color);
+}
+```
 
 元素使用的css变量如果在多个选择器中定义，遵从css选择器优先级规则，取对该元素优先级最高的选择器中的定义
 
@@ -82,20 +85,24 @@ gird
 
 例如定义一个layout：
 
-    registerLayout('my-display', class {
-      static get inputProperties() {
-        return ['width', 'height']
-      }
-      layout(children, constraintSpace, styleMap, breakToken) {
-        // handle layout
-      }
-    }
+```js
+registerLayout('my-display', class {
+  static get inputProperties() {
+    return ['width', 'height']
+  }
+  layout(children, constraintSpace, styleMap, breakToken) {
+    // handle layout
+  }
+}
+```
 
 使用：
 
-    div {
-      display: layout('my-display');
-    }
+```scss
+div {
+  display: layout('my-display');
+}
+```
 
 ## 预处理器（如sass/less）
 
@@ -103,38 +110,46 @@ gird
 
   嵌套
 
-    parent {
-      background: #fff;
-      &.red {
-        background: red;
-      }
-      child {
-        background: #eee;
-      }
-    }
+```scss
+parent {
+  background: #fff;
+  &.red {
+    background: red;
+  }
+  child {
+    background: #eee;
+  }
+}
+```
 
 变量定义和使用
 
-    $main-color = #ddd
+```scss
+$main-color = #ddd
 
-    selector {
-      background-color: $main-color;
-    }
+selector {
+  background-color: $main-color;
+}
+```
 
 函数定义和使用
 
-    @mixin rounded($radius: 4px) {
-      border-top-left-radius: $radius;
-      border-top-right-radius: $radius;
-    }
+```scss
+@mixin rounded($radius: 4px) {
+  border-top-left-radius: $radius;
+  border-top-right-radius: $radius;
+}
 
-    selector {
-      @include rounded(6px);
-    }
+selector {
+  @include rounded(6px);
+}
+```
 
 模块化
 
-    @import "./path/to/common.scss"
+```scss
+@import "./path/to/common.scss"
+```
 
 ## 后处理器（如PostCSS）
 

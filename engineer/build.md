@@ -13,42 +13,47 @@
 
 #### 使用
 
-	config = {
-		entry: '',
-		output: {},
-		module: {
-			rules: [ // Rule[]
-				{
-					test: /xx.ext/,
-					use: [ // Loader[]
-						'loader-a',
-						{
-							loader: 'loader-b',
-							option: {},
-							query: {},
-						}
-					]
-				}
-			]
-		}
-	}
+```js
+config = {
+	entry: '',
+	output: {},
+	module: {
+		rules: [ // Rule[]
+			{
+				test: /xx.ext/,
+				use: [ // Loader[]
+					'loader-a',
+					{
+						loader: 'loader-b',
+						option: {},
+						query: {},
+					},
+				],
+			},
+		],
+	},
+};
+```
 
 编译过程中遇到匹配某rule的test的文件，会使用rule的use中设置的loader（可以是多个loader，从后往前）来加载这个文件。loader从node_module里的对应loader名调用。
 
 #### 编写
 
-	module.export = function(content, map, meta) { 
-		// do sth
-		return newContent;
-	}
-	
+```js
+module.export = function(content, map, meta) { 
+	// do sth
+	return newContent;
+};
+```
+
 或者异步使用
 	
-	module.export = function(content, map, meta) { 
-		// do sth
-		this.callback(newContent);
-	}
-
+```js
+module.export = function(content, map, meta) { 
+	// do sth
+	this.callback(newContent);
+};
+```
 babel-loader（文本loader）：
 
 得到js文件的文本内容content，将其解析成ast，重新组织语法，再生成新的字符串newContent返回
@@ -64,27 +69,30 @@ file-loader（二进制loader）：
 
 #### 使用
 
-		config = {
-			entry: '',
-			output: {},
-			plugins: [
-				new SomePlugin(options),
-			],
-		}
+```js
+config = {
+	entry: '',
+	output: {},
+	plugins: [
+		new SomePlugin(options),
+	],
+};
+```
 
 #### 编写
 
-	class {
-		constructor(options) {
-			// 拿到用户定义的options
-		}
-		apply(compiler) {
-			// 插件安装时调用一次，拿到compiler对象（提供webpack全局配置信息）
-			// 可以从compiler的hooks回调拿到compilation对象（每次文件变动重新生成，提供本次资源相关信息）
-			// 在compiler和compilation的各类hooks（基于tapable）绑定自定义事件
-		}			
+```js
+class {
+	constructor(options) {
+		// 拿到用户定义的options
 	}
-
+	apply(compiler) {
+		// 插件安装时调用一次，拿到compiler对象（提供webpack全局配置信息）
+		// 可以从compiler的hooks回调拿到compilation对象（每次文件变动重新生成，提供本次资源相关信息）
+		// 在compiler和compilation的各类hooks（基于tapable）绑定自定义事件
+	}			
+}
+```
 	
 #### definePlugin
 

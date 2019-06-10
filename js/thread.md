@@ -36,7 +36,7 @@
 
 JS线程与GUI线程互斥（一个执行时另一个会被挂起），因为JS可以读取DOM的渲染数据，须保证读取到的数据准确。浏览器一般在JS线程空闲时执行layout&paint，如果在JS线程执行中触发layout，JS线程会阻塞，等其执行完毕再继续。
 
-> 渲染相关详见[【页面渲染】](/htmlcss/render)。
+> 渲染相关详见[【页面渲染】](/htmlcss/render.html)。
 
 
 ## 事件循环
@@ -57,7 +57,7 @@ JS本身是单线程，但执行JS的环境不是。宿主一般会有JS主线�
 主线程空闲时（即一轮事件循坏结束），会从事件队列取出事件（如果有的话）加入执行栈执行（即进入下轮事件循环）。如果执行栈再遇到异步操作，则重复上述调度行为。
 
 
-> NodeJS中的事件循环略有不同，详见[【事件循环（NodeJS）】](/node/loop)
+> NodeJS中的事件循环略有不同，详见[【事件循环（NodeJS）】](/node/loop.html)
 
 
 
@@ -65,32 +65,36 @@ JS本身是单线程，但执行JS的环境不是。宿主一般会有JS主线�
 
 事件循环中有task和microTask的概念
 
-	function repeat() {
-	  Promise.resovle().then(repeat);
-	}
+```js
+function repeat() {
+	Promise.resovle().then(repeat);
+}
+
+setTimeout(() => {
+	console.log('setTimeout');
+}, 1000);
+
+repeat();
 	
-	setTimeout(() => {
-	  console.log('setTimeout');
-	}, 1000);
-	
-	repeat();
-		
-		// 'setTimeout'永远不会被打印，因为无限执行microTask，不会进入下个loop
+// 'setTimeout'永远不会被打印，因为无限执行microTask，不会进入下个loop
+```
 		
 如果改成
-		
-	function repeat() {
-	  setTimeout(repeat);
-	}
-	
-	setTimeout(() => {
-	  console.log('setTimeout');
-	}, 1000);
-	
-	repeat();
-	
-	// 'setTimeout'会被打印
-		
+
+```js	
+function repeat() {
+	setTimeout(repeat);
+}
+
+setTimeout(() => {
+	console.log('setTimeout');
+}, 1000);
+
+repeat();
+
+// 'setTimeout'会被打印
+```		
+
 执行顺序
 
 loop ( 一轮循环开始 -> task -> microTask -> 一轮循环结束 ) => nextLoop ( 一轮循环开始 -> task -> microTask -> 一轮循环结束 ) => nextLoop => ...
@@ -101,20 +105,22 @@ microTask类型: Promise, MutationObserver
 
 #### setTimeout/setInterval
 
-	function loop1() {
+```js
+function loop1() {
+	// do sth.
+	setTimeout(loop1, 1000);
+}
+
+loop1();
+
+function loop2() {
+	setInterval(() => {
 		// do sth.
-		setTimeout(loop1, 1000);
-	}
-	
-	loop1();
+	}, 1000);
+}
 
-	function loop2() {
-		setInterval(() => {
-			// do sth.
-		}, 1000);
-	}
-
-	loop2();
+loop2();
+```
 
 两者都表示1s执行一次的循环，区别在于这个间隔1s，它在loop1中是本次`do sth.`执行完才触发下次计时，而loop2是一直在计时（因为计时器是单独的线程，不被主线程阻塞），一次计时完毕后立刻开始下一次。当`do sth.`耗时越高它们的行为差别越明显，setInterval可能连续多次触发`do sth.`。
 
@@ -124,19 +130,21 @@ microTask类型: Promise, MutationObserver
 
 用法：
 
-	// main.js
-	const worker = new Worker('./worker.js');
-	worker.postMessage('main msg');
-	worker.onmessage(msg => {
-	  msg; // 'worker msg'
-		// workder.terminate();  
-	});
+```js
+// main.js
+const worker = new Worker('./worker.js');
+worker.postMessage('main msg');
+worker.onmessage(msg => {
+	msg; // 'worker msg'
+	// workder.terminate();  
+});
 
-	// worker.js
-	onmessage = msg => {
-	  msg; //  'main msg'
-	  postMessage('worker msg');
-	}
+// worker.js
+onmessage = msg => {
+	msg; //  'main msg'
+	postMessage('worker msg');
+}
+```
 
 Worker会独立开启一个线程执行，不占用主线程资源，post出来的数据推入事件队列待主线程处理。
 

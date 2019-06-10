@@ -5,26 +5,26 @@
 
 class组件的状态保存在实例上，但Hooks实现的组件看起来是个纯函数，内部的状态却也可以保存，比如下面例子中，每次点击button都会重新调用函数App，而App内的count可以正确计数，不会因重新调用App而重置。
 
+```jsx
+function App() { // 每次render都会调用App
+  const [count, setCount] = React.useState(0); // 多次调用中，count值可以累加
+  return (
+    <div>
+      <p>count: {count}</p>
+      <button onClick={e => setCount(count + 1)}>count + 1</button>
+    </div>
+  );
+}
 
-    function App() { // 每次render都会调用App
-      const [count, setCount] = React.useState(0); // 多次调用中，count值可以累加
-      return (
-        <div>
-          <p>count: {count}</p>
-          <button onClick={e => setCount(count + 1)}>count + 1</button>
-        </div>
-      );
-    }
-
-    ReactDOM.render(
-      <App/>,
-      document.querySelector('#app'),
-    );
-
+ReactDOM.render(
+  <App/>,
+  document.querySelector('#app'),
+);
+```
 
 因为组件中的Hook函数被调用时，经React内部处理，状态被保存在**组件的FiberNode**中，在其memoizedState属性以**链表**形式依次保存每个Hook对应的状态；组件下次render时，按序取出状态和各个Hook**一一对应**，即实现状态保存。这也是Hook函数不能写在条件或循环中的原因，因为同个组件中的每次render必须保证各Hook调用的**顺序一致**，否则对应关系就乱了。
 
-> FiberNode详见[【FiberNode】](/react/principle?id=fibernode)。
+> FiberNode详见[【FiberNode】](/react/principle.html#fibernode)。
 
 ## Fiber
 
@@ -36,19 +36,19 @@ FiberNode把React组件中原本用JSON树来表示DOM的方式改成了用**链
 
 组件的FiberNode可以通过React element的\_owner属性访问到，但必须是通过React的render方法调用JSX生成的React element，手动调用JSX生成的React element的\_owner属性为null。
 
+```jsx
+function App() {
+  const vDOM = <div>test</div>; // 返回_owner为FiberNode的React element
+  return vDOM;
+}
 
-    function App() {
-      const vDOM = <div>test</div>; // 返回_owner为FiberNode的React element
-      return vDOM;
-    }
+const vDOM2 = <div>test</div>; // 返回_owner为null的React element
 
-    const vDOM2 = <div>test</div>; // 返回_owner为null的React element
-
-    ReactDOM.render(
-      <App/>,
-      document.querySelector('#app'),
-    );
-
+ReactDOM.render(
+  <App/>,
+  document.querySelector('#app'),
+);
+```
 
 FiberNode通过sibling、child、return这3个指针，把DOM的树形结构转化为链表结构
 
@@ -70,56 +70,59 @@ FiberNode通过sibling、child、return这3个指针，把DOM的树形结构转�
 
 ## setState的异步
 
-	
-	class Comp extends React.Component {
-	  state = {
-	    count: 1,
-	  };
-	  componentWillMount () {
-	    console.log(this.state.count); // 1
-	    this.setState({
-	      count: this.state.count + 1,
-	    });
-	    console.log(this.state.count); // 1
-	    this.setState({
-	      count: this.state.count + 1,
-	    });
-	    console.log(this.state.count); // 1
-	  }
-	  render () {
-	    return null;
-	  }
-	}
+```jsx
+class Comp extends React.Component {
+  state = {
+    count: 1,
+  };
+  componentWillMount () {
+    console.log(this.state.count); // 1
+    this.setState({
+      count: this.state.count + 1,
+    });
+    console.log(this.state.count); // 1
+    this.setState({
+      count: this.state.count + 1,
+    });
+    console.log(this.state.count); // 1
+  }
+  render () {
+    return null;
+  }
+}
 
-	ReactDOM.render(<Comp/>, document.querySelector('#app'));
-	
+ReactDOM.render(<Comp/>, document.querySelector('#app'));
+```
+
 大家都知道以上打印结果是因为setState是异步执行，但是如果把setState放到组件外
 	
-	class Comp extends React.Component {
-	  state = {
-	    count: 1,
-	  };
-	  componentWillMount () {
-	    window.comp = this;
-	  }
-	  render () {
-	    return null;
-	  }
-	}
+```jsx
+class Comp extends React.Component {
+  state = {
+    count: 1,
+  };
+  componentWillMount () {
+    window.comp = this;
+  }
+  render () {
+    return null;
+  }
+}
 
-	ReactDOM.render(<Comp/>, document.querySelector('#app'));
-	
-	setTimeout(() => {
-	  console.log(comp.state.count); // 1
-	  comp.setState({
-	    count: comp.state.count + 1,
-	  });
-	  console.log(comp.state.count); // 2
-	  comp.setState({
-	    count: comp.state.count + 1,
-	  });
-	  console.log(comp.state.count); // 3
-	});
+ReactDOM.render(<Comp/>, document.querySelector('#app'));
+
+setTimeout(() => {
+  console.log(comp.state.count); // 1
+  comp.setState({
+    count: comp.state.count + 1,
+  });
+  console.log(comp.state.count); // 2
+  comp.setState({
+    count: comp.state.count + 1,
+  });
+  console.log(comp.state.count); // 3
+});
+```
 
 修改后的代码state的结果变了，setState似乎变成了同步执行。
 
@@ -127,33 +130,35 @@ FiberNode通过sibling、child、return这3个指针，把DOM的树形结构转�
 
 可以通过Reace提供的batchedUpdates手动包装一个transaction
 
-	class Comp extends React.Component {
-	  state = {
-	    count: 1,
-	  };
-	  componentWillMount () {
-	    window.comp = this;
-	  }
-	  render () {
-	    return null;
-	  }
-	}
+```jsx
+class Comp extends React.Component {
+  state = {
+    count: 1,
+  };
+  componentWillMount () {
+    window.comp = this;
+  }
+  render () {
+    return null;
+  }
+}
 
-	ReactDOM.render(<Comp/>, document.querySelector('#app'));
-	
-	setTimeout(() => {
-	  ReactDOM.unstable_batchedUpdates(() => {
-	    console.log(comp.state.count); // 1
-	    comp.setState({
-	      count: comp.state.count + 1,
-	    });
-	    console.log(comp.state.count); // 1
-	    comp.setState({
-	      count: comp.state.count + 1,
-	    });
-	    console.log(comp.state.count); // 1	  
-	  });
-	});
+ReactDOM.render(<Comp/>, document.querySelector('#app'));
+
+setTimeout(() => {
+  ReactDOM.unstable_batchedUpdates(() => {
+    console.log(comp.state.count); // 1
+    comp.setState({
+      count: comp.state.count + 1,
+    });
+    console.log(comp.state.count); // 1
+    comp.setState({
+      count: comp.state.count + 1,
+    });
+    console.log(comp.state.count); // 1	  
+  });
+});
+```
 
 这样就回到了大家熟悉的结果。
 
@@ -165,68 +170,68 @@ JSX => JS => ReactElement => diff
 
 1. JSX源代码
 
-
-    render() {
-      return (
-        <section className="wrapper">
-          <Header type={1}>Hello World</Header>
-          <p>This</p>
-          is JSX
-        </section>
-      )
-    }
-
+```jsx
+render() {
+  return (
+    <section className="wrapper">
+      <Header type={1}>Hello World</Header>
+      <p>This</p>
+      is JSX
+    </section>
+  )
+}
+```
 
 2. 经过babel编译后的代码
 
-
-    render() {
-      return (
-        React.createElement(
-          'section',
-          { className: 'wrapper' },
-          React.createElement(
-            Header,
-            { type: 1 },
-            'Hello World',
-          ),
-          React.createElement(
-            'p',
-            null,
-            'This',
-          ),
-          'is JSX',
-        );
-      );
-    }
-
+```jsx
+render() {
+  return (
+    React.createElement(
+      'section',
+      { className: 'wrapper' },
+      React.createElement(
+        Header,
+        { type: 1 },
+        'Hello World',
+      ),
+      React.createElement(
+        'p',
+        null,
+        'This',
+      ),
+      'is JSX',
+    );
+  );
+}
+```
 
 3. 执行render()后的返回值为React element（用JSON表示的DOM树），数据格式类似如下
 
-
-    {
-      type: 'section',
-      props: {
-        className: 'wrapper',
-        children: [
-          {
-            type: Header,
-            props: {
-              type: 1,
-              children: 'Hello World',
-            },
-          },
-          {
-            type: 'p',
-            props: {
-              children: 'This',
-            },
-          },
-          'is JSX',
-        ],
+```js
+{
+  type: 'section',
+  props: {
+    className: 'wrapper',
+    children: [
+      {
+        type: Header,
+        props: {
+          type: 1,
+          children: 'Hello World',
+        },
       },
-    }
-
+      {
+        type: 'p',
+        props: {
+          children: 'This',
+        },
+      },
+      'is JSX',
+    ],
+  },
+}
+```
 
 4. 把React element渲染为真实DOM
 
@@ -234,7 +239,7 @@ JSX => JS => ReactElement => diff
 
 状态更新时，则通过更新前后虚拟DOM的diff比较，来按需更新真实DOM。
 
-> diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](/vue/principle?id=dom-diff)。
+> diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](/vue/principle.html#dom-diff)。
 
 
 ## React element中的Symbol
@@ -243,27 +248,31 @@ React element的$$typeof是一个Symbol类型的值。
 
 因为React组件在render时，允许传递一个React element对象作为参数。
 
-
-    render() {
-      // ...
-      return <div>{ data }</div>;
-    }
-
+```jsx
+render() {
+  // ...
+  return <div>{ data }</div>;
+}
+```
 
 这个data的值可以是string，也可以是一个React element结构的对象。
 
 比如data用jsx表示：
 
-    data = <div>hello</div>;
+```jsx
+data = <div>hello</div>;
+```
 
 当运行时，data的值会生成为React element，类似如下结构：
 
-    data = {
-      type: 'div',
-      props: {
-        children: 'hello',
-      },
-    };
+```jsx
+data = {
+  type: 'div',
+  props: {
+    children: 'hello',
+  },
+};
+```
 
 直接使用如果此对象去渲染的话，当data是从服务端获取的any类型，且此值来自用户的输入，则用户可以构造出一个React element植入html到他人的页面，带来安全问题。如果在React element中增加一个无法被序列化的标记（Symbol、Function、Set等均可），来表示其是在客户端的代码里生成的，通过判断此标记来决定是否渲染这个React element，则可以防止此问题发生。
 
@@ -271,34 +280,34 @@ React element的$$typeof是一个Symbol类型的值。
 
 ## 事件合成
 
+```jsx
+class App extends React.Component {
+  innerClick = e => console.log('react inner');
+  outerClick = e => console.log('react outer');
+  componentDidMount() {
+    document
+      .querySelector('#outer')
+      .addEventListener('click', e => console.log('native outer'));
 
-    class App extends React.Component {
-      innerClick = e => console.log('react inner');
-      outerClick = e => console.log('react outer');
-      componentDidMount() {
-        document
-          .querySelector('#outer')
-          .addEventListener('click', e => console.log('native outer'));
+    window.addEventListener('click', e => console.log('native window'));
+  }
+  render() {
+    return (
+      <div id="outer" onClick={this.outerClick}>
+        <div id="inner" onClick={this.innerClick}>
+          click me
+        </div>
+      </div>
+    );
+  }
+}
 
-        window.addEventListener('click', e => console.log('native window'));
-      }
-      render() {
-        return (
-          <div id="outer" onClick={this.outerClick}>
-            <div id="inner" onClick={this.innerClick}>
-              click me
-            </div>
-          </div>
-        );
-      }
-    }
-
-    // output:
-    // 1. 'native outer'
-    // 2. 'react inner'
-    // 3. 'react outer'
-    // 4. 'native window'
-
+// output:
+// 1. 'native outer'
+// 2. 'react inner'
+// 3. 'react outer'
+// 4. 'native window'
+```
 
 React**在真实的document节点**监听真实click事件，真实事件冒泡到document时，React按捕获(外节点到内节点)到冒泡(内节点到外节点)的顺序，收集节点上注册的click回调进队列，然后依次调用（传递的event参数是react合成后的对象）队列内的回调，完成click事件处理。
 

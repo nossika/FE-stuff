@@ -1,5 +1,5 @@
 
-
+# JS(DOM/BOM)
 
 ## 事件冒泡、事件委托
 
@@ -25,16 +25,16 @@ HTMLCollection的特性
 
 ## CSS Object Model
 
+```js
+const styleSheet: CSSStyleSheet = document.styleSheets[0];
+styleSheet.insertRule('h1 { font-weight: bold; color: green; }', 0);
 
-    const styleSheet: CSSStyleSheet = document.styleSheets[0];
-    styleSheet.insertRule('h1 { font-weight: bold; color: green; }', 0);
+const styleRule: CSSStyleRule = styleSheet.cssRules[0];
 
-    const styleRule: CSSStyleRule = styleSheet.cssRules[0];
+styleRule.style.setProperty('color', 'red');
 
-    styleRule.style.setProperty('color', 'red');
-
-    console.log(styleRule.cssText); // 'h1 { font-weight: bold; color: red; }'
-
+console.log(styleRule.cssText); // 'h1 { font-weight: bold; color: red; }'
+```
 
 
 
@@ -61,12 +61,14 @@ IntersectionObserver
 
 ### 计算元素在页面上的坐标
 
-    let top = 0, left = 0;
-    while (el && el !== document) {
-      top += el.offsetTop || 0;
-      left += el.offsetLeft || 0;
-      el = el.offsetParent;
-    }
+```js
+let top = 0, left = 0;
+while (el && el !== document) {
+  top += el.offsetTop || 0;
+  left += el.offsetLeft || 0;
+  el = el.offsetParent;
+}
+```
 
 
     
