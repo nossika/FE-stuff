@@ -73,9 +73,10 @@ module.exports = {
         ],
       },
       {
-        title: '计算机基础',
+        title: '计算机科学',
         collapsable: false,
         children: [
+          '/cs/lang.md',
           '/cs/paradigm.md',
           '/cs/design.md',
         ],

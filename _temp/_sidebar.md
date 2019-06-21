@@ -47,8 +47,9 @@
   - [一些概念](algorithm/concept.md)
   - [算法题](algorithm/application.md)
 
-- 计算机基础
+- 计算机科学
 
+  - [编程语言](cs/lang.md)
   - [编程范式](cs/paradigm.md)
   - [设计模式](cs/design.md)
 
