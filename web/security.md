@@ -1,5 +1,6 @@
 # 安全
 
+
 ## 同源策略
 
 浏览器为保护用户信息安全的策略，必须协议、域名、端口都相同才是同源，否则为非同源，也称跨域。
@@ -13,7 +14,7 @@
 - iframe的dom内容无法跨域获取
 - 跨域script标签的错误内容无法被window.onerror捕获
 
-### 应对方法
+### 绕过跨域
 
 #### ajax请求无法读取返回结果
 
@@ -43,40 +44,67 @@
 
 跨站脚本攻击 (Cross Site Script) ，因信任用户输入，且输出到页面时未转义，使得恶意用户输入的脚本可以被渲染到正常用户的页面上执行。
 
-1. 输入转义、输出转义，从根源防止
+场景：
 
-2. CSP防止加载外域资源、发送请求给外域
+1. 后台对表单输入数据未转义直接存入数据库，并且前端在输出到页面时也未转义，使得恶意用户可以植入代码到其他用户的页面。
 
-3. Cookie使用HttpOnly，防止Cookie被窃取
+2. 前端对URL上的参数取值时未转义直接输出到页面，使得恶意用户可以植入代码到URL传播，其他用户误点击后就会在本地页面执行。
+
+应对：
+
+1. 存入数据库前对参数转义、输出到页面时对参数转义，从根源防止
+
+2. CSP防止加载外域资源、发送请求给外域，防止发送本地用户数据给外部服务器
+
+3. Cookie使用HttpOnly，防止Cookie被代码读取
+
+4. 使用postMessage通信时，接收方判断origin，且不对传来的参数直接输出或执行
 
 ### CSP
 
 内容安全策略（Content-Security-Policy），可以限制网站只向可信来源发起请求。
 
+启用CSP：
 
 - 在HTTP的response中加上Content-Security-Policy的header
 
-
-        Content-Security-Policy: content
-
+```
+Content-Security-Policy: content
+```
 
 - 或者在HTML头部设置http-equiv="Content-Security-Policy"的meta标签
 
-
-        <meta http-equiv="Content-Security-Policy" content=""/>
-
+```html
+<meta http-equiv="Content-Security-Policy" content=""/>
+```
 
 ## CSRF
 
- 跨站请求伪造(Cross Site Request Forgery)，因信任用户请求，用户误点击恶意网站，恶意网站背后向本站发起的请求，被当做用户本人请求处理。
+跨站请求伪造(Cross Site Request Forgery)，因服务端信任请求来自正常用户，把此请求正常执行或返回数据，被恶意用户利用。
 
-1、使用额外请求参数（token）作为凭据
+场景：
 
-2、设置Cookie的SameSite，不允许跨域发送Cookie
+1. 某网站后台仅用cookie来确认用户身份，用户登录恶意网站时，网站可以向该网站暗地发出请求（请求自动带上该网站下的cookie），后台把此请求当做正常用户的请求受理，导致用户信息泄露或者资源损失。
 
-3、增加验证码，确保操作是真人执行而不是自动发起
+应对：
 
-4、判断请求header里的referer
+1. 使用token：生成token存到cookie或者页面内存，前端请求时读取此token带在header或者body中供后台校验
+
+2. 设置Cookie的SameSite，不允许跨域发送Cookie
+
+3. 增加验证码，确保操作是真人执行而不是自动发起
+
+## 点击劫持
+
+点击劫持（Click Jacking），用户点击某个按钮，却触发了不是用户真正意愿的事件。
+
+场景：
+
+1. 恶意网站用iframe内嵌正常网站悬浮在网页上并将iframe透明，诱使用户在页面特定位置进行点击，导致用户在不知情的情况下触发了事件。
+
+应对：
+
+1. 使用X-Frame-Options，防止被恶意网站内嵌
 
 ## SQL注入
 
