@@ -2,7 +2,7 @@
 
 ## 分析工具
 
-chrome的network、performance、memory
+chrome-devtools: network、performance、memory
 
 ### 首次渲染指标
 
@@ -18,21 +18,25 @@ onload
 
 首次交互（Time to First Interactive，TTFI）
 
-## 优化方式
+## 优化点
 
-dns：cdn
+### 网络性能
 
-缓存：response header、打包配置
+传输效率：cdn
+
+缓存设置：response header、打包配置
 
 文件粒度：打包配置
 
-业务代码：结合框架特性
+协议：HTTP2、QUIC
 
-长列表：分段加载（避免单线程阻塞）、只可视区域数据（避免建立多余dom）
+### 渲染性能
 
-http2
+框架：结合框架特性，减少diff，render等操作
 
-window.performance：measure、mark
+长列表：分段加载、只渲染可视区域数据
+
+其他渲染优化点：详见[【浏览器渲染】](/htmlcss/render.html)
 
 
 

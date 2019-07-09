@@ -1,4 +1,4 @@
-# HTTP
+# 协议
 
 ## HTTP
 
@@ -15,15 +15,15 @@ header(content-type/accept-encoding/user-agent/cookie/access-control-allow-origi
 cookie
 
 
-### http code VS body code
+### code in HTTP header or body
 
-可以类比TCP/QUIC，在 直接利用现有协议/在协议下层精细化封装 之间的取舍。
+可以类比TCP/QUIC，在 直接利用现有协议/在协议下层自定义封装 之间的取舍。
 
 ## TCP/UDP
 
 都基于IP的传输层协议，传输数据给应用层协议使用。
 
-因为都基于网络层的IP，两者都可能会出现丢包或乱序。而TCP与UDP不同的是，它在协议层封装了滑动窗口（超时重传来控制顺序、控制并发数来合理利用带宽）来解决这些问题。基于UDP也同样可以在应用层自行封装实现TCP的功能，比如谷歌的QUIC。
+因为两者都基于网络层的IP协议，都可能会出现丢包或乱序。而TCP与UDP不同的是，它在协议层封装了滑动窗口（超时重传来控制顺序、控制并发数来合理利用带宽）来解决这些问题。基于UDP也同样可以在应用层自行封装实现TCP的功能，比如谷歌的QUIC。
 
 ### QUIC
 

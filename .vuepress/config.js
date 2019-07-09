@@ -31,7 +31,6 @@ module.exports = {
         children: [
           '/web/protocol.md',
           '/web/cache.md',
-          '/web/crossorigin.md',
           '/web/security.md',
           '/web/performance.md',
           '/web/cdn.md',
