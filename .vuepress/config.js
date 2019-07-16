@@ -91,6 +91,7 @@ module.exports = {
           '/engineer/test.md',
           '/engineer/deploy.md',
           '/engineer/monitor.md',
+          '/engineer/devops.md',
         ],
       },
       {
