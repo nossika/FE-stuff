@@ -116,6 +116,7 @@ module.exports = {
           '/others/docker.md',
           '/others/database.md',
           '/others/nginx.md',
+          '/others/linux.md',
         ],
       },
     ],
