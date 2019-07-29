@@ -3,7 +3,7 @@
 
 ## webpack
 
-### entry、output
+### entry
 
 多入口配置
 
@@ -11,7 +11,7 @@
 
 对指定文件自定义编译，多个loader流式工作
 
-#### 使用
+#### 使用loader
 
 ```js
 config = {
@@ -37,7 +37,7 @@ config = {
 
 编译过程中遇到匹配某rule的test的文件，会使用rule的use中设置的loader（可以是多个loader，从后往前）来加载这个文件。loader从node_module里的对应loader名调用。
 
-#### 编写
+#### 开发loader
 
 ```js
 module.export = function(content, map, meta) { 
@@ -67,7 +67,7 @@ file-loader（二进制loader）：
 插手构建过程，在complition各阶段添加钩子函数来改变构建逻辑
 
 
-#### 使用
+#### 使用plugin
 
 ```js
 config = {
@@ -79,7 +79,7 @@ config = {
 };
 ```
 
-#### 编写
+#### 开发plugin
 
 ```js
 class {
@@ -100,20 +100,52 @@ class {
 
 这些配置是在编译阶段静态直接转换，而非生成全局变量，比如模块中`process.env.NODE_ENV`编译后会直接被替换为定义的值，而`process.env['NODE' + '_ENV']`则不会
 
+### 优化点
 
-### 代码分割
+#### 文件分割（懒加载）
 
-optimization.splitChunks 整体控制模块的独立打包规则，比如提取多页项目的公共依赖
+webpack默认会从入口开始递归把所有依赖的模块打包到同一文件。使用代码分割将其分割成多个文件，能提高加载速度，使页面只加载本页必要的文件。
 
-cacheGroups.vendor 分割出不常改变的公共文件单独打包，利于被浏览器缓存
+用法：
 
-页面中import('./module') 手动分割模块，webpack编译时会单独打包此module
+- webpackConfig中使用 optimization.splitChunks 确定打包文件时的分割规则，分割出公共文件等
 
-可用webpack-bundle-analyzer分析打包结果
+- 业务代码中 import('./module') 手动分割文件，webpack编译时会打包此module内容为独立文件
 
-### 编译速度优化
+可用webpack-bundle-analyzer分析打包结果。
 
-ddl：ddl.config打包公共文件生成manifest，config引用这个manifest，省去对公共文件再次打包的时间
+#### 文件体积优化
+
+webpack内置的优化策略：
+
+- treeshaking去除无用代码（需要声明模块无副作用）
+
+- 模块扁平化，比如能直接返回值的模块，引用它时直接引用返回值，而不是引用模块
+
+- 单例模式引用模块
+
+- 提取各模块中的polyfill函数到公共模块共用（runtime-plugin）
+
+- 代码压缩
+
+用户配置项：
+
+- 使用代码分割的情况下，提取各模块中的公共依赖为独立的common文件（optimization.splitChunks）
+
+
+#### 缓存策略优化
+
+- 使用chunkhash。内容改变文件名才改变
+
+- 第三方依赖提取为common文件共用。业务代码改变不影响common文件
+
+- 提取出依赖关系表（manifest文件）。如果有A模块依赖B模块，且它们的打包结果是A、B两个文件，那么B模块的修改除了改变B文件，也会改变A文件，因为A文件需要更新对B文件的引用路径。如果有独立的依赖关系表，就可以只更新B文件和较轻量的manifest文件，不用更新A文件。
+
+
+#### 编译速度优化
+
+- 新建ddl.config来打包公共文件生成manifest，webpackConfig引用这个manifest，以后的编译过程不再对公共文件打包。
+
 
 ## rollup
 
@@ -122,18 +154,6 @@ ddl：ddl.config打包公共文件生成manifest，config引用这个manifest，
 ## gulp
 
 流式任务
-
-## 代码体积优化
-
-treeshaking去除无用代码，前提需要模块无副作用
-
-模块扁平化，比如能直接返回值的模块，引用它时直接引用返回值，而不是引用模块
-
-单例模式引用模块
-
-提升各模块中的polyfill函数来共用
-
-代码压缩
 
 
 ## babel
