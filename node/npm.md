@@ -10,17 +10,19 @@ main指向此包被外部导入时的入口文件，cjs格式；module是esm格�
 	
 ```
 scripts: {
-	"test": "node bin/test.js --hot"
+	"foo": "node bin/foo.js --hot"
 }
 ```
 
-在包根目录可通过`npm run test`来快捷执行script中test指向的命令`node bin/test.js --hot`，在`test.js`中可用process.argvs读取到命令行参数`--hot`
+在包根目录可通过`npm run foo`来快捷执行script中test指向的命令`node bin/foo.js --hot`，在`foo.js`中可用process.argvs读取到命令行参数`--hot`。
+
+scripts中有些特定脚本会在时机满足时自动运行，比如`postinstall`脚本会自动运行于`npm install`完成后。特定脚本可在官网[npm-scripts](https://docs.npmjs.com/misc/scripts)查阅。
 	
 ## bin
 
-一些npm包能以命令行的方式去运行，比如webpack、create-react-app等。
+一些npm包能以可执行文件的方式去运行，比如webpack、create-react-app等。
 
-要使包能以命令行形式调用，需要配置package.json里的bin字段。
+要使包能以可执行文件形式调用，需要配置package.json里的bin字段。
 
 举个例子：
 
