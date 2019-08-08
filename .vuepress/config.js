@@ -35,6 +35,7 @@ module.exports = {
           '/web/performance.md',
           '/web/cdn.md',
           '/web/auth.md',
+          '/web/communication.md',
         ],
       },
       {
