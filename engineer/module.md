@@ -1,21 +1,13 @@
 # 模块化
 
-ESM / CJS / AMD / CMD  / UMD
+## 模块化方案
 
-### esm、cjs
+ESM: 编译时导入（静态），值引用，只读，所以模块导出值的改变会被引用方感知，循环加载时，只要保证使用值时已经有值的定义即可；可用import()实现动态导入。目前普遍做法是利用打包工具（webpack、rollup等）把使用了ESM源码编译成浏览器可识别的JS语法。若在支持ESM的浏览器中，直接使用script标签`<sript type="module" src="entry.js"/>`即可。
 
-import：编译时导入（静态），值引用，只读；
+CJS: 运行时导入（动态），值拷贝，所以模块导出值的改变不会体现到引用方，循环引用时，需保证赋值时就有值的定义。NodeJS中默认使用的模块化方案。
 
-require：运行时导入（动态），值拷贝
+AMD：依赖前置，提前加载，如requireJS
 
-循环引用区别
+CMD：依赖就近，需要时加载，如seaJS
 
-import()动态，返回promise。
-
-### AMD、CMD
-
-AMD：依赖前置，requireJS
-
-CMD：依赖就近，seaJS
-
-浏览器中用法：type="module"
+UMD：降级兼容方案(CJS => AMD => 挂载到全局)，一般由打包工具导出
