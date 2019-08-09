@@ -1,6 +1,10 @@
 
 # GraphQL
 
+## Query/Mutation
+
+GraphQL客户端使用Query/Mutation获取数据，请求参数(同时也是返回的数据结构)根据Schema来组装
+
 query
 
 ```
@@ -23,10 +27,18 @@ query {
 			}
 	}
 }
+
 variables { // 定义变量。在上面用$something使用
 	"something": {
 			"name": "bbb"
 	}
 }
 ```
-mutation
+
+## Schema
+
+GraphQL服务端使用Schema定义数据的组成、结构
+
+## Resolver
+
+GraphQL服务端使用Resolver定义Schema中的数据(字段)如何获取
