@@ -2,7 +2,19 @@
 
 ## 分析工具
 
-chrome-devtools: network、performance、memory
+chrome-devtools:
+
+- network
+
+- performance
+
+- memory
+
+
+
+performance.now()时间精度为纳秒级，比起Date.now()的毫秒级，能作更精确的性能分析。
+
+> 但各浏览器的performance.now()事实上并非真正精确到纳秒，而是作了一定程度的四舍五入或者随机处理。原因是为降低[Spectre（幽灵漏洞）](https://zh.wikipedia.org/wiki/%E5%B9%BD%E7%81%B5%E6%BC%8F%E6%B4%9E)的安全威胁，Spectre对于CPU中[Speculative execution（推测执行）](https://zh.wikipedia.org/wiki/%E6%8E%A8%E6%B5%8B%E6%89%A7%E8%A1%8C)能力的利用需要非常精确的定时器。
 
 ### 首次渲染指标
 
