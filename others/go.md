@@ -38,7 +38,7 @@ go定义函数时可以指定参数是按引用还是按值（副本）传递
 ```go
 func ByVal(arr [3]int, num int) {
   arr[1] = 0
-  int = 0
+  num = 0
   // 修改的只是arr、num副本
 }
 
@@ -51,7 +51,9 @@ func ByRef(arr *[3]int, num *int) {
 arr := [3]int{1,2,3}
 num := 1
 ByVal(arr, num)
+// arr: [1 2 3], num: 1
 ByRef(&arr, &num)
+// arr: [1 0 3], num: 0
 ```
 
 ### 类和继承
