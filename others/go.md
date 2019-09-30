@@ -43,18 +43,40 @@ func ByVal(arr [3]int, num int) {
 }
 
 func ByRef(arr *[3]int, num *int) {
-  arr[1] = 0
+  (*arr)[1] = 0
   *num = 0
   // 可修改外部的arr、num值
 }
 
-arr := [3]int{1,2,3}
-num := 1
-ByVal(arr, num)
-// arr: [1 2 3], num: 1
-ByRef(&arr, &num)
-// arr: [1 0 3], num: 0
+func main() {
+  arr := [3]int{1,2,3}
+  num := 1
+  ByVal(arr, num)
+  fmt.Print(arr, num) // [1 2 3] 1
+  ByRef(&arr, &num)
+  fmt.Print(arr, num) // [1 0 3] 0
+}
 ```
+
+arr改成切片类型时，情况会有点变化：
+
+```go
+func ByVal(arr []int) {
+  arr[1] = 0
+}
+
+func main() {
+	arr := []int{1,2,3}
+	ByVal(arr)
+	fmt.Print(arr) // [1 0 3]
+}
+```
+
+和上述例子的区别在于把`[3]int`改成了`[]int`，结果arr的值就改变了。
+
+因为`[]int`是切片类型，传递到ByVal内部时，同样会创造一个切片副本，但这个arr副本其内部指向的底层数组和函数外部arr是同一个，所以函数内部对arr[1]的改动会直接影响底层数组，其本质还是按值传递的。
+
+
 
 ### 类和继承
 
