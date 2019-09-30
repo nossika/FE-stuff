@@ -64,6 +64,43 @@ struct A需要复用已有struct B的字段时，直接把B写到A的struct声�
 
 如果遇到对一系列对象遍历并调用其方法的场景，一般来说这些对象需要是同一个类，才有共同的类方法，但GO中没有类，用interface来模拟类的行为，这一系列对象不管它们各自的结构是怎样，只要它们都实现了interface中定义的方法，它们就可以当做是一个『类』，就可以放在循环里统一调用interface里的方法。
 
+### 错误处理
+
+JS中的错误（throw）和异常都可以用try-catch来处理，并且有冒泡机制。
+
+GO在设计上把错误（error）和异常（panic）分开对待。
+
+panic也会冒泡，可以被上层的defer中的recover()捕获到，若没有被捕获，整个程序会退出。
+
+```go
+func crash() {
+	arr := [4]int{1,2,3,4}
+	for i := 0; i < 5; i++ {
+		arr[i] = 0 // panic: arr[5] is out of range
+	}
+}
+
+func main() {
+	defer (func() {
+		err := recover()
+		if err != nil {
+			fmt.Print(err) // runtime error: index out of range [4] with length 4
+		}
+	})()
+	crash()
+	fmt.Print("done") // never print
+}
+```
+
+error则被作为函数返回值返回，强制开发者在第一现场处理（或者忽略），error是一个interface类型。
+
+```go
+type error interface {
+    Error() string
+}
+```
+
+
 
 ### 协程
 
