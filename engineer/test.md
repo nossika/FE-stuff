@@ -1,17 +1,17 @@
 
 # 测试
 
-## e2e & unit
+前端测试的实现难点在于：
 
-karma、macha
+1. 代码跑测试用例的环境和实际运行平台不一致（除了用puppeteer方案），要解决node端和浏览器端环境差异
 
-## coverity
+2. 源码通常是用最新ECMA标准来编写，要经过编译才能运行
 
-istanbul
+对于使用了webpack的项目来说，测试框架需要保留其模块化规则和编译规则，保留编译的sourcemap，在出错时能对应到源码；且对依赖了浏览器特有api的代码mock掉（比如import了某个css文件），不去测试和平台相关的行为。
 
-## code style
+## 单元测试
 
-eslint
+## UI测试
 
 ## 接口测试
 
