@@ -1,4 +1,8 @@
-# 发布
+# 部署
+
+## Docker & k8s
+
+详见[【Docker】](/others/docker.html)
 
 ## CDN
 

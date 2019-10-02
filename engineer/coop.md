@@ -1,5 +1,9 @@
 # 协作
 
+## 代码规范
+
+eslint
+
 ## Git Workflow
 
 master：稳定版本，生产环境分支，随时可以发布或回退

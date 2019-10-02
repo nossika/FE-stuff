@@ -1,4 +1,5 @@
-# 性能
+# 性能分析
+
 
 ## 分析工具
 
@@ -9,7 +10,6 @@ chrome-devtools:
 - performance
 
 - memory
-
 
 
 performance.now()时间精度为纳秒级，比起Date.now()的毫秒级，能作更精确的性能分析。
@@ -48,7 +48,6 @@ onload
 
 长列表：分段加载、只渲染可视区域数据
 
-其他渲染优化点：详见[【浏览器渲染】](/htmlcss/render.html)
-
+其他渲染优化点：详见[【浏览器渲染】](/performance/render.html)
 
 

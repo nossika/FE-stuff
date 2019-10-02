@@ -22,7 +22,6 @@ module.exports = {
         children: [
           '/htmlcss/html.md',
           '/htmlcss/css.md',
-          '/htmlcss/render.md',
         ],
       },
       {
@@ -32,10 +31,17 @@ module.exports = {
           '/web/protocol.md',
           '/web/cache.md',
           '/web/security.md',
-          '/web/performance.md',
           '/web/cdn.md',
           '/web/auth.md',
           '/web/communication.md',
+        ],
+      },
+      {
+        title: '性能',
+        collapsable: false,
+        children: [
+          '/performance/render.md',
+          '/performance/analysis.md',
         ],
       },
       {
@@ -107,7 +113,7 @@ module.exports = {
       },
       {
         title: 'others',
-        collapsable: false,
+        collapsable: true,
         children: [
           '/others/pwa.md',
           '/others/graphql.md',
