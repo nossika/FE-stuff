@@ -356,6 +356,54 @@ function winner(n, m) {
 winner(5, 3); // 4
 ```
 
+### 矩阵以对角线遍历
+
+```js
+const data = [
+  [1,1,1,1,1],
+  [1,1,1,1,1],
+  [1,1,1,1,1],
+];
+
+const n = data[0].length; // 矩阵宽度
+const m = data.length; // 矩阵高度
+let i = 0; // i表示第i行
+let j = 0; // j表示第j列
+let direction = 1; // 遍历方向：1表示往右上，-1表示往左下
+
+while (!(i === n - 1 && j === m - 1)) {
+  console.log(i, j);
+
+  if (direction === 1) {
+    if (i + 1 >= n) {
+      direction = -1;
+      j++;
+      continue;
+    } else if (j - 1 < 0) {
+      direction = -1;
+      i++;
+      continue;
+    }
+    i++;
+    j--;
+  } else {
+    if (j + 1 >= m) {
+      direction = 1;
+      i++;
+      continue;
+    } else if (i - 1 < 0) {
+      direction = 1;
+      j++;
+      continue;
+    }
+    i--;
+    j++;
+  }
+}
+
+console.log(i, j);
+
+```
 
 
     
