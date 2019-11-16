@@ -235,3 +235,38 @@ func main() {
   fmt.Print(p1.age) // 21
 }
 ```
+
+#### 类型断言
+
+将interface类型尝试转化为指定struct类型
+
+```go
+type Empty interface {
+}
+
+type A struct {
+	a string
+	b string
+}
+
+type B struct {
+	a string
+	b string
+}
+
+func convert(val Empty) Empty {
+	return val
+}
+
+func main() {
+	a := A{"1", "2"}
+
+	i := convert(a)
+
+	a1, _ := i.(A)
+
+	b1, _ := i.(B)
+
+	fmt.Println(a1, b1) // A{1, 2}, B{}
+}
+```
