@@ -405,5 +405,34 @@ console.log(i, j);
 
 ```
 
+### 蓄水池抽样算法
+
+数据集长度为N，从中随机选取M(M <= N)个项，要求每个项被抽取的概率都为M/N。
+
+```js
+
+function ReservoirSampling(data, m) {
+  const result = [];
+
+  for (let i = 0; i < data.length; i++) {
+    // 此算法甚至可以事先不知道数据集的长度，只要边读取数据边执行核心逻辑即可
+
+    // 前m个项直接放入result
+    if (i < m) {
+      result.push(data[i]);
+      continue;
+    }
+    // 核心逻辑：对于第i项，以m/i的概率来决定是否将它加入result，若加入，则等概率随机将一个原result中的项替换为它
+    const rand = Math.random() * i | 0;
+    if (rand < m) {
+      result[rand] = data[i];
+    }
+  }
+  return result;
+}
+
+console.log(ReservoirSampling([1,2,3,4,5,6,7,8,9,10,11,12], 3));
+
+```
 
     
