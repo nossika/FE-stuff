@@ -435,4 +435,104 @@ console.log(ReservoirSampling([1,2,3,4,5,6,7,8,9,10,11,12], 3));
 
 ```
 
+### 最小文本编辑距离
+
+给定source字符串和target字符串，求source变换到target的最小编辑距离。
+
+```js
+const s = 'aasdaasdssdas';
+const t = 'vwedaswsdasdws';
+
+// 把s各个字符展开为横轴，t各个字符展开为纵轴构建二维平面图，(x,y)表示图上的点，从(0,0)出发。
+// 每次移动有3个选择：1、(x,y)移动到(x+1,y)表示删除s[x]，消耗一步；2、(x,y)移动到(x,y+1)表示新增t[y]，消耗一步；3、(x,y)移动到(x+1,y+1)表示不变，不消耗步数，但仅当满足s[x] === t[y]时能选择此项。
+// 当点走到(s.length,t.length)时，所经过的路径即为s到t的变换规则，步数越少的路径越优。
+function diff(s, t) {
+  const sLen = s.length;
+  const tLen = t.length;
+
+  // key为当前所经过的路径，value为当前坐标点，不断按上述移动规则去循环改写这个map，直到有value等于终点坐标时，此时其key值就是最优路径。
+  const map = {
+    '': [0,0],
+  };
+
+  // 以BFS求最短步数对应的路径
+  function walk(path) {
+    const [x, y] = map[path];
+
+    // 出现第一个走到底的path即为最优path，直接return结果
+    if (x === sLen && y === tLen) {
+      return path;
+    }
+
+    const sChar = s[x];
+    const tChar = t[y];
+
+    // 路径1、删除sChar
+    if (x + 1 <= sLen) {
+      map[`${path}.-${sChar}`] = [x + 1, y];
+    } 
+
+    // 路径2、新增tChar
+    if (y + 1 <= tLen) {
+      map[`${path}.+${tChar}`] = [x, y + 1];
+    }
+
+    // 路径3、sChar不变
+    if (sChar === tChar) {
+      map[`${path}.${sChar}`] = [x + 1, y + 1];
+      // 此行为不消耗步数，需要对该path补充执行一次walk
+      walk(`${path}.${sChar}`);
+    }
+
+    // 已经生成了2(或3)条新path，删除原path，等待下轮循环
+    Reflect.deleteProperty(map, path);
+    return '';
+  }
+
+  while (true) {
+    for (const path in map) {
+      const finded = walk(path);
+      if (finded) {
+        const result = finded.replace(/^\./, '').split('.').map(str => {
+          if (str.length === 2 && str.startsWith('-')) {
+            return {
+              type: '-',
+              char: str.replace(/^-/, ''),
+            }
+          } else if (str.length === 2 && str.startsWith('+')) {
+            return {
+              type: '+',
+              char: str.replace(/^\+/, ''),
+            }
+          } else {
+            return {
+              type: '',
+              char: str,
+            };
+          }
+        });
+        return result;
+      }
+    }
+  }
+
+}
+
+const result = diff(s,t);
+
+let consoleStr = '';
+const consoleColors = [];
+
+result.forEach(item => {
+  consoleStr += `%c${item.char}`;
+  consoleColors.push(`color: ${
+    {'+': 'green', '-': 'red'}[item.type] || 'gray'
+  }`);
+});
+
+console.log(consoleStr, ...consoleColors);
+```
     
+todo：Myers差分算法
+
+
