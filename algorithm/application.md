@@ -440,8 +440,7 @@ console.log(ReservoirSampling([1,2,3,4,5,6,7,8,9,10,11,12], 3));
 给定source字符串和target字符串，求source变换到target的最小编辑距离。
 
 ```js
-const s = 'aasdaasdssdas';
-const t = 'vwedaswsdasdws';
+
 
 // 把s各个字符展开为横轴，t各个字符展开为纵轴构建二维平面图，(x,y)表示图上的点，从(0,0)出发。
 // 每次移动有3个选择：1、(x,y)移动到(x+1,y)表示删除s[x]，消耗一步；2、(x,y)移动到(x,y+1)表示新增t[y]，消耗一步；3、(x,y)移动到(x+1,y+1)表示不变，不消耗步数，但仅当满足s[x] === t[y]时能选择此项。
@@ -517,6 +516,9 @@ function diff(s, t) {
   }
 
 }
+
+const s = 'aasdaasdssdas';
+const t = 'vwedaswsdasdws';
 
 const result = diff(s,t);
 
