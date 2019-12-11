@@ -4,9 +4,13 @@
 
 ### child_process
 
-- exec：借助shell来创建子进程，信息被编码为字符串一次性输出
-- spawn：创建子进程，以流的方式来通信
-- fork：创建node子进程（一种特殊的spawn），建立IPC管道，可用`process.send(data)`和`process.on('message', callback)`通信
+子进程调用和通信
+
+- exec：shell方式调用子进程，输出值默认有maxBuffer限制，一般用于获取执行结果而非大量数据。
+
+- spawn：原理类似exec，监听stdout输出流来获取数据，可用于产生大量数据的进程。
+
+- fork：针对node子进程的特殊spawn，以较高效率的IPC管道通信，可用process.send(data)和process.on('message', callback)通信。
 
 ### cluster
 
