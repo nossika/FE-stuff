@@ -297,14 +297,14 @@ function lengthOfLongestSubstring(str) {
 2. 计算出这个map的所有结果，遍历map找出其中最大的值即为最长公共子串。
 
 ```js
-function longestCommonStr(s1, s2) {
+function longestCommonSubstring(s1, s2) {
   // endWith返回公共子串以s1[i]和s2[j]为结尾时的值
   function endWith(i, j) {
     if (i < 0 || j < 0) {
       return { max: 0, str: '' };
     }
 
-    if (map[i][j] !== undefined) {
+    if (map[i][j]) {
       return map[i][j];
     }
 
@@ -318,7 +318,7 @@ function longestCommonStr(s1, s2) {
 
     map[i][j] = { max, str };
 
-    return { max, str };
+    return map[i][j];
   }
 
   const map = [];
@@ -346,10 +346,81 @@ function longestCommonStr(s1, s2) {
 const s1 = "basdasdb";
 const s2 = "dasasdasdg";
 
-const res = longestCommonStr(s1, s2);
+const res = longestCommonSubstring(s1, s2);
 
 console.log(res);
 ```
+
+## 求两个字符串的最长公共子序列
+
+公共子序列和公共子串的区别是，公共子序列在原字符串中允许被隔开，只要顺序一致即可，而公共子串必须每个字符前后相连。
+
+假设两个字符串定义为`s1`，`s2`，`s1[i]`表示`s1`的第i个字符，`s2[j]`表示`s2`的第j个字符。
+
+核心思路：
+
+1. 用一个二维数组`map[i][j]`来表示以`s1`的前i个字符和`s2`的前j个字符为母字符串时的最长公共子序列。则可以推导出`map[i][j]`的公式为：当`s1[i] === s2[j]`时，`map[i][j]`等于`map[i - 1][j - 1]`加上`s[i]`，否则`map[i][j]`等于`map[i - 1][j]`和`map[i][j - 1]`两者中的较大值。
+
+2. 递增`i`和`j`来逐个计算map，直到`i`等于`s1`长度，`j`等于`s2`长度，此时`map[i][j]`即为所求结果。
+
+
+```js
+function longestCommonSubsequence(s1, s2) {
+  if (!s1.length || !s2.length) {
+    return { max: 0, seq: '' };
+  }
+
+  // maxIn返回以s1的前i个字符和s2的前j个字符为母字符串时的最长公共子序列
+  function maxIn(i, j) {
+    if (i <= 0 || j <= 0) {
+      return { max: 0, seq: '' };
+    }
+
+    if (map[i][j]) {
+      return map[i][j];
+    }
+
+    let max = 0;
+    let seq = '';
+
+    if (s1[i] === s2[j]) {
+      const res = maxIn(i - 1, j - 1);
+      max = res.max + 1;
+      seq = res.seq + s1[i];
+    } else {
+      const res1 = maxIn(i - 1, j);
+      const res2 = maxIn(i, j - 1);
+
+      max = Math.max(res1.max, res2.max);
+      seq = res1.max >= res2.max ? res1.seq : res2.seq;
+    }
+
+    map[i][j] = { max, seq };
+
+    return map[i][j];
+  }
+
+  const map = [];
+
+  for (let i = 0; i < s1.length; i++) {
+    map[i] = [];
+
+    for (let j = 0; j < s2.length; j++) {
+      map[i][j] = maxIn(i, j);
+    }
+  }
+
+  return map[s1.length - 1][s2.length - 1];
+}
+
+const s1 = "basdasdb";
+const s2 = "dasasrdasdg";
+
+const res = longestCommonSubsequence(s1, s2);
+
+console.log(res);
+```
+
 
 ## 约瑟夫环
 
