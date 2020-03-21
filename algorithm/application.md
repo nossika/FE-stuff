@@ -286,6 +286,71 @@ function lengthOfLongestSubstring(str) {
 };
 ```
 
+## 求两个字符串的最长公共子串
+
+假设两个字符串定义为`s1`，`s2`，`s1[i]`表示`s1`的第i个字符，`s2[j]`表示`s2`的第j个字符。
+
+核心思路：
+
+1. 用一个二维数组`map[i][j]`来表示公共子串以`s1[i]`，`s2[j]`结尾时的最大值。则可以推导出`map[i][j]`与`map[i-1][j-1]`的关系为：当`s[i] === s[j]`时，`map[i][j]`等于`map[i - 1][j - 1]`的值加`s[i]`，否则`map[i][j]`等于空。
+
+2. 计算出这个map的所有结果，遍历map找出其中最大的值即为最长公共子串。
+
+```js
+function longestCommonStr(s1, s2) {
+  // endWith返回公共子串以s1[i]和s2[j]为结尾时的值
+  function endWith(i, j) {
+    if (i < 0 || j < 0) {
+      return { max: 0, str: '' };
+    }
+
+    if (map[i][j] !== undefined) {
+      return map[i][j];
+    }
+
+    let max = 0;
+    let str = '';
+
+    if (s1[i] === s2[j]) {
+      max = endWith(i - 1, j - 1).max + 1;
+      str = endWith(i - 1, j - 1).str + s1[i];
+    }
+
+    map[i][j] = { max, str };
+
+    return { max, str };
+  }
+
+  const map = [];
+
+  let max = 0;
+  let str = '';
+
+  for (let i = 0; i < s1.length; i++) {
+    map[i] = [];
+
+    for (let j = 0; j < s2.length; j++) {
+      map[i][j] = endWith(i, j);
+      
+      // 遍历map，找出最大值作为最后结果
+      if (map[i][j].max > max) {
+        max = map[i][j].max;
+        str = map[i][j].str;
+      }
+    }
+  }
+
+  return { max, str };
+}
+
+const s1 = "basdasdb";
+const s2 = "dasasdasdg";
+
+const res = longestCommonStr(s1, s2);
+
+console.log(res);
+```
+
 ## 约瑟夫环
 
 n个人围成一个圆圈，随机选定某人为1号，顺时针依次对每个人编号到n，并且选定一个数m。从1号开始，顺时针依次报数，报到m的人被淘汰，接着淘汰者的下个人重新从1开始报数，继续下一轮淘汰。如此往复直到只剩1人，求此人的编号。
