@@ -183,60 +183,113 @@ a => 1 => 1 ** 3 % 33 => 1
 
 普通快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(log<sup>n</sup>)
 
+```js
+const arr = [5,11,23,43,72,8,34,99,4,65,54];
 
-    const arr = [5,11,23,43,72,8,34,99,4,65,54];
-
-    function quickSort(arr) {
-      arr = arr.slice();
-      function sort(arr) {
-        if (arr.length <= 1) return arr;
-        const mid = arr.shift();
-        const left = [];
-        const right = [];
-        arr.forEach(num => {
-          if (num < mid) {
-            left.push(num);
-          } else {
-            right.push(num);
-          }
-        });
-        return [...sort(left), mid, ...sort(right)];
+function quickSort(arr) {
+  arr = arr.slice();
+  function sort(arr) {
+    if (arr.length <= 1) return arr;
+    const mid = arr.shift();
+    const left = [];
+    const right = [];
+    arr.forEach(num => {
+      if (num < mid) {
+        left.push(num);
+      } else {
+        right.push(num);
       }
-      return sort(arr);
-    }
+    });
+    return [...sort(left), mid, ...sort(right)];
+  }
+  return sort(arr);
+}
 
-    quickSort(arr);
-
+quickSort(arr);
+```
     
 原地快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)
 
+```js
+function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
+  if (end - begin <= 1) return;
+  const benchmark = arr[begin];
+  let i = begin + 1;
+  let j = end;
+  // 每轮循环都把一个基准数和其左右数组摆对，再对左右数组递归
+  while (i < j) {
+    while (arr[i] < benchmark) {
+      i++;
+    }
+    while (arr[j] > benchmark) {
+      j--;
+    }
+    if (i < j) {
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+  if (arr[i] > benchmark) {
+    i = i - 1;
+  }
+  [arr[begin], arr[i]] = [arr[i], arr[begin]];
+  betterQuickSort(arr, begin, i - 1);
+  betterQuickSort(arr, i + 1, end);
+}
 
-    function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
-      if (end - begin <= 1) return;
-      const benchmark = arr[begin];
-      let i = begin + 1;
-      let j = end;
-      // 每轮循环都把一个基准数和其左右数组摆对，再对左右数组递归
-      while (i < j) {
-        while (arr[i] < benchmark) {
-          i++;
-        }
-        while (arr[j] > benchmark) {
-          j--;
-        }
-        if (i < j) {
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-      }
-      if (arr[i] > benchmark) {
-        i = i - 1;
-      }
-      [arr[begin], arr[i]] = [arr[i], arr[begin]];
-      betterQuickSort(arr, begin, i - 1);
-      betterQuickSort(arr, i + 1, end);
+betterQuickSort(arr);
+```
+### 插入排序
+
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
+
+```js
+const arr = [4,2,56,37,21,43,673,5,4,63,45,345,66,74,63,646,457,48,74,234,45];
+
+function insertSort(arr) {
+  // i从1开始，每次递增1，不断往前面的有序数组插入，形成新的有序数组，直到arr末尾，此时整个数组有序
+  for (let i = 1; i < arr.length; i++) {
+    let temp = arr[i];
+    let j = i;
+
+    // 和前面的有序数组对比，大的元素往后挪一位，直到找到自己的位置插入
+    for (; j > 0 && arr[j - 1] > temp; j--) {
+      arr[j] = arr[j - 1];
     }
 
-    betterQuickSort(arr);
+    arr[j] = temp;
+  }
+  
+  return arr;
+}
 
+console.log(insertSort(arr.slice()));
+```
 
+希尔排序，比起插入排序，它的平均时间复杂度更优，取决于步长，空间复杂度O(1)
 
+```js
+function shellSort(arr) {
+  // 步长取值的因子
+  const factor = 2.2;
+
+  // 对整个数组以步长(gap)分组，在各组内部不断做插入排序，每次循环gap逐渐递减，直到gap为1
+  for (let gap = Math.floor(arr.length / factor); gap >= 1; gap = Math.floor(gap / factor)) {
+
+    // 还是插入排序的算法，不同的是gap不再是固定是1，这样交换距离更远，使得效率更高
+    for (let i = gap; i < arr.length; i += gap) {
+      let temp = arr[i];
+      let j = i;
+
+      for (; j > 0 && arr[j - gap] > temp; j -= gap) {
+        arr[j] = arr[j - gap];
+      }
+
+      arr[j] = temp;
+    }
+  }
+
+  return arr;
+}
+
+console.log(shellSort(arr.slice()));
+```
