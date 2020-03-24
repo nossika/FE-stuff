@@ -293,3 +293,48 @@ function shellSort(arr) {
 
 console.log(shellSort(arr.slice()));
 ```
+
+### 基数排序
+
+设mod为进制，rad为数组元素在该进制下的最大位数。则时间复杂度为O(rad * n)，空间复杂度为O(mod * n)。
+
+```js
+function radixSort(arr) {
+  const mod = 10; // 进制
+  let digit = 0; // 当前正在处理的位数，0表示个位，1表示十位
+  
+  // 创造和进制等数量的桶
+  const buckets = (new Array(mod).fill(null)).map(() => ([]));
+
+  let temp = [];
+
+  // 把所有数据放入桶9，作为初始条件
+  buckets[9] = arr.slice();
+
+  // 当所有数据落入桶0，说明处理的进制已经到达上限，可以结束
+  while (buckets[0].length !== arr.length) {
+    temp = [];
+
+    // 从所有桶里按序取出num，放入temp数组
+    buckets.forEach(bucket => {
+      while (bucket.length) {
+        const num = bucket.shift();
+        if (num === undefined) break;
+        temp.push(num);
+      }
+    });
+    
+    // 对temp数组里的num，按位数放入对应的桶
+    temp.forEach(num => {
+      buckets[(num / (mod ** digit)) % mod | 0].push(num);
+    });
+
+    digit++;
+  }
+
+  return buckets[0];
+}
+
+console.log(radixSort(arr.slice()));
+
+```
