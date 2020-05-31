@@ -112,6 +112,14 @@ module.exports = {
         ],
       },
       {
+        title: 'GoLang',
+        collapsable: false,
+        children: [
+          '/go/main.md',
+          '/go/diff-js.md',
+        ],
+      },
+      {
         title: 'others',
         collapsable: true,
         children: [
@@ -119,7 +127,6 @@ module.exports = {
           '/others/graphql.md',
           '/others/rxjs.md',
           '/others/webassembly.md',
-          '/others/go.md',
           '/others/docker.md',
           '/others/database.md',
           '/others/nginx.md',
