@@ -673,4 +673,43 @@ console.log(consoleStr, ...consoleColors);
     
 todo：Myers差分算法
 
+## 反转链表的指定部分
 
+给定一组链表，要求把链表m到n的部分反转，返回新链表，只扫描一趟。
+
+```js
+const reverseBetween = function(head, m, n) {
+  let startNode = head; // 起始节点（反转的第一个节点）
+  let beforeStartNode = null; // 起始节点的前一个节点
+
+  // 找到起始节点
+  for (let i = 1; i < m; i++) {
+    beforeStartNode = startNode;
+    startNode = startNode.next;
+  }
+
+  let prev = beforeStartNode; 
+  let cur = startNode;
+  let next = startNode.next;
+
+  let endNode = startNode; // 结束节点（反转的最后一个节点）
+  
+  // 对m到n间的节点进行反转
+  for (let i = m; i < n; i++) {
+    prev = cur;
+    cur = next;
+    next = next.next;
+    cur.next = prev;
+    endNode = cur;
+  }
+
+  // 起始节点的前个节点，接入反转后链表的头部（endNode）
+  beforeStartNode && (beforeStartNode.next = endNode);
+
+  // 反转链表的尾部（startNode）接入m之后的节点
+  startNode.next = next;
+
+  // 如果m为1，则新链表的起点就是反转链表的头部
+  return m === 1 ? endNode : head;
+};
+```
