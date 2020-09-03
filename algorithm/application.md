@@ -149,6 +149,8 @@ function coinsSolutions(coins, n) {
 
 ### 2. 求最少使用的硬币数
 
+#### 动态规划解法
+
 此问题解法和背包问题类似，每个硬币数量对应的value为1，求最小value。
 
 使用前i种硬币凑成的数额n = (仅使用前i-1种硬币凑成n - coins[i] * k) + (单独使用k个第i种硬币凑成coins[i] * k)
@@ -180,7 +182,45 @@ function coinsMinSolution(coins, n) {
 }
 ```
 
+#### 循环解法
 
+```js
+const coinsMinSolution2 = function(coins, n) {
+  if (n === 0) return 0;
+
+  // 缓存，用dp[i]表示凑成面值i最少需要的硬币数
+  const dp = [];
+
+  // 初始化dp，目标面值刚好等于硬币面值时，显然只需要1个
+  for (let i = 0; i < coins.length; i++) {
+    dp[coins[i]] = 1;
+  }
+
+  for (let i = 1; i <= n; i++) {
+    // 如果dp已经有值，跳过
+    if (dp[i]) {
+      continue;
+    }
+
+    let min = Infinity;
+
+    // 目标面值i的最小凑法：
+    // 1、列出每个可能的凑法：对每个coin计算dp[i-coin]+1的值
+    // 2、从1的结果中选出最小值
+    for (let j = 0; j < coins.length; j++) {
+      const cur = dp[i - coins[j]] + 1;
+      if (cur && (cur < min)) {
+        min = cur;
+      }
+    }
+
+    dp[i] = min;
+  }
+
+  return dp[n];
+};
+
+```
 
 ## 多个有序数组合并
 
