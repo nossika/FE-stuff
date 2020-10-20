@@ -1,6 +1,6 @@
 # 设计模式
 
-## 概览
+## 常用设计模式
 
 - 创建型模式：单例模式、抽象工厂模式、建造者模式、工厂模式、原型模式。
 - 结构型模式：适配器模式、桥接模式、装饰模式、组合模式、外观模式、享元模式、代理模式。
@@ -12,11 +12,10 @@
 
 ## 单例模式
 
-使某个方法在一次或多次被调用的情况下，其产生的实例仍只有一个，复用资源来节省开销。
-
-例子：全局提示
+使某个方法在一次或多次被调用的情况下，其产生的实例仍只有一个，复用先前的资源来节省运算。
 
 ```js
+// 全局提示组件
 const showMsg= (() => {
   let div;
   return msg => {
@@ -38,7 +37,6 @@ showMsg('world'); // 复用上面的div
 当对象间需要一对一或者一对多通信时，在接收方和发送方都引入观察者，通过观察者来传递信息，而非直接调用对方的方法，降低耦合。
 
 ```js
-// 观察者
 class Observer {
   constructor() {
     this.dep = new Set();
@@ -54,14 +52,12 @@ class Observer {
   }
 }
 
-// 房屋
 class House {
   constructor() {
     this.event = new Observer();
   }
 }
 
-// 人
 class Person {
   constructor(name) {
     this.name = name;
@@ -92,5 +88,55 @@ house.event.emit('fire!!!');
 
 ## 策略模式
 
+有一系列相似的运算，需要根据条件来采取不同的运算时，可以使用策略模式，来替代大量平铺的if/else，符合开闭原则，也易于拓展。
+
+```ts
+interface Animal {
+  yell(): string;
+}
+
+class Yeller {
+  private animal: Animal;
+  constructor() {
+    this.animal = new DefaultAnimal();
+  }
+  setAnimal(animal: Animal) {
+    this.animal = animal;
+  }
+  // 对外提供统一的run接口，根据不同animal显示不同叫声，只要实现了yell方法的类都可以作为animal
+  run() {
+    console.log(this.animal.yell());
+  }
+}
+
+class DefaultAnimal implements Animal {
+  yell() {
+    return 'default';
+  }
+}
+
+class Cat implements Animal {
+  yell() {
+    return 'meow';
+  }
+}
+
+class Dog implements Animal {
+  yell() {
+    return 'bark';
+  }
+}
+
+const yeller = new Yeller(); // 以默认Animal初始化，Animal可以理解为策略
+yeller.run(); // 默认策略下显示default
+
+yeller.setAnimal(new Cat()); // 设置策略为Cat
+yeller.run(); // cat策略下显示meow
+
+yeller.setAnimal(new Dog()); // 设置策略为Dog
+yeller.run(); // dog策略下显示bark
+
+
+```
 
 
