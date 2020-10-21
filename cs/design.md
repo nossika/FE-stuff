@@ -136,7 +136,162 @@ yeller.run(); // cat策略下显示meow
 yeller.setAnimal(new Dog()); // 设置策略为Dog
 yeller.run(); // dog策略下显示bark
 
-
 ```
 
+
+## 工厂模式
+
+使用统一方法来创建实例，而非直接使用new创建，不暴露创建逻辑的细节。
+
+```ts
+class Animal {
+  private name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  sayHi(): void {
+    console.log(`this is ${this.name}!`);
+  }
+}
+
+// 对外提供方法来创建实例，而不直接提供构造函数
+function createAnimal(name: string): Animal {
+  switch (name) {
+    case 'cat':
+      return new Animal('cat');
+    case 'dog':
+      return new Animal('dog');
+    default:
+      throw new Error('unsupported name!');
+  }
+}
+
+const cat = createAnimal('cat');
+cat.sayHi(); // this is cat! 
+
+const dog = createAnimal('dog');
+dog.sayHi(); // this is dog!
+```
+
+## 装饰器模式
+
+所谓装饰，即在不改变原有逻辑代码的情况下，对其添加新的功能。
+
+```ts
+class Task {
+  public id: number;
+  constructor(id: number) {
+    this.id = id;
+  }
+
+  run(): void {
+    console.log(`task ${this.id } run!`);
+  }
+}
+
+// 在不改变原有function代码的前提下，加入新的逻辑，即对其＂装饰＂
+function logger(fn: Function): Function {
+  return () => {
+    console.log(`func started at ${Date.now()}`);
+    fn();
+    console.log(`func finished at ${Date.now()}`);
+  }
+}
+
+const task = new Task(1);
+const taskRunWithLog = logger(() => task.run());
+
+taskRunWithLog();
+
+// 执行结果：
+// func started at xxx
+// task 1 run!
+// func finished at xxx
+```
+
+当然，基于ES最新的proposal-decorators提案，我们可以有更优雅的写法。
+
+```ts
+class Task {
+  public id: number;
+  constructor(id: number) {
+    this.id = id;
+  }
+
+  @logger
+  run(): void {
+    console.log(`task ${this.id } run!`);
+  }
+}
+
+function logger(target: Object, name: string, descriptor: PropertyDescriptor) {
+  const originFn = target[name];
+
+  descriptor.value = function(...args) {
+    console.log(`func started at ${Date.now()}`);
+    originFn.call(this, ...args);
+    console.log(`func finished at ${Date.now()}`);
+  }
+
+  return descriptor;
+}
+
+const task = new Task(1);
+task.run();
+
+// 执行结果和上个例子一致：
+// func started at xxx
+// task 1 run!
+// func finished at xxx
+```
+
+## 迭代器模式
+
+对目标数据生成迭代器，只需使用迭代器的方法就可以对其进行遍历，而不需要知道目标数据的存储格式和遍历方法。
+
+```ts
+interface Iter {
+  next(): any;
+  done(): boolean;
+}
+
+class MyIter implements Iter {
+  private arr: any[];
+  private index: number;
+  private hasNext: boolean;
+
+  constructor(arr: any[]) {
+    this.arr = arr;
+    this.reset();
+  }
+  next() {
+    const cur = this.index;
+
+    this.index = cur + 1;
+    this.hasNext = this.index < this.arr.length;
+
+    return this.arr[cur];
+  }
+  done() {
+    return !this.hasNext;
+  }
+  reset(): void {
+    this.index = 0;
+    this.hasNext = !!this.arr.length;
+  }
+}
+
+const iter = new MyIter([1, 2, 3]);
+
+// 只需要调用迭代器的next和done方法即可完成遍历
+while (!iter.done()) {
+  console.log(iter.next());
+}
+
+// 执行结果：
+// 1
+// 2
+// 3
+
+```
 
