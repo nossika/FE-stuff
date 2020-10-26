@@ -295,3 +295,95 @@ while (!iter.done()) {
 
 ```
 
+## 责任链模式
+
+事件发送给责任链，再由责任链将事件分发给处理器，将事件的发送者与接收者解耦。
+
+```ts
+class Chain {
+  private chain: Handler[];
+  constructor(chain?: Handler[]) {
+    this.chain = chain ? chain : [];
+  }
+  addHandler(handler: Handler) {
+    this.chain.push(handler);
+  }
+  handle(event: MyEvent) {
+    let handled = false;
+
+    // 该事件依次传递给注册的处理函数，直到被某个处理函数处理
+    for (let i = 0; i < this.chain.length; i++) {
+      handled = this.chain[i](event);
+
+      if (handled) {
+        break;
+      }
+    }
+  }
+}
+
+interface MyEvent {
+  type: string;
+  message: string;
+}
+
+interface Handler {
+  (event: MyEvent): boolean;
+}
+
+const handlerA: Handler = (event: MyEvent): boolean => {
+  if (event.type !== 'A') {
+    return false;
+  }
+
+  console.log(`handle event [A]: ${event.message}`);
+  
+  return true;
+}
+
+const handlerB: Handler = (event: MyEvent): boolean => {
+  if (event.type !== 'B') {
+    return false;
+  }
+
+  console.log(`handle event [B]: ${event.message}`);
+  
+  return true;
+}
+
+const handlerDefault: Handler = (event: MyEvent): boolean => {
+  console.log(`handle event [Default] ${event.message}`);
+  
+  return true;
+}
+
+// 初始化责任链，并注册处理函数
+const chain = new Chain();
+
+chain.addHandler(handlerA);
+chain.addHandler(handlerB);
+chain.addHandler(handlerDefault);
+
+// 给责任链发送事件
+chain.handle({
+  type: 'A',
+  message: 'message from A',
+});
+
+chain.handle({
+  type: 'B',
+  message: 'message from B',
+});
+
+chain.handle({
+  type: 'C',
+  message: 'message from C',
+});
+
+// 依次输出：
+// handle event [A]: message from A
+// handle event [B]: message from B
+// handle event [Default] message from C
+
+```
+
