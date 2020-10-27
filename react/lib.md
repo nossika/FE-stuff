@@ -10,7 +10,10 @@ redux实现：
 
 结合react-redux：顶层state变化时，使用connect的组件会将它通过state获取到的props作前后浅比较，若有变化，该容器层props改变触发组件render，而非一有state变化就render
 
-改进点？：action和reducer繁琐；action和reducer需要匹配自定义type来关联，而不是自动关联。
+缺点：
+
+1、发出action对应的reducer的type是基于string的，运行时关联，需要人工去保证type不冲突，且利于做静态分析，维护困难。
+2、带来了多余的计算，state的更新信息经历了『丢失-找回』过程，组件state更新（精确）后被整合成一个大state（丢失了具体的state更新部分），再通过大state来diff（找回具体更新的state），来判断需要更新的组件。
 
 ## immutable
 
