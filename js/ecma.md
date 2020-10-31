@@ -165,9 +165,9 @@ a.constructor === A // 实际上等同于 a.__proto__.constructor
 访问一个对象（obj）上的属性（prop）时，首先会在这个对象本身搜寻此prop；若找不到，则会沿着obj的原型链往上查找此prop，若找到则返回，找不到则继续沿着原型链往上查找；若直到原型链顶部（null）都找不到，才会返回undefined。
 
 
-### 继承的写法
+### 继承方式
 
-ES5写法
+#### 组合继承
 
 ```js
 // 定义
@@ -192,7 +192,7 @@ b.__proto__; // a（constructor和__proto__都指向A）
 b.__proto__.__proto__; // A.prototype
 ```
 
-ES5写法，改变一下执行顺序
+改变一下执行顺序
 	
 ```js
 // 定义
@@ -216,7 +216,38 @@ b.constructor; // B （构造函数正确）
 b.__proto__; // 原B.prototype (即prototype指向被改写之前的那个对象)
 ```
 
-ES6 class（比起ES5写法，少了些容易让人困惑的地方）
+#### 寄生组合继承
+
+相比于组合继承：省去了一次A的实例化，也去除了B原型上不必要的字段（比如A实例化后的name字段），原型链更加干净。
+
+```js
+function A(name) {
+  this.name = name;
+}
+
+A.prototype.hi = function () {
+  console.log('hi ' + this.name);
+};
+
+function B(name, age) {
+  A.call(this, name);
+  this.age = age;
+}
+
+function inherit(subClass, protoClass) {
+  subClass.prototype = Object.create(protoClass.prototype);
+  subClass.prototype.constructor = subClass;
+}
+
+inherit(B, A);
+
+const b = new B('b', 1);
+
+b instanceof B; // true
+b.hi(); //hi b
+```
+
+#### ES6 class
 
 ```js
 // 定义
@@ -241,13 +272,15 @@ b.__proto__ // B.prototype（constructor指向B、但__proto__指向A的一个�
 b.__proto__.__proto__ // A.prototype
 ```
 
-create写法
+#### create写法
 
 ```js
-Object.create(proto);
+const o = Object.create(proto);
+o.__proto__; // proto
+
+// 创建一个纯净的对象，实例和原型上都没有任何key，可用来做map存储
+const pureObj = Object.create(null);
 ```
-
-
 
 ### 一些问题
 
