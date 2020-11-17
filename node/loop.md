@@ -28,11 +28,19 @@ setTimeout(() => {
 });
 ```
 
-以上例子在浏览器中运行结果：
+以上例子在浏览器，以及node(v11及以上版本)中运行结果：
 
-timeout 1 / promise 1 / timeout 2 / promise 2，在node中运行结果：timeout 1 / timeout 2 / promise 1 / promise 2
+timeout 1 / promise 1 / timeout 2 / promise 2
 
-node会在timers阶段统一检查当前是否有到期的定时器任务，有的话会把它们放在同一次task中执行，并在task间隙执行清空microtask。
+在node(v10及以下版本)中运行结果：
+
+timeout 1 / timeout 2 / promise 1 / promise 2
+
+因为在timers阶段统一检查当前是否有到期的定时器任务，有的话会把它们放在同一次task中执行，并在task间隙执行清空microtask。
+
+> node v11在[pr22842](https://github.com/nodejs/node/pull/22842)对于同源宏任务的处理做了修改，以和浏览器行为一致。即一个宏任务执行完就执行微任务队列，而非当前全部同源宏任务都执行完再执行微任务。
+
+
 
 
 
