@@ -108,9 +108,9 @@ module.exports = {
         collapsable: false,
         children: [
           '/node/loop.md',
-          '/node/module.md',
+          '/node/dep.md',
+          '/node/api.md',
           '/node/npm.md',
-          '/node/app.md',
         ],
       },
       {
