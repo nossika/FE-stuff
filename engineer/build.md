@@ -3,149 +3,37 @@
 
 ## webpack
 
-### entry
+### 构建体积优化
 
-多入口配置
+- 懒加载：只加载当前界面需要的代码，可以结合预加载来优化等待时间，合理利用动态import。
 
-### loader
+- 按需加载：只加载依赖库用到的模块，而非加载整个库，比如antd结合plugin-import、moment只加载需要的语言库等。
 
-对指定文件自定义编译，多个loader流式工作
+- treeshaking：webpack内置优化，构建时丢弃模块未被使用的代码，但需要满足模块代码干净无副作用，比如加载第三方库时指定加载其es版本，更利于webpack做treeshaking优化。
 
-#### 使用loader
+- 代码压缩：webpack已在生产模式内置，比如uglifyjs。
 
-```js
-config = {
-	entry: '',
-	output: {},
-	module: {
-		rules: [ // Rule[]
-			{
-				test: /xx.ext/,
-				use: [ // Loader[]
-					'loader-a',
-					{
-						loader: 'loader-b',
-						option: {},
-						query: {},
-					},
-				],
-			},
-		],
-	},
-};
-```
+- 分离CSS：把样式独立到css文件，或者异步加载，不阻塞js执行。
 
-编译过程中遇到匹配某rule的test的文件，会使用rule的use中设置的loader（可以是多个loader，从后往前）来加载这个文件。loader从node_module里的对应loader名调用。
-
-#### 开发loader
-
-```js
-module.export = function(content, map, meta) { 
-	// do sth
-	return newContent;
-};
-```
-
-或者异步使用
-	
-```js
-module.export = function(content, map, meta) { 
-	// do sth
-	this.callback(newContent);
-};
-```
-babel-loader（文本loader）：
-
-得到js文件的文本内容content，将其解析成ast，重新组织语法，再生成新的字符串newContent返回
-
-file-loader（二进制loader）：
-
-文件内容content为二进制数据。引用webpack自带的loader-utils库，调用其`interpolateName`方法得到其hash名，调用`this.emitFile`把二进制content生成新file输出到output指定的目录下，最终结合config中的publicPath得到新file的可访问路径，最终组合成`module.exports = fileOutputPath`格式的数据返回
-
-### plugin
-
-插手构建过程，在complition各阶段添加钩子函数来改变构建逻辑
+- chunk粒度权衡：将多个异步模块共用的依赖提取出来，统一加载，就可以不必在每个异步模块中都重复打包这些共用依赖，但要考虑chunk粒度，太粗起不到优化效果，太细会拖慢主模块的加载，合理使用splitchunks配置。
 
 
-#### 使用plugin
+### 构建速度优化
 
-```js
-config = {
-	entry: '',
-	output: {},
-	plugins: [
-		new SomePlugin(options),
-	],
-};
-```
+- loader粒度精细：每一类文件只经过它必须的loader。
 
-#### 开发plugin
+- 多线程编译：webpack5内置的Terser plugin已开启parallel，或者手动使用happypack之类的plugin。
 
-```js
-class {
-	constructor(options) {
-		// 拿到用户定义的options
-	}
-	apply(compiler) {
-		// 插件安装时调用一次，拿到compiler对象（提供webpack全局配置信息）
-		// 可以从compiler的hooks回调拿到compilation对象（每次文件变动重新生成，提供本次资源相关信息）
-		// 在compiler和compilation的各类hooks（基于tapable）绑定自定义事件
-	}			
-}
-```
-	
-#### definePlugin
+- 编译缓存：webpack5已经内置了模块缓存策略，或者手动使用cache-loader、dll之类的工具。
 
-一般用于定义一些全局字段，和process.env（模仿node环境）。
-
-这些配置是在编译阶段静态直接转换，而非生成全局变量，比如模块中`process.env.NODE_ENV`编译后会直接被替换为定义的值，而`process.env['NODE' + '_ENV']`则不会
-
-### 优化点
-
-#### 文件分割（懒加载）
-
-webpack默认会从入口开始递归把所有依赖的模块打包到同一文件。使用代码分割将其分割成多个文件，能提高加载速度，使页面只加载本页必要的文件。
-
-用法：
-
-- webpackConfig中使用 optimization.splitChunks 确定打包文件时的分割规则，分割出公共文件等
-
-- 业务代码中 import('./module') 手动分割文件，webpack编译时会打包此module内容为独立文件
-
-可用webpack-bundle-analyzer分析打包结果。
-
-#### 文件体积优化
-
-webpack内置的优化策略：
-
-- treeshaking去除无用代码（需要声明模块无副作用）
-
-- 模块扁平化，比如能直接返回值的模块，引用它时直接引用返回值，而不是引用模块
-
-- 单例模式引用模块
-
-- 提取各模块中的polyfill函数到公共模块共用（runtime-plugin）
-
-- 代码压缩
-
-用户配置项：
-
-- 使用代码分割的情况下，提取各模块中的公共依赖为独立的common文件（optimization.splitChunks）
+- （对于ts项目）类型检查放到异步：transpileOnly结合fork-ts-checker-webpack-plugin。
 
 
-#### 缓存策略优化
+### 缓存策略优化
 
-- 使用chunkhash。内容改变文件名才改变
+- 基于contenthash命名模块：模块内容改变文件名才会改变。
 
-- 第三方依赖提取为common文件共用。业务代码改变不影响common文件
-
-- 提取出依赖关系表（manifest文件）。如果有A模块依赖B模块，且它们的打包结果是A、B两个文件，那么B模块的修改除了改变B文件，也会改变A文件，因为A文件需要更新对B文件的引用路径。如果有独立的依赖关系表，就可以只更新B文件和较轻量的manifest文件，不用更新A文件。
-
-
-#### 编译速度优化
-
-- 新建ddl.config来打包公共文件生成manifest，webpackConfig引用这个manifest，以后的编译过程不再对公共文件打包。
-
+- 提取公共依赖：将不常变动的第三方库从业务代码中独立成一个模块，这个模块的内容可以比较稳定。
 
 ## rollup
 
