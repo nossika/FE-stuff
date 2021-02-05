@@ -54,6 +54,16 @@ func main() {
 }
 ```
 
+### struct比较
+
+全部key可比才可比，有slice和map则不可比。（可比struct才能用于做map的key，slice和map可用reflect.DeepEqual比较）
+
+### 内存对齐
+
+struct的最终占用大小并非struct里的每个key大小之和，go编译器会按key的顺序和大小调整每个key的offset来对齐内存。
+
+因为CPU读取数据是按段读取的，如果不对齐，可能读一个key会读两次。
+
 ## interface
 
 接口类型可以用来统一管理拥有某一组共同方法的struct
