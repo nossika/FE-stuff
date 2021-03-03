@@ -460,7 +460,67 @@ const res = longestCommonSubsequence(s1, s2);
 
 console.log(res);
 ```
+## 字符串的最大回文子序列
 
+1、以dp[i][j]表示i到j的回文子序列长度
+
+2、dp[i][j]的状态转移公式为：
+
+```
+if (s[i] === s[j]) {
+  dp[i][j] = dp[i + 1][j - 1] + 2;
+} else {
+  dp[i][j] = Math.max(dp[i + 1][j], dp[i][j - 1]);
+}
+```
+
+3、易知i === j时，即单个字符的回文长度为1，i > j时为0，i或者j越界也为0
+
+4、dp[0][s.length - 1]即为结果
+
+完整解法：
+
+```js
+var longestPalindromeSubseq = function(s) {
+  const dp = [];
+
+  function getIJ(i, j) {
+    if (i < 0 || j >= s.length) {
+      return 0;
+    }
+
+    if (!dp[i]) {
+      dp[i] = [];
+    }
+
+    if (dp[i][j] !== undefined) {
+      return dp[i][j];
+    }
+
+    if (i === j) {
+      // 单个字符的回文长度为1
+      dp[i][j] = 1;
+      return 1;
+    }
+
+    if (i > j) {
+      return 0;
+    }
+
+    if (s[i] === s[j]) {
+      dp[i][j] = getIJ(i + 1, j - 1) + 2;
+    } else {
+      dp[i][j] = Math.max(getIJ(i + 1, j), getIJ(i, j - 1));
+    }
+
+    return dp[i][j];
+  }
+
+  return getIJ(0, s.length - 1);
+};
+
+console.log(longestPalindromeSubseq('aaazgergaa'));
+```
 
 ## 约瑟夫环
 
