@@ -2,11 +2,11 @@
 
 ## 布局方式
 
-流式+float
+- 经典流式: position & float
 
-flex
+- flex
 
-gird
+- gird
 
 ## 盒模型
 
@@ -17,23 +17,42 @@ gird
 - content-box（默认）: 元素width/height的值就是其contnet宽度/高度
 - border-box: 元素width/height的值是其content + padding + border三者之和
 
+## 层叠上下文
+
+以下元素会成为层叠上下文：
+
+- html根元素
+- 元素有z-index && （position非relative || flex的直接子元素）
+- opacity小于1、有transform等，被硬件加速独立的图层
+
+在判断两个元素堆叠情况时：
+
+1. 两者若在同层的层叠上下文中，按z-index大的在上、后来居上的原则。具体层叠顺序从下到上：负z-index/block/float/inline/z-index:auto/正z-index。
+
+2. 两者若不在同层的层叠上下文中，则寻找它们处于同层的祖先层叠上下文，按1的规则比较这两个祖先，祖先的顺序就是它们的顺序。
+
+![z-index](../resources/css/z-index.png)
+
+比如以上这种情况，3个div如果位置重合，从下到上的堆叠顺序并非1-2-3，而是1-3-2，2会覆盖在z-index更大的3之上，因为3和2比较时是拿同层的1去和2比较的。
+
+
 ## BFC（块格式化上下文）
 
 满足下列条件之一的元素会成为BFC：
 
+- html根元素
 - overflow: 非visible 
 - float: 非none 
 - position: absolute或fixed
 - display: inline-block
-- etc.
+- display: flow-root
+- 很多
 
 特性：
 
 - 外部margin不合并（同属一个BFC的子元素间的margin会合并，当子元素自己也是BFC时则不合并）
 - 内部清除浮动（高度不塌陷，内部的浮动元素可以撑开高度）
 - 外部清除浮动（外部的浮动元素可能会挤开元素内文字造成环绕效果，设为BFC后内部文字就不再被挤开）
-
-
 
 ## repaint & reflow
 
@@ -59,7 +78,10 @@ gird
   1. ::before
   2. div
 
-## CSS变量
+
+## CSS API
+
+### CSS变量
 
 变量定义和使用
 
@@ -79,7 +101,7 @@ selector2 {
 
 元素使用的css变量如果在多个选择器中定义，遵从css选择器优先级规则，取对该元素优先级最高的选择器中的定义
 
-## CSS Houdini
+### CSS Houdini
 
 开放CSS的API给开发者，使得能够用编程的方式来控制渲染过程（layout/paint等）。
 
@@ -104,9 +126,9 @@ div {
 }
 ```
 
-## 预处理器（如sass/less）
+### 预处理器（如sass/less）
 
-### sass
+#### sass
 
   嵌套
 
@@ -151,23 +173,15 @@ selector {
 @import "./path/to/common.scss"
 ```
 
-## 后处理器（如PostCSS）
+### 后处理器（如PostCSS）
 
-### 和预处理器区别
+### 移动端
 
-预处理器：高级语法css -> 普通css -> 发生产
-
-后处理器：普通css -> 拓展后的普通css -> 发生产
-
-两者结合使用：高级语法css -> 普通css -> 拓展后的普通css -> 发生产
-
-## 移动端
-
-### flexible方案
+#### flexible方案
 
 通过dpr来设置根节点的font-size + viewport的scale，页面使用设计图尺寸转换得到的rem，完成一个设计图到多种屏幕的适配
 
-## 应用
+## CSS场景
 
 ### 元素居中
 
