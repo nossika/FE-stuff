@@ -2,26 +2,44 @@
 
 ## HTTP
 
-基于tcp协议，req格式： `HTTP/1.1 /index.html GET\r\nConnection: keep-alive`，res格式：`HTTP/1.1 200 OK\r\nContent-type: text/plain\r\n\r\nsome text here`
+应用层协议，基于传输层的tcp协议。
 
-1.1默认keep-alive，基于一次tcp（3次握手4次挥手）来发多次http请求
+HTTP1.1默认keep-alive，可基于一次tcp（3次握手4次挥手）来发多次http请求。
 
-状态码12345
+### 内容
 
-header(content-type/accept-encoding/user-agent/cookie/access-control-allow-origin/cache-control/e-tag/connection)
+内容由version + header + body三部分组成。
 
-缓存控制
+req格式： 版本&路径+换行+头部+换行+body，例子：`HTTP/1.1 /index.html GET\r\nConnection: keep-alive`。
 
-cookie
+res格式：版本&状态码+换行+头部+换行+body，例子：`HTTP/1.1 200 OK\r\nContent-type: text/plain\r\n\r\nsome text here`
+
+### 状态码
+
+状态码12345对应含义：1未完成；2成功；3重定向、未修改等；4客户端错误；5服务端错误。
+
+### header
+
+content-type/accept-encoding/user-agent/cookie/access-control-allow-origin/cache-control/etag/connection
+
+### 缓存相关
+
+强缓存(cache-control的max-age)、协商缓存（etag/last-modified）、不缓存等。
+
+### 跨域相关
+
+access-control-allow-origin/access-control-allow-methods、OPTIONS类型（简单请求和复杂请求）
+
+cookie：同源、cookie安全（same-site、http-only、csp策略）等。
 
 
-### code in HTTP header or body
+### biz code in HTTP header vs body
 
 可以类比TCP/QUIC，在 直接利用现有协议/在协议下层自定义封装 之间的取舍。
 
 ## TCP/UDP
 
-都基于IP的传输层协议，传输数据给应用层协议使用。
+都基于IP的传输层协议，传输数据给应用层协议使用。网络层IP+传输层端口来表示唯一连接。
 
 因为两者都基于网络层的IP协议，都可能会出现丢包或乱序。而TCP与UDP不同的是，它在协议层封装了滑动窗口（超时重传来控制顺序、控制并发数来合理利用带宽）来解决这些问题。基于UDP也同样可以在应用层自行封装实现TCP的功能，比如QUIC。
 
@@ -30,7 +48,7 @@ cookie
 
 HTTP是明文传输，且没有对来源校验，通信内容易受中间人的监视和篡改。所以需要对通信内容加密来解决问题，其中最关键的是保证密钥的正确和安全。
 
-HTTPS引入了CA来解决问题，CA是一个权威机构，负责给受信的网站颁发证书，证书包含一对公私钥，私钥由网站保管，公钥对外公开。现代浏览器会内置CA的公共信息。
+HTTPS引入了数字证书（CA）来解决问题。CA是一个权威机构，负责给受信的网站颁发证书，证书包含一对公私钥，私钥由网站保管，公钥对外公开。现代浏览器会内置CA的信息。
 
 HTTP：IP -> TCP -> HTTP
 
@@ -39,9 +57,9 @@ HTTPS: IP -> TCP -> **SSL/TLS** -> HTTP
 > 公钥私钥涉及非对称加密的知识，相关内容详见[【内容加密】](/web/safe?id=内容加密)
 
 
+### 建立连接过程
 
-HTTPS通信过程如下：
-
+HTTPS首次建立连接（TLS1.2的握手）过程如下：
 
 ![HTTPS](../resources/http/https.png)
 
@@ -55,6 +73,9 @@ HTTPS通信过程如下：
 
 5. Server收到加密内容后，用CA私钥解密出key，之后双方即可用这个key来进行加密通信
 
+以上过程的关键是取证书信息和公钥这一步，并非从请求中获取（因为这步也可能被篡改），而是从浏览器内置的CA获取，保证证书和公钥的绝对正确。
+
+TLS1.2需要2个RTT（证书确认、密钥确认），会话恢复时需要1RTT（跳过证书确认）；TLS1.3需要1个RTT（证书+加密一起确认），会话恢复时0RTT（直接在首次数据请求同时协商密钥）。加上TCP连接本身的一个RTT，所以整个HTTPS（基于TLS1.2的话）建立连接需要3个RTT。
 
 ## HTTP2
 
@@ -80,15 +101,14 @@ HTTP2的headers风格是（冒号+）全小写+连字符，比如`:method`、`us
 HTTP2必须基于HTTPS，虽然HTTP2协议本身并不要求HTTPS，但各浏览器的实现都要求HTTP2必须用HTTPS。
 
 
-## QUIC
+## HTTP3(QUIC)
 
-基于UDP，自行实现类似TCP的数据可靠性。相当于在会话层/应用层实现部分传输层的功能。
+QUIC，基于UDP，自行实现类似TCP的数据可靠性。相当于在会话层/应用层实现部分传输层的功能。
 
-- 0RTT
+HTTP2基于TCP的问题：TCP建立连接需要1RTT，且切换网络时需要重建连接；弱网环境下，TCP的重传导致拥塞等。
 
-- 发生重传时不阻塞后续的包
+初次建立连接只需1RTT（UDP的0RTT+证书等配置确认1RTT），首次数据请求时协商密钥；会话恢复只需0RTT（跳过配置确认），直接发起数据请求（首次请求同时协商密钥）。
 
-- 可在应用层控制拥塞算法
 
 ## websocket
 
