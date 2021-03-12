@@ -54,6 +54,48 @@
 - 内部清除浮动（高度不塌陷，内部的浮动元素可以撑开高度）
 - 外部清除浮动（外部的浮动元素可能会挤开元素内文字造成环绕效果，设为BFC后内部文字就不再被挤开）
 
+## 选择器
+
+### 优先级
+
+优先级顺序：
+
+1. `!important`
+
+2. `#id`
+
+3. 
+
+  1. `:hove`
+
+  2. `[data="value"]`
+
+  3. `.class`
+
+4. 
+
+  1. `::before`
+
+  2. `div`
+
+当多条css规则的属性冲突时，以选择器合计优先级最高的那条规则为准。且直接定义在目标元素上的样式，永远高于从父级继承的（即使父级的那条规则优先级更高）。
+
+### 性能
+
+选择器性能从高到低：
+
+1. ID, `#header`
+2. Class, `.promo`
+3. Type, `div`
+4. Adjacent sibling, `h2 + p`
+5. Child, `li > ul`
+6. Descendant, `ul a`
+7. Universal, `*`
+8. Attribute, `[type="text"]`
+9. Pseudo-classes/-elements, `a:hover`
+
+出于性能考虑，由于CSS规则匹配时是从右往左，应该尽量把性能高的、更具体的规则写到最右，尽快尽早把非目标元素过滤掉。
+
 ## repaint & reflow
 
 一般元素的css属性改变都会引发reflow&repaint，除了少数只触发repaint的属性: transform/visibility/background等。
@@ -63,21 +105,6 @@
 当访问一些布局相关的信息的API时，比如clientWidth、offsetWidth、scrollWidth、getComputedStyle()等，浏览器为保证获取到的数据正确，会立刻清空队列进行一次reflow&repaint。
 
 > 详见[【浏览器渲染】](/performance/render.html)
-
-## 选择器优先级
-
-当多条css规则的属性冲突时，以选择器合计优先级最高的那条规则为准。且直接定义在目标元素上的样式，永远高于从父级继承的（即使父级的那条规则优先级更高）。
-
-1. !important
-2. #id
-3. 
-  1. :hove
-  2. [data="value"]
-  3. .class
-4. 
-  1. ::before
-  2. div
-
 
 ## CSS API
 
