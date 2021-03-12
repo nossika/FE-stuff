@@ -1,6 +1,6 @@
 # 浏览器渲染
 
-浏览器因内核不同对渲染的实现会略有差异，这里以chrome(74)为例。
+浏览器因内核不同对渲染的实现会略有差异，这里以chrome（blink）为例。
 
 ## 渲染步骤
 
@@ -14,15 +14,17 @@
 4. paint：绘制各个图层
 5. composite layers (composite)：把各个图层合成为完整页面
 
-渲染过程中，layout可能被跳过，比如对样式的修改不影响layout时，则只需repaint而不需reflow。可以借助 [CSS Triggers](https://csstriggers.com/) 查看哪些CSS属性会影响layout。paint也可能被跳过，比如只需重绘合成层的内容时。
+## 渲染过程
 
-## 渲染时机
+浏览器是足够聪明的，它会跳过不必要的渲染。当有DOM或者样式变化时，浏览器并不是立刻将改变渲染到屏幕上，而是把render flag标记为true。在**下一个渲染时机**如果判断此flag为true，就执行渲染并重置flag。所以两次宏任务之间不一定会发生渲染。渲染也是一轮独立的宏任务，任务下一般包含了layout、paint、composite等渲染所需步骤。**渲染和JS执行是互斥的**，计算会阻塞渲染，渲染也会阻塞计算。
 
-当DOM或者CSSOM被修改，浏览器并不是立刻将改变渲染到屏幕上，而是把render flag标记为true。在**下一个渲染时机**如果判断此flag为true，就执行完整渲染过程，再重置render flag。
+**渲染时机**一般是下次屏幕刷新前，且主线程处于空闲状态。页面图像变化的间隔时间称为一帧，一帧的最小值一般为16.66ms（60Hz）左右，因硬件和软件配置而异，实际一帧也可能很长，比如这期间都没有动画需要执行。
 
-**渲染时机**一般是在下次屏幕刷新前。两次刷新间隔的时间为1帧，1帧的最小值一般为16.66ms左右，因硬件而异。渲染也会受主线程繁忙程度的影响，因为渲染线程和JS执行线程是互斥的，在JS执行线程结束前主线程不会去调起渲染线程。
+渲染过程中，layout可能被**跳过**，比如对样式的修改不影响layout时，则只需repaint而不需reflow。可以借助 [CSS Triggers](https://csstriggers.com/) 查看哪些CSS属性会影响layout。paint也可能被跳过，比如只需重绘合成层的内容时。
 
-但有时渲染过程中的recalculate style、layout会被**提前**，而不是等到达渲染时机再执行。比如修改了layout相关样式后，未到渲染时机就**对layout相关属性进行了读取**，则浏览器会立刻执行recalculate style和layout来返回准确的layout信息。
+有时渲染过程中的style、layout会被**提前**，而不是等渲染时机到达的这个宏任务才进行。比如修改了layout相关样式后，立刻**对layout相关属性进行了读取**，则浏览器也会立刻执行style和layout来返回准确的layout信息，但layout只是提前而非额外做，如果到渲染时机前都没有其他修改了，则直接根据这个layout结果进行layer之后的步骤。
+
+重排（layout）最终一定会引发绘制（paint、composite），但并非每次重排都对应一次绘制。如果两次重排时间很近，小于一帧的时间，则只会到下一帧渲染前才绘制，且只绘制一次。
 
 ## 硬件加速
 
@@ -93,6 +95,21 @@ document.body.addEventListener('click', () => {
 但`step 2`执行后并没有渲染，直到`step 3`执行后的一段时间才渲染，因为这时才到达渲染时机。
 
 从frames栏看到，从`step 2`执行到`step 3`执行到再次渲染的这14.0ms期间，页面上显示的一直是110px的div，执行完第二次渲染后，直接变为130px的div。
+
+可以再结合一个例子理解：
+
+```js
+setTimeout(() => {
+  console.log('macro task 1');
+  requestAnimationFrame(() => console.log('rAF 1'));
+});
+setTimeout(() => {
+  console.log('macro task 2');
+  requestAnimationFrame(() => console.log('rAF 2'));
+});
+```
+
+执行结果是 macro task 1 - macro task 2 - rAF 1 - rAF 2。两轮时间间隔很近的宏任务，中间几乎没有时间插入渲染，所以两轮宏任务都执行完了才开始执行渲染。
 
 
 ### 3、提前读取layout相关属性
