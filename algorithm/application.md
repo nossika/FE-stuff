@@ -813,6 +813,54 @@ const reverseBetween = function(head, m, n) {
   return m === 1 ? endNode : head;
 };
 ```
+
+## 距离接近的叶子节点对数
+
+给定一个root节点和distance，求root下满足两者距离小于等于distance的所有叶子节点对。
+
+```js
+var countPairs = function(root, distance) {
+  let count = 0;
+
+  // dfs(node: TreeNode): number[] 返回以node为根节点的全部叶子节点和node之间的距离
+  var dfs = function(node) {
+    // 如果node是空节点，就返回空数组
+    if (!node) return [];
+
+    // 如果node自身是叶子节点，返回[0]，因为自己是一个叶子节点，自己到自己的距离是0
+    if (!node.left && !node.right) {
+      return [0];
+    }
+
+    // node的全部左子树叶子节点距离，到node的距离左子树的结果+1
+    const lLens = dfs(node.left).map(l => l + 1);
+
+    // node右子树同上
+    const rLens = dfs(node.right).map(l => l + 1);
+
+    // 左右两两匹配，小于distance的一对计入count
+    for (let i = 0; i < lLens.length; i++) {
+      for (let j = 0; j < rLens.length; j++) {
+        if (lLens[i] + rLens[j] <= distance) {
+          count++;
+        }
+      }
+    }
+
+    // node左右子树的结果合并，作为此node的结果
+    const lens = lLens.concat(rLens);
+
+    return lens;
+  }
+
+  dfs(root);
+
+  return count;
+};
+```
+
+
+
 ## 海量数据下的算法
 
 分块 + 各块计算 + 合并结果
