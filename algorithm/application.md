@@ -257,7 +257,71 @@ function mergeOrderedArr(arrs) {
 mergeOrderedArr([arr1, arr2, arr3]); // [0, 1, 2, 3, 4, 4, 5, 7, 7, 8, 9]
 ```
 
+## 寻找两数之和
 
+给定一个数组nums，寻找两个和刚好为target的数，返回它们的下标。
+
+hash表查找，时间复杂度O(n)，空间复杂度O(n)。
+
+1、构造一个hash map，key为num，value为num的下标。
+
+2、遍历nums，查找map中是否已存在target-num，若有，则返回结果；若无，则把num和其下标作为key、value存入map。
+
+```js
+function twoSum(nums, target) {
+    const map = {};
+    let result = null;
+
+    for (let i = 0; i < nums.length; i++) {
+        if (map[target - nums[i]] !== undefined) {
+            result = [map[target - nums[i]], i];
+            break;
+        } else {
+            map[nums[i]] = i;
+        }
+    }
+
+    return result;
+};
+
+twoSum([2,5,9,6], 11); // [0, 2]
+```
+
+### nums有序的情况
+
+双指针解法，需要理清为何该解法不会漏过唯一解，时间复杂度O(n)，空间复杂度O(1)。
+
+1、left和right都会不断往中间移动。
+
+2、假设left已经移动到目标位置，但right还未移动到目标位置，此时因为数组有序，和一定大于target，之后的移动只会把right左移，不会动left。
+
+3、假设right已经移动到目标位置，同理right不会再动。
+
+4、继续查找，一定能找到解，或者得出无解。
+
+```js
+function twoSum(numbers, target) {
+    let left = 0;
+    let right = numbers.length - 1;
+    let result = null;
+
+    while (left < right) {
+        const sum = numbers[left] + numbers[right];
+        if (sum === target) {
+            result = [left + 1, right + 1];
+            break;
+        } else if (sum < target) {
+            left += 1;
+        } else if (sum > target) {
+            right -= 1;
+        }
+    }
+
+    return result;
+};
+
+twoSum([2,5,6,9], 14); // [1, 3]
+```
 
 ## 连续子数组的最大和
 
