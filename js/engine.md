@@ -2,23 +2,21 @@
 
 # V8引擎
 
-## 特性
+## 简介
 
 V8是google开源的JS引擎，由C++编写，被应用于Chrome、NodeJS等，其他JS引擎有Rhino、JavaScriptCore、Chakra等。
 
-V8采用的性能优化方式：
+V8中做的性能优化有：
 
-- Just-In-Time（JIT）编译优化
+- JIT编译优化
 
-- 内联缓存
-
-多个对象尽可能共用隐藏类，缓存各属性字段在内存中的偏移量，能加速属性提取
+- 隐藏类
 
 - 高效垃圾回收
 
 - etc.
 
-## JIT编译
+## Just-In-Time编译（内联缓存）
 
 JS是弱类型动态语言，在源码生成AST以后，就开始边解释边执行，且因为变量类型不固定，运行时需边判断类型边操作，由此有了优化空间。
 
@@ -28,7 +26,75 @@ JIT加入**监视器**来分析代码片段的运行情况，如果某代码片�
 
 当某代码片段进入“hot”阶段，JIT会对其作更高效的**优化编译**，为此需要做一些假设（比如每次某变量使用的对象都有相同结构），针对这一假设再作优化程度更高的编译。如果某次执行中发现假设出错（比如对象结构变了），则放弃优化编译退回基线编译。如果代码片段多次从优化编译退回基线编译，则放弃对此片段的优化编译。
 
-## 垃圾回收原理
+代码编译的优化也称**内联缓存**，根据数据结构的类型是单一还是多个，分为单态和多态，单态的效率大于多态，也就是说对于同个函数调用，其数据结构越单一越好。
+
+## 隐藏类（快属性）
+
+因为JS的对象只有原型，没有严格意义上的类，所以无法在编译时就为对象分配好固定的空间。
+
+V8里的对象内部有两类存储结构，elements和properties：elements的key为数字，可以通过key直接得出内存偏移量来找到对应value；properties为字典表（哈希表），需要对key做一次转换才能得出value的内存位置。数据会尽可能地存储到elements结构里，比如常规的紧密数组、以数字为key的数据（且数据量小）等。
+
+对于properties类型的数据而言，如果每次访问value都去翻译一次key来做内存位置查找，对于大量结构相同的数据是一种浪费。所以V8为properties加上了一个隐藏类，隐藏类里包含了其key值和对应的位置信息，把同结构的properties指向同一个隐藏类，这样在对properties读key时，只需从其隐藏类中直接获取这个key的位置即可。
+
+隐藏类会在运行时改变，对象的创建、赋值key、赋值顺序、删除key等操作都可能带来隐藏类的改变。对于同一类对象，应尽量让它们都指向同一隐藏类，来提升性能。
+
+good case:
+
+```js
+const arr = [];
+
+for (let i = 0; i < 10000; i++) {
+  const obj = {};
+
+  if (condition1) {
+    obj.a = 1; // 此时obj隐藏类为shape(a)
+    obj.b = 2; // 此时obj隐藏类加上了b，为shape(a, b)
+  } else if {
+    obj = {
+      a: 11,
+      b: 22,
+    }; // 这种写法会使obj隐藏类直接为shape(a, b)，也和上面一致
+
+    obj.b = undefined; // obj还是保持着隐藏类shape(a, b)的结构
+  } 
+
+  arr.push(obj);
+}
+
+arr.forEach(obj => {
+  console.log(obj.a); // 全部的obj都指向同一隐藏类shape(a, b)，访问obj.a时不必再重复计算a的位置，直接从隐藏类中获取
+});
+```
+
+bad case:
+
+```js
+for (let i = 0; i < 10000; i++) {
+  const obj = {};
+  if (condition1) {
+    obj.a = 1; // shape(a)
+    obj.b = 2; // shape(a, b)
+  } else if (condition2) {
+    obj.b = 1; // shape(b)
+    obj.a = 2; // shape(b, a)
+  } else if (condition3) {
+    obj.a = 1; // shape(a)
+    obj.b = 2; // shape(a, b)
+    obj.c = 3; // shape(a, b, c)
+  } else if (condition4) {
+    obj = { a: 1, b: 2 }; // shape(a, b)
+    Reflect.deleteProperty(obj, 'b'); // 隐藏类回退到shape(a)
+  }
+
+  // 以上各逻辑分支创造出的obj隐藏类都各不相同
+}
+
+```
+
+在chrome的memory抓取内存快照，查看对象的结构，其中`system / Map`指向的就是其隐藏类。
+
+
+## 垃圾回收策略
 
 V8采用了分代GC，将内存划分为：
 
