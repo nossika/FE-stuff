@@ -367,6 +367,8 @@ function getMax(arr) {
 3. end不断向后移动，并将指向的值存入缓存，直到end指向的字母已存在缓存中（说明出现了重复字符），计算end - start的值并与max比较，保留大者
 4. 起始位置+1（即start+1），重复步骤2，直到 str.length - start > max 时（此时再继续下去也不会出现更大的max），停止循环，输出max
 
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(chars)，chars表示字符集空间大小。
+
 ```js
 function lengthOfLongestSubstring(str) {
   let start = 0;
@@ -389,6 +391,42 @@ function lengthOfLongestSubstring(str) {
   return max;
 };
 ```
+
+### 滑动窗口解法
+
+上面的解法，左指针+1时，右指针也重置，重新计算不重复子串。事实上，不重复子串可以利用上一步的结果，左指针+1前，把左指针对应的字符从set清除，右指针不需要重置，此时左右指针内的子串依然是不重复子串，在这基础上继续计算即可。
+
+左右指针之间的空间形成一个不断往右滑动的窗口，空间内的字符串就是不重复子串。对于整个字符串，左右指针只需要各遍历一次。
+
+时间复杂度O(n)，空间复杂度O(chars)，chars表示字符集空间大小。
+
+```js
+var lengthOfLongestSubstring = function(s) {
+  let left = 0;
+  let right = 0;
+  const chars = new Set();
+
+  let max = 0;
+
+  // 左指针为起点，不断往右平移，得出各次的最长不重复子串，左指针离尾部的距离小于max时即可停止，因为这时怎么计算都不会得到大于max的结果。
+  while (left < s.length - max) {
+    // 将右指针不断往右平移，直到出现重复字符就停止。
+    while (s[right] && !chars.has(s[right])) {
+      chars.add(s[right]);
+      right += 1;
+    }
+
+    max = Math.max(max, right - left);
+
+    // 左指针平移前，从set里去除左指针指向的字符。
+    chars.delete(s[left]);
+    left += 1;
+  }
+
+  return max;
+};
+```
+
 
 ## 求两个字符串的最长公共子串
 
