@@ -1,23 +1,24 @@
 {
-  "name": "FE-guide",
-  "version": "0.1.0",
-  "description": "",
+  "name": "fe-stuff",
+  "version": "1.1.0",
+  "description": "[fe.nossika.com](https://fe.nossika.com)",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "vuepress": "^1.8.2"
+  },
   "scripts": {
-    "build": "vuepress build .",
-    "dev": "vuepress dev ."
+    "dev": "vuepress dev .",
+    "build": "vuepress build ."
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nossika/FE-guide.git"
+    "url": "git+https://github.com/nossika/FE-stuff.git"
   },
-  "main": "index.html",
-  "author": "nossika",
+  "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nossika/FE-guide/issues"
+    "url": "https://github.com/nossika/FE-stuff/issues"
   },
-  "dependencies": {
-    "core-js": "^2.6.9",
-    "vuepress": "^1.0.0"
-  }
+  "homepage": "https://github.com/nossika/FE-stuff#readme"
 }

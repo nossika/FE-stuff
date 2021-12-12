@@ -1,10 +1,11 @@
 module.exports = {
   title: '前端工程师的自我修养',
+  description: '一本关于前端开发领域知识的书',
   themeConfig: {
     serviceWorker: {
       updatePopup: true,
     },
-    repo: 'nossika/FE-guide',
+    repo: 'nossika/FE-stuff',
     sidebar: [
       {
         title: 'JS',
