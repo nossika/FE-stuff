@@ -1,7 +1,7 @@
 {
   "name": "fe-stuff",
   "version": "1.1.0",
-  "description": "[fe.nossika.com](https://fe.nossika.com)",
+  "description": "前端工程师的自我修养",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
