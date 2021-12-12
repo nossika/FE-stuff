@@ -1,6 +1,8 @@
 module.exports = {
   title: '前端工程师的自我修养',
   description: '一本关于前端开发领域知识的书',
+  base: '/FE-stuff/dist/',
+  dest: './dist',
   themeConfig: {
     serviceWorker: {
       updatePopup: true,
