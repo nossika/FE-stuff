@@ -257,6 +257,87 @@ function mergeOrderedArr(arrs) {
 mergeOrderedArr([arr1, arr2, arr3]); // [0, 1, 2, 3, 4, 4, 5, 7, 7, 8, 9]
 ```
 
+## 寻找众数
+
+给定一个数组nums，此数组中必定有一个元素的出现的次数大于数组长度的一半，找出这个元素。
+
+### 普通解法
+
+```
+var majorityElement = function(nums) {
+  const map = {};
+
+  for (const num of nums) {
+    if (!map[num]) {
+      map[num] = 1;
+    } else {
+      map[num] += 1;
+    }
+
+    if (map[num] >= (nums.length / 2)) {
+      return num;
+    } 
+  }
+
+  return target;
+};
+```
+
+时间复杂度O(n)，空间复杂度O(n)。
+
+### Boyer-Moore 投票算法
+
+维护一个候选众数candidate，往后遍历，num等于candidate时count加1，否则减1。count归零时，遇到的第一个num作为candidate，继续往后遍历。遍历完nums后，最后的candidate即为所要的众数。
+
+算法的正确性推导：真正众数在数组中数量一定大于一半，遍历过程中若count归零，说明直至此时candidate和非candidate的数量55开，不管candidate是不是真正的众数，都可将它们全部丢弃，数组剩余的部分依然还是满足“真正众数的数量大于一半”。此时重选candidate继续上面流程，最后没被放弃的candidate就是真正众数。
+
+```
+var majorityElement = function(nums) {
+  let count = 0;
+  let candidate;
+
+  for (const num of nums) {
+    if (count === 0) {
+      candidate = num;
+    }
+    if (num === candidate) {
+      count += 1;
+    } else {
+      count -= 1;
+    }
+  }
+
+  return candidate;
+};
+```
+
+时间复杂度O(n)，空间复杂度O(1)。
+
+### 随机取数
+
+随机取一个数，验证这个数是否众数，验证时间O(n)，不需要额外空间。因为众数占1/2，随机取的情况下平均2次就可取到。
+
+```
+var majorityElement = function(nums) {
+  while (true) {
+    const candidate = nums[Math.random() * nums.length | 0];
+
+    let count = 0;
+    for (const num of nums) {
+      if (candidate === num) {
+        count += 1;
+      }
+
+      if (count >= nums.length / 2) {
+        return candidate;
+      }
+    }
+  }
+};
+```
+
+时间复杂度最坏O(无穷)，平均O(n)，空间复杂度O(1)。
+
 ## 寻找两数之和
 
 给定一个数组nums，寻找两个和刚好为target的数，返回它们的下标。
