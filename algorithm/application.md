@@ -263,7 +263,7 @@ mergeOrderedArr([arr1, arr2, arr3]); // [0, 1, 2, 3, 4, 4, 5, 7, 7, 8, 9]
 
 ### 普通解法
 
-```
+```js
 var majorityElement = function(nums) {
   const map = {};
 
@@ -291,7 +291,7 @@ var majorityElement = function(nums) {
 
 算法的正确性推导：真正众数在数组中数量一定大于一半，遍历过程中若count归零，说明直至此时candidate和非candidate的数量55开，不管candidate是不是真正的众数，都可将它们全部丢弃，数组剩余的部分依然还是满足“真正众数的数量大于一半”。此时重选candidate继续上面流程，最后没被放弃的candidate就是真正众数。
 
-```
+```js
 var majorityElement = function(nums) {
   let count = 0;
   let candidate;
@@ -317,7 +317,7 @@ var majorityElement = function(nums) {
 
 随机取一个数，验证这个数是否众数，验证时间O(n)，不需要额外空间。因为众数占1/2，随机取的情况下平均2次就可取到。
 
-```
+```js
 var majorityElement = function(nums) {
   while (true) {
     const candidate = nums[Math.random() * nums.length | 0];
