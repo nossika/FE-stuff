@@ -4,9 +4,11 @@ module.exports = {
   base: '/FE-stuff/dist/', // for github pages
   dest: './dist',
   themeConfig: {
+    sidebarDepth: 3,
     serviceWorker: {
       updatePopup: true,
     },
+    lastUpdated: '最近更新',
     repo: 'nossika/FE-stuff',
     sidebar: [
       {
@@ -126,7 +128,7 @@ module.exports = {
       },
       {
         title: 'others',
-        collapsable: true,
+        collapsable: false,
         children: [
           '/others/pwa.md',
           '/others/graphql.md',

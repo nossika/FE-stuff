@@ -956,6 +956,135 @@ console.log(consoleStr, ...consoleColors);
     
 todo：Myers差分算法
 
+## 二叉树和链表
+
+### 二叉搜索树转有序双向链表
+
+```js
+/**
+ * // Definition for a Node.
+ * function Node(val,left,right) {
+ *    this.val = val;
+ *    this.left = left;
+ *    this.right = right;
+ * };
+ */
+/**
+ * @param {Node} root
+ * @return {Node}
+ */
+var treeToDoublyList = function(root) {
+  if (!root) return null;
+
+  // 中序遍历，对二叉搜索树即是从小到大遍历
+  function dfs(node) {
+    if (!node) return;
+    dfs(node.left);
+    handle(node);
+    dfs(node.right);
+  }
+
+  let preNode;
+  let firstNode;
+
+  // 把当前节点与上一个节点建立连接，并缓存当前节点
+  function handle(node) {
+    if (preNode) {
+      node.left = preNode;
+      preNode.right = node;
+    } else {
+      firstNode = node;
+    }
+
+    preNode = node;
+  }
+
+  // 执行遍历
+  dfs(root);
+
+  // 首尾节点相连，构造出循环链表
+  firstNode.left = preNode;
+  preNode.right = firstNode;
+
+  return firstNode;
+};
+```
+
+时间复杂度O(n)，空间复杂度O(1)，未使用额外空间。
+
+### 有序单向链表转平衡二叉搜索树
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val === undefined ? 0 : val)
+ *     this.next = (next === undefined ? null : next)
+ * }
+ */
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val === undefined ? 0 : val)
+ *     this.left = (left === undefined ? null : left)
+ *     this.right = (right === undefined ? null : right)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {TreeNode}
+ */
+var sortedListToBST = function(head) {
+  if (!head) return null;
+
+  // 获取链表长度
+  function getListLen(listHead) {
+    let len = 0;
+    let node = head;
+    while (node) {
+      len += 1;
+      node = node.next;
+    }
+    return len;
+  }
+
+  // 用分治法构建树，不断二分链表，作为树的左右子树
+  function buildTree(start, end) {
+    if (end < start) {
+      return null;
+    }
+
+    const mid = start + (((end - start) / 2) | 0);
+
+    // 用中序遍历构建树，正好构建顺序就是链表顺序
+    const root = new TreeNode(0, null, null);
+    root.left = buildTree(start, mid - 1);
+    root.val = popList();
+    root.right = buildTree(mid + 1, end);
+
+    return root;
+  }
+
+  // 从链表中按序取出节点
+  let node = head;
+  function popList() {
+    const val = node.val;
+    node = node.next;
+    return val;
+  }
+
+  // 启动构建
+  const listLen = getListLen(head);
+  const root = buildTree(0, listLen - 1);
+
+  return root;
+};
+```
+
+时间复杂度：O(n)
+
+空间复杂度：节点数O(n)，栈深度O(log<sup>n</sup>)
+
 ## 反转链表的指定部分
 
 给定一组链表，要求把链表m到n的部分反转，返回新链表，只扫描一趟。
