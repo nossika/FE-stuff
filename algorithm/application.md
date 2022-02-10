@@ -1085,6 +1085,267 @@ var sortedListToBST = function(head) {
 
 空间复杂度：节点数O(n)，栈深度O(log<sup>n</sup>)
 
+## 缓存淘汰算法
+
+### LRU（Least Recently Used）
+
+实现一个固定容量的缓存，缓存达到上限时，淘汰最久未访问的数据。
+
+以哈希表记录节点位置，可使查找操作的复杂度为O(1)；以双向链表记录节点访问顺序，最久未访问的节点放在链表末尾，最新的在最前，每次访问时更新链表头部节点，若缓存达到上限，同时删除尾部节点，插入和删除操作的复杂度为O(1)。
+
+空间复杂度是O(capacity)，需要维护和capacity同容量的哈希表和双向链表。
+
+```js
+/**
+ * @param {number} capacity
+ */
+var LRUCache = function (capacity) {
+  // 记录剩余容量
+  this.capacity = capacity;
+  // 构造哈希表
+  this.nodeMap = {};
+  // 构造双向链表
+  const head = new Node();
+  const tail = new Node();
+  head.next = tail;
+  tail.prev = head;
+  this.head = head;
+  this.tail = tail;
+};
+
+var Node = function (key, value) {
+  this.value = value;
+  this.key = key;
+  this.next = null;
+  this.prev = null;
+};
+
+/** 
+* @param {number} key
+* @return {number}
+*/
+LRUCache.prototype.get = function (key) {
+    if (!this.nodeMap[key]) {
+      return -1;
+    }
+
+    this.update(key);
+
+    return this.nodeMap[key].value;
+};
+
+/** 
+* @param {number} key 
+* @param {number} value
+* @return {void}
+*/
+LRUCache.prototype.put = function (key, value) {
+  if (!this.nodeMap[key]) {
+    this.add(key, value);
+  } else {
+    this.update(key, value);
+  }
+};
+
+// 节点插入到链表头部
+LRUCache.prototype.insertNodeAfterHead = function (node) {
+  node.next = this.head.next;
+  node.next.prev = node;
+  node.prev = this.head;
+  node.prev.next = node;
+};
+
+// 向缓存中插入新值
+LRUCache.prototype.add = function (key, value) {
+  // 如果还有剩余容量，则只扣除容量；如果容量不够，则把尾部节点从链表和哈希表移除
+  if (this.capacity > 0) {
+    this.capacity -= 1;
+  } else {
+    const toDeletedNode = this.tail.prev;
+
+    this.tail.prev = toDeletedNode.prev;
+    this.tail.prev.next = this.tail;
+
+    Reflect.deleteProperty(this.nodeMap, toDeletedNode.key);
+  }
+
+  const node = new Node(key, value);
+  this.insertNodeAfterHead(node);
+  this.nodeMap[key] = node;
+};
+
+// 在缓存中更新值和位置
+LRUCache.prototype.update = function (key, value) {
+  const node = this.nodeMap[key];
+
+  if (value !== undefined) {
+    node.value = value;
+  }
+
+  if (this.head.next === node) {
+    return;
+  }
+
+  // 把节点移动到链表的最前
+  const { next, prev } = node;
+  next.prev = prev;
+  prev.next = next;
+
+  this.insertNodeAfterHead(node);
+};
+
+/**
+* Your LRUCache object will be instantiated and called as such:
+* var obj = new LRUCache(capacity)
+* var param_1 = obj.get(key)
+* obj.put(key,value)
+*/
+```
+
+### LFU（Least Frequently Used）
+
+实现一个固定容量的缓存，缓存达到上限时，淘汰最少访问的数据（如果有多个数据访问频次相同，淘汰最久未访问的）。
+
+#### O(n)解法
+
+可用和 LRU 类似的思路处理，使用一个哈希表和一个双向链表，只是将节点的数据加上频次，并且双向链表按访问频次排序，更新双向链表的节点时，需要按照频次向前比较并挪动节点（也就是这一步使得更新操作的复杂度为O(n)）。空间复杂度依然是O(capacity)。
+
+```js
+/**
+ * @param {number} capacity
+ */
+var LFUCache = function (capacity) {
+  // 记录剩余容量
+  this.capacity = capacity;
+  // 构造哈希表
+  this.nodeMap = {};
+  // 构造双向链表
+  const head = new Node();
+  const tail = new Node();
+  head.next = tail;
+  tail.prev = head;
+  this.head = head;
+  this.tail = tail;
+};
+
+var Node = function (key, value) {
+  this.value = value;
+  this.freq = 1;
+  this.key = key;
+  this.next = null;
+  this.prev = null;
+};
+
+/** 
+ * @param {number} key
+ * @return {number}
+ */
+LFUCache.prototype.get = function (key) {
+  if (!this.nodeMap[key]) {
+    return -1;
+  }
+
+  this.update(key);
+
+  return this.nodeMap[key].value;
+};
+
+/** 
+ * @param {number} key 
+ * @param {number} value
+ * @return {void}
+ */
+LFUCache.prototype.put = function (key, value) {
+  if (!this.nodeMap[key]) {
+    this.add(key, value);
+  } else {
+    this.update(key, value);
+  }
+};
+
+// 节点插入链表尾部
+LFUCache.prototype.insertNodeBeforeTail = function (node) {
+  node.prev = this.tail.prev;
+  node.prev.next = node;
+  node.next = this.tail;
+  node.next.prev = node;
+};
+
+// 节点往链表头部移动一步
+LFUCache.prototype.moveNodeForwardHead = function (node) {
+  const prev = node.prev;
+  const prevPrev = prev.prev;
+  const next = node.next;
+
+  prevPrev.next = node;
+  node.prev = prevPrev;
+
+  node.next = prev;
+  prev.prev = node;
+
+  prev.next = next;
+  next.prev = prev;
+};
+
+// 调整节点到链表的合适位置
+LFUCache.prototype.adjustNode = function (node) {
+  while (node.prev && node.prev !== this.head && node.prev.freq <= node.freq) {
+    this.moveNodeForwardHead(node);
+  }
+};
+
+// 向缓存中间插入新值
+LFUCache.prototype.add = function (key, value) {
+  if (this.capacity > 0) {
+    this.capacity -= 1;
+  } else {
+    const toDeletedNode = this.tail.prev;
+    if (toDeletedNode === this.head) {
+      return;
+    }
+
+    this.tail.prev = toDeletedNode.prev;
+
+    this.tail.prev.next = this.tail;
+
+    Reflect.deleteProperty(this.nodeMap, toDeletedNode.key);
+  }
+
+  const node = new Node(key, value);
+  this.insertNodeBeforeTail(node);
+  this.adjustNode(node);
+  this.nodeMap[key] = node;
+};
+
+// 在缓存中更新值和位置
+LFUCache.prototype.update = function (key, value) {
+  const node = this.nodeMap[key];
+
+  if (value !== undefined) {
+    node.value = value;
+  }
+
+  node.freq += 1;
+
+  this.adjustNode(node);
+};
+
+/**
+ * Your LFUCache object will be instantiated and called as such:
+ * var obj = new LFUCache(capacity)
+ * var param_1 = obj.get(key)
+ * obj.put(key,value)
+ */
+```
+
+#### O(1)解法
+
+O(n)解法中复杂度主要来源是，双向链表的更新节点需要逐个向前比较和移动。可以把单个双向链表按频次拆分，每个频次下对应一条双向链表，并增加key为频次的哈希表来记录各链表头部。
+
+这样每次更新节点时，根据节点哈希表找到节点位置，更新频次，再根据频次哈希表找到对应链表，把节点直接插入头部即可，更新复杂度为O(1)；同时需要记录当前最小频次，当超过缓存容量时，需要删除最小频次链表中的尾部节点，删除复杂度为O(1)。
+
+空间复杂度是O(capacity)，需要维护一个 节点-位置 的哈希表，一个 频次-链表头 的哈希表，多条双向链表（总长度为capacity）。
+
 ## 反转链表的指定部分
 
 给定一组链表，要求把链表m到n的部分反转，返回新链表，只扫描一趟。
