@@ -439,7 +439,83 @@ function getMax(arr) {
 }
 ```
 
+## 求最小覆盖子串
 
+给一个字符串s和一个目标字符串t，求s中包含全部t中字符（包括字符数量）的最小子串。
+
+双指针滑动窗口法：
+
+```js
+/**
+ * @param {string} s
+ * @param {string} t
+ * @return {string}
+ */
+var minWindow = function (s, t) {
+  // 构造一个 key 为字符的哈希表，value 表示该字符还欠缺多少个
+  const needs = {};
+  for (let i = 0; i < t.length; i++) {
+    const char = t[i];
+    if (!needs[char]) {
+      needs[char] = 0;
+    }
+
+    needs[char] -= 1;
+  }
+
+  // 判断当下是否满足 t 所需
+  function isInNeed() {
+    for (let key in needs) {
+      if (needs[key] < 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function updateNeed(char, count) {
+    if (char in needs) {
+      needs[char] += count;
+    }
+  }
+
+  // 用于记录全部的最小情况，最后再遍历取最小中的最小。
+  const results = [];
+
+  let left = 0;
+  let right = 0;
+
+  // 右指针不断向右，扩大窗口，直到窗口的字符满足t，然后开始把左指针不断右移，缩小窗口，直到刚好不满足t，此时的窗口作为一种最小情况记录，然后重复前面右指针右移的步骤。
+  while (right < s.length) {
+    const addChar = s[right];
+    updateNeed(addChar, 1);
+
+    while (!isInNeed()) {
+      const removeChar = s[left];
+
+      // 如果左指针的字符，在所需列表中刚好是 0，表示再往左移就会处于不够的状态了，此时作为一种最小情况记录下来
+      if (needs[removeChar] === 0) {
+        results.push(s.slice(left, right + 1));
+      }
+
+      updateNeed(removeChar, -1);
+      left += 1;
+    }
+
+    right += 1;
+  }
+
+  if (!results.length) return '';
+
+  return results.reduce((min, result) => {
+    if (result.length < min.length) {
+      return result;
+    }
+
+    return min;
+  }, results[0]);
+};
+```
 
 ## 求字符串最长不重复子串
 
@@ -1384,6 +1460,50 @@ const reverseBetween = function(head, m, n) {
 
   // 如果m为1，则新链表的起点就是反转链表的头部
   return m === 1 ? endNode : head;
+};
+```
+
+## 两节点的最小公共祖先
+
+```js
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val) {
+ *     this.val = val;
+ *     this.left = this.right = null;
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @param {TreeNode} p
+ * @param {TreeNode} q
+ * @return {TreeNode}
+ */
+var lowestCommonAncestor = function(root, p, q) {
+  let result = null;
+
+  function dfs(node) {
+    if (!node) return false;
+
+    const isInLeft = dfs(node.left);
+    const isInRight = dfs(node.right);
+    
+    // 满足最小公共祖先的两种情况：
+    // 1. 左右子树各包含了p、q
+    // 2. 节点自身为p、q且左或右子树包含p、q
+    if (
+        (isInLeft && isInRight)
+        || ((node === p || node === q) && (isInLeft || isInRight))
+    ) {
+      result = node;
+    }
+
+    return isInLeft || isInRight || node === p || node === q;
+  }
+
+  dfs(root);
+
+  return result;
 };
 ```
 
