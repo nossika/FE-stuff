@@ -338,7 +338,9 @@ var majorityElement = function(nums) {
 
 时间复杂度最坏O(无穷)，平均O(n)，空间复杂度O(1)。
 
-## 寻找两数之和
+## 寻找数字之和
+
+### 两数之和
 
 给定一个数组nums，寻找两个和刚好为target的数，返回它们的下标。
 
@@ -402,6 +404,64 @@ function twoSum(numbers, target) {
 };
 
 twoSum([2,5,6,9], 14); // [1, 3]
+```
+
+### 三数之和
+
+问题：给定一个数组nums，从数组寻找3个数，要求正好和为0，列出全部可能的解，并且解不重复。
+
+解法：借助两数之和里，使数组有序，然后采用一重循环+双指针的方式。
+
+时间复杂度：一次数组排序O(n * log<sub>2</sub><sup>n</sup>) + 一重循环O(n) * 双指针遍历O(n) = O(n<sup>2</sup>)；空间复杂度：一个新的排序数组O(n)。
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number[][]}
+ */
+var threeSum = function (nums) {
+  const results = [];
+
+  // 使数组有序，方便后面使用双指针方式
+  nums.sort((a, b) => a < b ? -1 : 1);
+
+  // 用i表示第一个数，left、right为第二、三个数，使用两数之和里双指针的方式移动
+  for (let i = 0; i < nums.length - 2; i++) {
+    // 如果第一个数和上一轮循环一样，直接跳过
+    if (nums[i] === nums[i - 1]) continue;
+    // 如果第一个数大于0，则不可能有等于0的解了
+    if (nums[i] > 0) break;
+
+    const target = 0 - nums[i];
+
+    let left = i + 1;
+    let right = nums.length - 1;
+
+    // 双指针寻找第二、三个数
+    while (left < right) {
+      const sum = nums[left] + nums[right];
+
+      if (sum === target) {
+        results.push([nums[i], nums[left], nums[right]]);
+
+        // 如果数字和之前重复，需要跳过
+        do {
+          left += 1;
+        } while (nums[left] === nums[left - 1])
+
+        do {
+          right -= 1;
+        } while (nums[right] === nums[right + 1])
+      } else if (sum > target) {
+        right -= 1;
+      } else {
+        left += 1;
+      }
+    }
+  }
+
+  return results;
+};
 ```
 
 ## 连续子数组的最大和
@@ -849,6 +909,59 @@ function winner(n, m) {
 }
 
 winner(5, 3); // 4
+```
+
+## 满足条件的最小速度
+
+问题：
+
+有几堆香蕉，用piles[i]表示第i堆香蕉的个数。用k（个/小时）来吃香蕉，要求
+
+- 吃完一堆香蕉才能吃下一堆
+- 如果吃完这堆香蕉，胃口还有剩余，也要等下个小时才能开始吃下一堆
+
+求在h小时内吃完香蕉所需的最小速度。
+
+解法：
+
+某个数列的值按序递增，求值刚好满足条件的数，一般可用二分法。
+
+比如此题中的吃香蕉速度为k，是否满足条件用f(k)表示，如果t是刚好满足条件的临界速度，则f(大于t)也为true，而f(小于t)为false，则可用二分法找到这个t。
+
+时间复杂度：对max(piles)长度的数据判断log<sub>2</sub><sup>max(piles)</sup>次，每次判断需要进行 piles.length 长度的计算，总体复杂度为O(piles.length * log<sub>2</sub><sup>max(piles)</sup>)；空间复杂度：O(1)
+
+```js
+/**
+ * @param {number[]} piles
+ * @param {number} h
+ * @return {number}
+ */
+var minEatingSpeed = function (piles, h) {
+  // 检查该速度下将香蕉吃完的时间是否超过 h
+  function checkSpeed(k) {
+    let costTime = 0;
+    for (const num of piles) {
+      costTime += Math.ceil(num / k);
+    }
+    return costTime <= h;
+  }
+
+  // 二分法查找刚好满足要求的速度
+  let left = 1;
+  let right = Math.max(...piles); // 最大速度是 piles 里的最大值，此时需要 piles.length 的时间
+
+  while (left < right) {
+    // 注意 mid 应该向下取整，移动边界时，右边界只移到 mid 处，左边界则将 mid 舍去，保证最终值是刚好满足要求的
+    const mid = Math.floor((left + right) / 2);
+    if (checkSpeed(mid)) {
+      right = mid;
+    } else {
+      left = mid + 1;
+    }
+  }
+
+  return left;
+};
 ```
 
 ## 矩阵以对角线遍历
