@@ -841,6 +841,191 @@ var longestPalindromeSubseq = function(s) {
 console.log(longestPalindromeSubseq('aaazgergaa'));
 ```
 
+## 阿拉伯数字和中文数字互转
+
+```ts
+const numChars = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const unitChars = ['', '十', '百', '千'];
+const sectionChars = ['', '万', '亿', '万亿'];
+
+// 以万为小节的中文翻译
+function sectionStr(num: number): string {
+  let int = Math.floor(num);
+
+  if (int >= 10000) {
+    return '';
+  }
+
+  let str = '';
+
+  let unit = 0;
+  let isContinuousZero = false;
+  let isLastUnit = true;
+
+  function nextLoop() {
+    int = Math.floor(int / 10);
+    unit += 1;
+  }
+
+  while (int) {
+    const num = int % 10;
+
+    if (isLastUnit && num === 0) {
+      // 如果是末位的零，忽略，并且下一轮循环也要末位判断零
+      nextLoop();
+      continue;
+    } else {
+      isLastUnit = false;
+    }
+
+    if (num === 0) {
+      // 如果是中间的零，且为首次出现，补零；如果是连续出现，则忽略
+      if (!isContinuousZero) {
+        isContinuousZero = true;
+        str = '零' + str;
+      }
+
+      nextLoop();
+      continue;
+    } else {
+      isContinuousZero = false;
+    }
+
+    str = numChars[num] + unitChars[unit] + str;
+
+    nextLoop();
+  }
+
+  return str;
+}
+
+// 把阿拉伯数字翻译为中文数字
+export function num2Str(num: number): string {
+  if (num === 0) return '零';
+
+  let int = Math.floor(num);
+
+  let str = '';
+  
+  let section = 0;
+  let isContinuousZero = false;
+  let isLastUnit = true;
+
+  function nextLoop() {
+    int = Math.floor(int / 10000);
+    section += 1;
+  }
+
+  while (int) {
+    debugger;
+    const sectionInt = int % 10000;
+
+    if (isLastUnit && sectionInt === 0) {
+      // 如果是末位的零，忽略，并且下一轮循环也要末位判断零
+      nextLoop();
+      continue;
+    } else {
+      isLastUnit = false;
+    }
+
+    if (sectionInt === 0) {
+      // 如果是中间的零，且为首次出现，补零；如果是连续出现，则忽略
+      if (!isContinuousZero) {
+        isContinuousZero = true;
+        str = '零' + str;
+      }
+
+      nextLoop();
+      continue;
+    } else {
+      isContinuousZero = false;
+    }
+
+    let sectionChar = sectionChars[section];
+
+    // 判断“万亿”后面是否已经有单位“亿”了，有的话只保留单位“万”，防止出现“一万亿一千亿”这种说法
+    if (sectionChar === '万亿' && str.includes('亿')) {
+      sectionChar = '万';
+    }
+
+    str = sectionStr(sectionInt) + sectionChar + str;
+    
+    // 不足 1000 的，补上前置零
+    if (sectionInt < 1000) {
+      isContinuousZero = true;
+      str = '零' + str;
+      nextLoop();
+      continue;
+    }
+
+    nextLoop();
+  }
+
+  // 把最开头的零忽略
+  str = str.replace(/^零/g, '');
+
+  return str;
+}
+
+interface CharMeanings {
+  [str: string]: { 
+    value: number;
+    unit?: boolean;
+    section?: boolean;
+  };
+}
+
+const charMeanings: CharMeanings = {
+  '零': { value: 0 },
+  '一': { value: 1 },
+  '二': { value: 2 },
+  '三': { value: 3 },
+  '四': { value: 4 },
+  '五': { value: 5 },
+  '六': { value: 6 },
+  '七': { value: 7 },
+  '八': { value: 8 },
+  '九': { value: 9 },
+  '十': { value: 10, unit: true },
+  '百': { value: 100, unit: true },
+  '千': { value: 1000, unit: true },
+  '万': { value: 10000, unit: true, section: true },
+  '亿': { value: 10000 * 10000, unit: true, section: true },
+};
+
+// 把中文数字翻译为阿拉伯数字
+export function str2Num(str: string): number {
+  let num = 0;
+  let tempNum = 0;
+  let sectionYi = 0;
+
+  str.split('').forEach((char) => {
+    const meaning = charMeanings[char];
+    if (!meaning.unit) { // 处理普通数字，缓存到 tempNum
+      tempNum = meaning.value;
+    } else if (!meaning.section) { // 处理普通单位，把 tempNum 乘以单位加入 num
+      tempNum *= meaning.value;
+      num += tempNum;
+      tempNum = 0;
+    } else { // 处理节点单位，非零 tempNum 加到 num，并把 num 直接乘以节点单位
+      num += tempNum;
+      num *= meaning.value;
+      tempNum = 0;
+    }
+
+    // 计算到“亿”时缓存当前结果，并清空 num，防止处理“亿”后面的“万”时把前面的“亿”也乘上
+    if (char === '亿') {
+      sectionYi = num;
+      num = 0;
+    }
+  });
+
+  num += tempNum;
+  
+  return sectionYi + num;
+}
+```
+
 ## 约瑟夫环
 
 n个人围成一个圆圈，随机选定某人为1号，顺时针依次对每个人编号到n，并且选定一个数m。从1号开始，顺时针依次报数，报到m的人被淘汰，接着淘汰者的下个人重新从1开始报数，继续下一轮淘汰。如此往复直到只剩1人，求此人的编号。
