@@ -246,6 +246,9 @@ function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
 
 betterQuickSort(arr);
 ```
+
+### 冒泡排序
+
 ### 插入排序
 
 时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
@@ -346,3 +349,58 @@ function radixSort(arr) {
 console.log(radixSort(arr.slice()));
 
 ```
+
+### 堆排序
+
+```js
+function heapSort(arr) {
+  // 构建初始堆，比如升序诉求就构建大顶堆
+  makeHeap(arr);
+
+  // 不断把堆顶元素（最大元素）和末尾元素交换，使得有序区增大，无序区减小，继续调整堆并交换，直至无序区为零。
+  for (let sorted = arr.length - 1; sorted > 0; sorted--) {
+    swap(0, sorted, arr);
+    adjustHeapNode(0, sorted, arr);
+  }
+
+  return arr;
+}
+
+// 构建堆
+function makeHeap(arr) {
+  // 由最后一个非叶子节点开始，从右到左，从下到上，调整节点
+  for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) {
+    adjustHeapNode(i, arr.length, arr);
+  }
+}
+
+// 把目标节点挪到堆的合适位置
+function adjustHeapNode(i, boundary, arr) {
+  // 取得节点 i 的左右子节点序号，如果节点序号已经到达边界，则返回
+  const left = i * 2 + 1;
+  const right = left + 1;
+  if (left >= boundary) return;
+
+  // 目标节点和左右子节点中较大的节点比较，如果需要则交换位置，并继续递归调整目标节点，直到其位置合适
+  const child = right < boundary && arr[left] < arr[right] ? right : left;
+
+  if (arr[i] < arr[child]) {
+    swap(i, child, arr);
+    adjustHeapNode(child, boundary, arr);
+  }
+}
+
+function swap(i, j, arr) {
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+}
+```
+
+时间复杂度：构建堆需要O(n * log<sub>2</sub><sup>n</sup>)，调整堆需要O(n * log<sub>2</sub><sup>n</sup>)，总的复杂度O(n * log<sub>2</sub><sup>n</sup>)；空间复杂度O(1)
+
+### 桶排序
+
+1、按序设置一定数量的桶，将数组元素按大小落入对应桶
+
+2、桶内各自排序
+
+3、按序把桶内元素取出，成为有序数组
