@@ -3,7 +3,17 @@
 
 ## webpack
 
-### 构建体积优化
+### 热更新
+
+1、启动node层的dev服务，并在web页面注入自己的entry脚本，用于启动websocket连接等
+
+2、编译模块为立即执行函数，保留模块的文件hash和模块间依赖关系图，监听文件变化
+
+3、文件变化时重新计算hash并对比，替换变化模块，重新执行模块函数以及其关联依赖
+
+### 优化构建
+
+#### 体积优化
 
 - 懒加载：只加载当前界面需要的代码，可以结合预加载来优化等待时间，合理利用动态import。
 
@@ -18,7 +28,7 @@
 - chunk粒度权衡：将多个异步模块共用的依赖提取出来，统一加载，就可以不必在每个异步模块中都重复打包这些共用依赖，但要考虑chunk粒度，太粗起不到优化效果，太细会拖慢主模块的加载，合理使用splitchunks配置。
 
 
-### 构建速度优化
+#### 速度优化
 
 - loader粒度精细：每一类文件只经过它必须的loader。
 
@@ -29,7 +39,7 @@
 - （对于ts项目）类型检查放到异步：transpileOnly结合fork-ts-checker-webpack-plugin。
 
 
-### 缓存策略优化
+#### 用户网络资源优化
 
 - 基于contenthash命名模块：模块内容改变文件名才会改变。
 
@@ -57,3 +67,4 @@
 1. 监听`DOMContentLoaded`事件，事件触发后会选取所有`type`为`text/jsx`和`text/babel`的`script`存入jsxScripts数组。
 2. 遍历数组，将`scriptEl.innerHTML`作为源码调用babel核心方法编译为结果代码（带`src`的`script`用ajax异步获取content作为源码，在回调中处理编译）。
 3. 编译完成后新建`script`元素，将`scriptEl.text`设置为结果代码，`append`到`headEl`，此时浏览器会自动执行该`script`。
+
