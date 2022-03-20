@@ -18,15 +18,27 @@ Number.parseFloat(string);
 Number(string);
 ```
 
-### 对于基本类型的值调用方法（比如`'asd'.indexOf('s')`）
+### 对基本类型调用方法
 
-基本类型在读取模式下会被先包装为对应的对象再执行，比如
+我们可以直接对某个基本类型调用方法，比如`'asd'.indexOf('s')`。
+
+JS解析执行时，如果发生了对基本类型的字段读取，则解析器会先将其包装为对应的对象再执行，比如
 
 ```js
-'asd'.indexOf('s'); // 等同于new String('asd').indexOf('s')
+'asd'.indexOf('s'); // 1
+// equal to
+new String('asd').indexOf('s'); // 1
 ```
 
-而写入模式则无效
+```js
+Number.prototype.asd = 123;
+
+(1).asd; // 123
+// equal to
+new Number(1).asd; // 123
+```
+
+但如果是写，则无效，但也不报错：
 
 ```js
 const str = 'asd';
@@ -101,7 +113,7 @@ toPrecision(16)的16是哪来的？
 
 ## Array
 
-### 数组方法（Array.prototype）
+### 原型方法
 
 修改原数组：push / pop / shift / unshift / splice / sort / reverse
 
@@ -289,7 +301,7 @@ o.__proto__; // proto
 const pureObj = Object.create(null);
 ```
 
-### 一些问题
+### 一个instanceof问题
 
 #### 为什么 `Object instanceof Function` 和 `Function instanceof Object` 都返回true
 
@@ -351,6 +363,8 @@ function A() {
 ![scope](../resources/js/scope.png)
 
 
+### 作用域链
+
 作用域可以沿着它的父作用域、父父作用域一直往上追溯到全局作用域，这条链路称为**作用域链**。在一个作用域中使用了变量时，会优先查找本作用域中的此变量，如果没有则会沿着它的作用域链去查找，一直到全局作用域。作用域只能向祖先访问，无法直接访问其兄弟或者子孙作用域中的变量。
 
 比如上述例子中，可以在C1作用域中访问到B1、A、global中的变量，但无法直接访问C2、B2中的变量。
@@ -385,7 +399,30 @@ fnWithCounter();
 fnWithCounter = null; // 如果执行了这句来释放函数，使原fnWithCounter指向的函数成为非活跃状态（无法从根被访问到），则垃圾回收器可能在下次回收时，释放此函数和其环境占用的内存。
 ```
 
-## 异步处理
+### 栈内存、堆内存
+
+栈和堆原意是指某种数据结构，但在谈论存储时也用来指代存储空间。
+
+栈内存一般认为是线性空间，随着函数的执行而创建，也随着函数退出而自动销毁；堆内存一般认为是大小不定的空间，不会随着函数的退出而销毁，需要手动清理（或者自动GC清理）。
+
+JS函数执行过程中，对基本类型的定义会将其分配到栈内存，引用类型会分配到堆内存，栈内存中仅保留堆内存的指针。
+
+发生闭包时上述行为有特殊处理，闭包引用的变量，即使是基本类型，也会分配到堆内存上。
+
+```js
+function foo() {
+  let a = 1;
+  let b = 2;
+  return () => a;
+}
+const bar = foo();
+
+// chrome控制台可以通过函数的[[Scopes]]查看Closure。
+// 可以看到返回的bar函数里，引用到了foo的a就纳入了其闭包环境，未引用到的b则不在其中。
+console.dir(bar);
+```
+
+## 异步
 
 > 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](/js/thread.html#事件循环)
 
@@ -490,6 +527,80 @@ function fib(n, result = 1, total = 1) {
 
 尾调用优化在支持ES6的环境中（严格模式下）默认开启。
 
+## 垃圾回收
+
+JS会自动在合适时机对内存中不再可以被访问的数据回收，来省出内存。
+
+nodeJS中允许手动触发GC：
+
+```bash
+$ node --expose-gc
+> process.memoryUsage()
+> global.gc()
+> process.memoryUsage()
+```
+
+具体策略可以参考[垃圾回收](/js/engine.html#垃圾回收)
+
+### WeakMap对GC的影响
+
+```js
+const map = new Map();
+let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
+
+map.get(el); // 读取#title的信息
+
+el = null; // el变量清空
+```
+
+以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
+
+如果用WeakMap写法：
+
+```js
+const weakMap = new WeakMap();
+let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
+weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
+
+weakMap.get(el); // 读取#title的信息
+
+el = null; // el变量清空
+```
+
+WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
+
+这也是WeakMap不可遍历的一个原因，因为它不保留对key的引用，内部的值可以随时被GC清除。
+
+## with会隐式调用in操作
+	
+```js
+const proxy = new Proxy({}, {
+  get () { return 1; }
+});
+
+proxy.a; // 1
+
+with (proxy) {
+  a; // TypeError: a is not defined
+}
+
+const proxy2 = new Proxy({}, {
+  has (key) { console.log(`has ${key} ?`); return true; },
+  get () { return 1; }
+});
+
+proxy2.a; // 1
+
+with (proxy2) {
+ a; // 打印出'has a ?'并且返回 1
+}
+```
+
+`with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
+
+
+
 
 ## 经典函数实现
 
@@ -566,65 +677,8 @@ Array.prototype.flat = function(depth = 1) {
 }
 ```
 
-## WeakMap的弱引用
 
-```js
-const map = new Map();
-let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
-
-map.get(el); // 读取#title的信息
-
-el = null; // el变量清空
-```
-
-以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
-
-如果用WeakMap写法：
-
-```js
-const weakMap = new WeakMap();
-let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
-
-weakMap.get(el); // 读取#title的信息
-
-el = null; // el变量清空
-```
-
-WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
-
-这也是WeakMap不可遍历的一个原因，因为它内部的值可能随时会被GC清除。
-
-## with会隐式调用in操作
-	
-```js
-const proxy = new Proxy({}, {
-  get () { return 1; }
-});
-
-proxy.a; // 1
-
-with (proxy) {
-  a; // TypeError: a is not defined
-}
-
-const proxy2 = new Proxy({}, {
-  has (key) { console.log(`has ${key} ?`); return true; },
-  get () { return 1; }
-});
-
-proxy2.a; // 1
-
-with (proxy2) {
- a; // 打印出'has a ?'并且返回 1
-}
-```
-
-`with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
-
-
-## 对象拷贝
+### 对象拷贝
 
 JS内的对象是引用类型，当一个对象需要被多个地方使用，但又不希望它们相互影响时，需要对对象作克隆。
 
@@ -655,6 +709,4 @@ HTML5定义的概念。对象可能通过其他信道传递，对对象序列化
 函数拷贝：
 
 JS里的函数实例，除了自身逻辑代码，还有包含外部环境的作用域，拷贝函数需要把其整个作用域链也拷贝下来，才能构成一个同样的函数，所以在各种拷贝方式中都没有实现函数拷贝。
-
-
 	
