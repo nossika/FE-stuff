@@ -112,6 +112,7 @@ module.exports = {
         title: 'others',
         collapsable: false,
         children: [
+          '/others/electron.md',
           '/others/pwa.md',
           '/others/graphql.md',
           '/others/rxjs.md',
