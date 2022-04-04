@@ -590,6 +590,74 @@ var minWindow = function (s, t) {
 };
 ```
 
+### 求刚好包含的子串
+
+给一个字符串s2和一个目标字符串s1，求s2中是否存在刚好包含全部s1中字符（包括字符数量）的子串。
+
+和“最小覆盖子串”在于这里必须刚好包含，不得有多余的字符。
+
+```js
+var checkInclusion = function(s1, s2) {
+    // 在s2中使用滑动窗口，使得这个窗口内的字符数量刚好完全消耗掉s1中的字符数量。
+    // 如果存在这个窗口，则s2包含s1的一种排列；否则不包含。
+
+    // 滑动窗口的左右指针
+    let left = 0;
+    let right = 0;
+
+    // 用remain表示扣除s2滑动窗口内字符后，剩余的s1字符数量。初始时包含全部s1的字符数量。
+    const initialRemain = {};
+    for (let i = 0; i < s1.length; i++) {
+        const char = s1[i];
+        if (!initialRemain[char]) {
+            initialRemain[char] = 0;
+        }
+
+        initialRemain[char] += 1;
+    }
+
+    let remain = Object.assign({}, initialRemain);
+
+    // 检查remain中的剩余字符数量是否刚好为0，为0表示s2的当前窗口刚好完全包含s1。
+    function remainNone() {
+        return Object.keys(remain).every(key => remain[key] === 0);
+    }
+
+    let found = false;
+
+    // 1、右指针前进一次（窗口扩大），若remain字符足够，则扣除字符并继续前进；否则进入2
+    // 2、左指针前进一次（窗口缩小），直到满足1的remain条件，继续1；或者左指针遇到右指针，窗口大小缩为零，进入3
+    // 3、左右指针各前进一次，并重置remain，进入1
+
+    // 直到出现刚好满足remainNone的情况，或者右指针到边缘。
+    while (right < s2.length) {
+        const rightChar = s2[right];
+        const leftChar = s2[left];
+
+        if (remain[rightChar]) {
+            remain[rightChar] -= 1;
+            right += 1;
+            if (remainNone()) {
+                found = true;
+                break;
+            }
+            continue;
+        }
+
+        if (left < right) {
+            remain[leftChar] += 1; 
+            left += 1;
+        } else {
+            remain = Object.assign({}, initialRemain);
+            right += 1;
+            left += 1;
+        }
+    }
+
+    return found;
+};
+```
+
 ### 求字符串最长不重复子串
 
 1. 定义start、end两个指针，起始位置为0，初始化max为0
@@ -622,7 +690,7 @@ function lengthOfLongestSubstring(str) {
 };
 ```
 
-### 滑动窗口解法
+#### 滑动窗口解法
 
 上面的解法，左指针+1时，右指针也重置，重新计算不重复子串。事实上，不重复子串可以利用上一步的结果，左指针+1前，把左指针对应的字符从set清除，右指针不需要重置，此时左右指针内的子串依然是不重复子串，在这基础上继续计算即可。
 
