@@ -850,6 +850,55 @@ const res = longestCommonSubsequence(s1, s2);
 console.log(res);
 ```
 
+### 最长上升子序列
+
+给定一个无序整数数组 nums ，找到其中最长严格递增子序列的长度。
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var lengthOfLIS = function (nums) {
+  // 构造 dp 缓存，dp[i] 表示以 nums[i] 为结尾的最长上升子序列长度。
+  const dp = [];
+
+  // 计算并保存 dp[i]
+  function calc(i) {
+    // 当数组只有一项时显然上升长度为 1。
+    if (i === 0) {
+      dp[i] = 1;
+      return;
+    }
+
+    // 依次 0 <= j < i 范围内遍历 j：当 nums[i] > nums[j] 时，以 nums[j] 结尾的序列才可以拼上 nums[i] 成为更长的上升序列，此时序列长度为 dp[j] + 1，否则为 1。
+    // 从上面遍历的长度结果中取最大值，即为 dp[i] 的结果。
+    let maxLen = -Infinity;
+    for (let j = 0; j < i; j++) {
+      const len = nums[i] > nums[j] ? dp[j] + 1 : 1;
+
+      if (len > maxLen) {
+        maxLen = len;
+      }
+    }
+
+    dp[i] = maxLen;
+  }
+
+  // 依次计算 dp[i]
+  for (let i = 0; i < nums.length; i++) {
+    calc(i);
+  }
+
+  // dp 中的最大值即为结果
+  return Math.max(...dp);
+};
+```
+
+时间复杂度 O(n<sup>2</sup>)，空间复杂度 O(n)。
+
+TODO: 贪心+二分的O(nlogn)解法。
+
 ## 回文问题
 
 ### 字符串的最大回文子串
