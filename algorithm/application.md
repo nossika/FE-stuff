@@ -597,64 +597,53 @@ var minWindow = function (s, t) {
 和“最小覆盖子串”在于这里必须刚好包含，不得有多余的字符。
 
 ```js
-var checkInclusion = function(s1, s2) {
-    // 在s2中使用滑动窗口，使得这个窗口内的字符数量刚好完全消耗掉s1中的字符数量。
-    // 如果存在这个窗口，则s2包含s1的一种排列；否则不包含。
+var checkInclusion = function (s1, s2) {
+  // 维护一个 s1 字符计数器。
+  // 在 s2 中使用滑动窗口遍历，使得滑动窗口中的字段刚好能全部消耗完 s1 字符计数器。
+  // 如果 s2 存在这个满足条件的窗口，则认为 s2 包含 s1 的一个排列。
 
-    // 滑动窗口的左右指针
-    let left = 0;
-    let right = 0;
-
-    // 用remain表示扣除s2滑动窗口内字符后，剩余的s1字符数量。初始时包含全部s1的字符数量。
-    const initialRemain = {};
-    for (let i = 0; i < s1.length; i++) {
-        const char = s1[i];
-        if (!initialRemain[char]) {
-            initialRemain[char] = 0;
-        }
-
-        initialRemain[char] += 1;
+  // 构造初始 s1 字符计数器。
+  const s1Chars = {};
+  for (let i = 0; i < s1.length; i++) {
+    const char = s1[i];
+    if (!s1Chars[char]) {
+      s1Chars[char] = 0;
     }
+    s1Chars[char] += 1;
+  }
 
-    let remain = Object.assign({}, initialRemain);
+  // 初始化滑动窗口的左右指针。
+  let left = 0;
+  let right = 0;
 
-    // 检查remain中的剩余字符数量是否刚好为0，为0表示s2的当前窗口刚好完全包含s1。
-    function remainNone() {
-        return Object.keys(remain).every(key => remain[key] === 0);
+  // 初始化判断结果。
+  let result = false;
+
+  // 在 s2 中使用滑动窗口遍历：
+  // 1、尝试使右指针右移，并把右指针字符从计数器中扣除。
+  // 2、如果 1 失败，则把左指针字符交还给计数器，并将左指针右移。
+  // 3、如果左右指针重叠，则左右指针同时右移，从新起点开始上述判断。
+  while (true) {
+    if (right >= s2.length) {
+      break;
     }
-
-    let found = false;
-
-    // 1、右指针前进一次（窗口扩大），若remain字符足够，则扣除字符并继续前进；否则进入2
-    // 2、左指针前进一次（窗口缩小），直到满足1的remain条件，继续1；或者左指针遇到右指针，窗口大小缩为零，进入3
-    // 3、左右指针各前进一次，并重置remain，进入1
-
-    // 直到出现刚好满足remainNone的情况，或者右指针到边缘。
-    while (right < s2.length) {
-        const rightChar = s2[right];
-        const leftChar = s2[left];
-
-        if (remain[rightChar]) {
-            remain[rightChar] -= 1;
-            right += 1;
-            if (remainNone()) {
-                found = true;
-                break;
-            }
-            continue;
-        }
-
-        if (left < right) {
-            remain[leftChar] += 1; 
-            left += 1;
-        } else {
-            remain = Object.assign({}, initialRemain);
-            right += 1;
-            left += 1;
-        }
+    if (s1Chars[s2[right]]) {
+      s1Chars[s2[right]] -= 1;
+      right += 1;
+      if (right - left >= s1.length) {
+        result = true;
+        break;
+      }
+    } else if (left < right) {
+      s1Chars[s2[left]] += 1;
+      left += 1;
+    } else {
+      left += 1;
+      right += 1;
     }
+  }
 
-    return found;
+  return result;
 };
 ```
 
