@@ -189,7 +189,9 @@ a => 1 => 1 ** 3 % 33 => 1
 ### 快速排序
 
 
-普通快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(log<sup>n</sup>)
+普通快排 平均时间复杂度O(n*log<sup>n</sup>)，最坏O(n<sup>2</sup>)，空间复杂度O(log<sup>n</sup>)
+
+此实现是稳定排序，多个相同元素排序后的相对位置不变。如果 benchmark 值随机取则为不稳定排序。
 
 ```js
 const arr = [5,11,23,43,72,8,34,99,4,65,54];
@@ -198,17 +200,17 @@ function quickSort(arr) {
   arr = arr.slice();
   function sort(arr) {
     if (arr.length <= 1) return arr;
-    const mid = arr.shift();
+    const benchmark = arr.shift();
     const left = [];
     const right = [];
     arr.forEach(num => {
-      if (num < mid) {
+      if (num < benchmark) {
         left.push(num);
       } else {
         right.push(num);
       }
     });
-    return [...sort(left), mid, ...sort(right)];
+    return [...sort(left), benchmark, ...sort(right)];
   }
   return sort(arr);
 }
@@ -216,7 +218,7 @@ function quickSort(arr) {
 quickSort(arr);
 ```
     
-原地快排 时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)
+原地快排 平均时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)
 
 ```js
 function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
@@ -245,6 +247,41 @@ function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
 }
 
 betterQuickSort(arr);
+```
+
+### 归并排序
+
+时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(n)。稳定排序。
+
+```js
+function mergeSort(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  } 
+
+  const mid = arr.length / 2 | 0;
+
+  const left = arr.slice(0, mid);
+  const right = arr.slice(mid);
+
+  // mergeSort 递归展开，递归深度 logn 层，每层进行 mergeArr 处理
+  return mergeArr(mergeSort(left), mergeSort(right));
+}
+
+// 对两个有序数组合并，时间复杂度 n，空间复杂度 n
+function mergeArr(left, right) {
+  const result = [];
+
+  while (left.length && right.length) {
+    if (left[0] < right[0]) {
+      result.push(left.shift());
+    } else {
+      result.push(right.shift());
+    }
+  }
+
+  return result.concat(left).concat(right);
+}
 ```
 
 ### 冒泡排序
