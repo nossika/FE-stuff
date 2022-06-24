@@ -286,6 +286,24 @@ function mergeArr(left, right) {
 
 ### 冒泡排序
 
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
+
+```js
+function bubbleSort(arr) {
+  // 总共进行 n 次循坏，每次找出剩余数组中的最大值
+  for (let sorted = arr.length; sorted > 0; sorted--) {
+    // 相邻元素两两对比，大的往后挪，每次循坏会把剩余数组最大值挪到尾部，需要对比 n 次。
+    for (let i = 0; i < sorted; i++) {
+      if (arr[i] > arr[i + 1]) {
+        [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+      }
+    }
+  }
+
+  return arr;
+}
+```
+
 ### 插入排序
 
 时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
