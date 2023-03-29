@@ -26,7 +26,7 @@
 
 重排（layout）最终一定会引发绘制（paint、composite），但并非每次重排都对应一次绘制。如果两次重排时间很近，小于一帧的时间，则只会到下一帧渲染前才绘制，且只绘制一次。
 
-## 硬件加速
+## GPU加速（硬件加速）
 
 浏览器会按规则把页面分为多个图层。满足某些规则的节点会升级为合成层，交由GPU绘制，即硬件加速。最终呈现的页面是多个图层复合的结果。合成层上的某些样式变动只需重绘这个层，再把各层重新复合即可。
 
@@ -39,8 +39,87 @@
 - 有比自己index低的合成层
 - etc.
 
-使用合成层能提高页面动画性能，但其创建需要额外开销，应结合实际需要合理利用。
+符合此条件的元素，绘制逻辑会交给GPU，绘制结果可直接由GPU输出至浏览器页面，不再占用CPU资源。
 
+一个例子：
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* 普通元素 */
+    #div1 {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      background: #eee;
+      top: 0;
+      left: 0;
+      animation: left 1s infinite;
+    }
+
+    @keyframes left {
+      0% {
+        left: 0;
+      }
+      50% {
+        left: 100px;
+      }
+      100% {
+        left: 0;
+      }
+    }
+
+    /* 合成层元素 */
+    #div2 {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      background: #eee;
+      bottom: 0;
+      left: 0;
+      transform: translateX(0);
+      animation: transform 1s infinite;
+    }
+
+    @keyframes transform {
+      0% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(100px);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="div1"></div>
+  <div id="div2"></div>
+  <script>
+    // 点击页面触发长时间 JS 计算，造成 JS 主线程阻塞：
+    // #div1 的动画卡住不动，其绘制由 UI 线程（CPU）控制，需要等待 JS 线程让出控制权
+    // #div2 的动画依然在流畅地进行，因其是在 GPU 绘制和输出
+    document.addEventListener('click', () => {
+      console.time('block');
+      let i = 0;
+      while (true) {
+        i += 1;
+        if (i > 1000000000) {
+          break;
+        }
+      }
+      console.timeEnd('block');
+    });
+  </script>
+</body>
+</html>
+```
+
+使用合成层能提高页面动画性能，但其创建需要额外开销，应结合实际需要合理利用。
 
 ## 结合例子
 
