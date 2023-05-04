@@ -31,7 +31,7 @@
 
 2. 两者若不在同层的层叠上下文中，则寻找它们处于同层的祖先层叠上下文，按1的规则比较这两个祖先，祖先的顺序就是它们的顺序。
 
-![z-index](../resources/css/z-index.png)
+![z-index](../.resources/css/z-index.png)
 
 比如以上这种情况，3个div如果位置重合，从下到上的堆叠顺序并非1-2-3，而是1-3-2，2会覆盖在z-index更大的3之上，因为3和2比较时是拿同层的1去和2比较的。
 
@@ -104,7 +104,7 @@
 
 当访问一些布局相关的信息的API时，比如clientWidth、offsetWidth、scrollWidth、getComputedStyle()等，浏览器为保证获取到的数据正确，会立刻清空队列进行一次reflow&repaint。
 
-> 详见[【浏览器渲染】](/performance/render.html)
+> 详见[【浏览器渲染】](../performance/render.md)
 
 ## CSS API
 

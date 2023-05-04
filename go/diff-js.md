@@ -137,7 +137,7 @@ type error interface {
 
 ## 协程
 
-协程详见[协程](/js/thread.html#协程)
+协程详见[协程](../js/thread.md#协程)
 
 go在语言层面自己实现了协程goroutine，实现了并行和低资源占用。
 

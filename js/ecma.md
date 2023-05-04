@@ -175,7 +175,7 @@ proto.constructor === A
 a.constructor === A // 实际上等同于 a.__proto__.constructor
 ```
 
-![prototype](../resources/js/prototype.png)
+![prototype](../.resources/js/prototype.png)
 
 ### 原型链
 
@@ -360,7 +360,7 @@ function A() {
 
 它的作用域如图：
 
-![scope](../resources/js/scope.png)
+![scope](../.resources/js/scope.png)
 
 
 ### 作用域链
@@ -424,7 +424,7 @@ console.dir(bar);
 
 ## 异步
 
-> 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](/js/thread.html#事件循环)
+> 此处只谈语法使用，原理相关详见[【事件循环（浏览器）】](./thread.md#事件循环)
 
 ### Promise
 
@@ -476,7 +476,7 @@ const b = import('./module-b'); // 得到一个promise
 b.then(content => { ... }) // module-b的内容content作为promise的结果返回
 ```
 
-> 其他模块化方案详见[【模块化】](/engineer/module.html#模块化)
+> 其他模块化方案详见[【模块化】](../engineer/module.md#模块化)
 
 ## 尾调用优化
 
@@ -487,7 +487,7 @@ b.then(content => { ... }) // module-b的内容content作为promise的结果返�
 举个例子，有一个函数A，A内部调用了B，B内部又调用了C：
 
 
-![tail call](../resources/js/tail-call.png)
+![tail call](../.resources/js/tail-call.png)
 
 一般情况下，调用A的执行过程如下：
 
@@ -540,7 +540,7 @@ $ node --expose-gc
 > process.memoryUsage()
 ```
 
-具体策略可以参考[垃圾回收](/js/engine.html#垃圾回收)
+具体策略可以参考[垃圾回收](./engine.md#垃圾回收)
 
 ### WeakMap对GC的影响
 

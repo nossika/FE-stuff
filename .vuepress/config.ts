@@ -1,4 +1,5 @@
 import { defaultTheme, defineUserConfig } from 'vuepress';
+import { searchPlugin } from '@vuepress/plugin-search';
 
 export default defineUserConfig({
   lang: 'zh-CN',
@@ -7,6 +8,8 @@ export default defineUserConfig({
   base: '/FE-stuff/',
   dest: './FE-stuff/',
   theme: defaultTheme({
+    repo: 'nossika/FE-stuff',
+    docsBranch: 'master',
     sidebar: [
       {
         text: 'JS',
@@ -111,4 +114,7 @@ export default defineUserConfig({
       },
     ],
   }),
+  plugins: [
+    searchPlugin(),
+  ],
 });

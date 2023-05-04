@@ -4,7 +4,7 @@
 
 ## 渲染步骤
 
-![render-process](../resources/browser-render/render-process.png)
+![render-process](../.resources/browser-render/render-process.png)
 
 渲染的几个关键步骤
 
@@ -148,7 +148,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![normal](../resources/browser-render/screenshot/normal.jpg)
+![normal](../.resources/browser-render/screenshot/normal.jpg)
 
 一个基本的渲染例子，`step 1`之后浏览器执行了完整的5个渲染步骤。
 
@@ -167,7 +167,7 @@ document.body.addEventListener('click', () => {
 ```
 
 
-![multi-task](../resources/browser-render/screenshot/multi-task.jpg)
+![multi-task](../.resources/browser-render/screenshot/multi-task.jpg)
 
 同例子1，`step 1`之后，浏览器同样执行了完整的5个渲染步骤。
 
@@ -208,7 +208,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![force-layout](../resources/browser-render/screenshot/force-layout.jpg)
+![force-layout](../.resources/browser-render/screenshot/force-layout.jpg)
 
 
 对例子2稍加改动，在每个step后面都加上了对layout属性的读取。
@@ -230,7 +230,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![skip-layout](../resources/browser-render/screenshot/skip-layout.jpg)
+![skip-layout](../.resources/browser-render/screenshot/skip-layout.jpg)
 
 把例子2中对div的height属性改动变成对background属性（非layout相关属性）改动。
 
@@ -250,7 +250,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![composite](../resources/browser-render/screenshot/composite.jpg)
+![composite](../.resources/browser-render/screenshot/composite.jpg)
 
 
 把例子2中对div的height属性改动变成对tansform属性（合成层属性）改动。
@@ -274,7 +274,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![raf](../resources/browser-render/screenshot/raf.jpg)
+![raf](../.resources/browser-render/screenshot/raf.jpg)
 
 
 把例子2中各step的执行时机从setTimeout回调改为requestAnimationFrame（以下简称rAF）回调。rAF回调中的任务会在下个渲染时机执行。
@@ -294,7 +294,7 @@ document.body.addEventListener('click', () => {
 });
 ```
 
-![busy](../resources/browser-render/screenshot/busy.jpg)
+![busy](../.resources/browser-render/screenshot/busy.jpg)
 
 一轮task中如果进行了长耗时的计算，浏览器会一直等到计算完成才执行渲染，这会导致一帧图像持续的时间过长，也就是页面卡顿现象。
 

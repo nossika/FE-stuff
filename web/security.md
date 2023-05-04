@@ -126,7 +126,7 @@ Content-Security-Policy: content
 
 解决方案：HTTPS
 
-> 详见[【HTTPS】](/web/protocol.html#https)
+> 详见[【HTTPS】](./protocol.md#https)
 
 ## 内容加密
 
@@ -134,4 +134,4 @@ Content-Security-Policy: content
 
 算法：RSA、ECC
 
-RSA算法详见[【RSA加密】](/algorithm/concept.html#rsa加密)
+RSA算法详见[【RSA加密】](../algorithm/concept.md#rsa加密)

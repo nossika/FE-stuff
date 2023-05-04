@@ -2,7 +2,7 @@
 
 ## NodeJS的事件循环
 
-和[【事件循环（浏览器）】](/js/thread?id=事件循环)略有不同，NodeJS中的事件循环把一次循环分为多个阶段，基于libuv库实现
+和[【事件循环（浏览器）】](../js/thread#事件循环)略有不同，NodeJS中的事件循环把一次循环分为多个阶段，基于libuv库实现
 
 - timers：这个阶段执行timer（setTimeout、setInterval）的回调
 - I/O callbacks：执行上轮poll阶段遗留的callback
@@ -13,7 +13,7 @@
 
 这里**每个的阶段间隙都会检查并执行nexttick和microtask**
 
-![event loop](../resources/event-loop/node.png)
+![event loop](../.resources/event-loop/node.png)
 
 举个例子：
 

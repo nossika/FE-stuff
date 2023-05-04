@@ -2,7 +2,7 @@
 
 ## HTTP协议的缓存
 
-![HTTP缓存](../resources/web/cache.png)
+![HTTP缓存](../.resources/web/cache.png)
 
 #### 缓存位置
 

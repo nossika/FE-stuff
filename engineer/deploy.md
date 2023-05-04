@@ -2,9 +2,9 @@
 
 ## Docker & k8s
 
-详见[【Docker】](/others/docker.html)
+详见[【Docker】](../others/docker.md)
 
 ## CDN
 
-详见[【CDN】](/web/cdn.html)
+详见[【CDN】](../web/cdn.md)
 

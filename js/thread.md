@@ -58,7 +58,7 @@ node中仅JS主线程是单线程，有自己的工作池线程，主线程遇�
 
 JS线程与GUI线程互斥（一个执行时另一个会被挂起），因为JS可以读取DOM的渲染数据，须保证读取到的数据准确。浏览器一般在JS线程空闲时执行layout&paint，如果在JS线程执行中触发layout，JS线程会阻塞，等其执行完毕再继续。
 
-> 渲染相关详见[【页面渲染】](/htmlcss/render.html)。
+> 渲染相关详见[【页面渲染】](../performance/render.md)。
 
 
 ## 事件循环
@@ -70,7 +70,7 @@ JS本身是单线程，但执行JS的环境不是。宿主一般会有JS主线�
 
 浏览器中以事件循环模型来运行JS，如下图：
 
-![event loop](../resources/event-loop/browser.png)
+![event loop](../.resources/event-loop/browser.png)
 
 事件循环模型包含执行栈（JS stack）和事件队列（event queue），由调度线程来控制整体的调度。执行栈即JS主线程，在主线程运行中，一旦遇到异步操作（比如setTimeout/http请求等）时，会交给另外的线程处理（比如setTimeout交给定时器线程、http请求交给网络请求线程），当其他线程返回结果后，调度线程会将事件推入事件队列中，按先进先出原则待主线程处理。
 
@@ -79,7 +79,7 @@ JS本身是单线程，但执行JS的环境不是。宿主一般会有JS主线�
 主线程空闲时（即一轮事件循坏结束），会从事件队列取出事件（如果有的话）加入执行栈执行（即进入下轮事件循环）。如果执行栈再遇到异步操作，则重复上述调度行为。
 
 
-> NodeJS中的事件循环略有不同，详见[【事件循环（NodeJS）】](/node/loop.html)
+> NodeJS中的事件循环略有不同，详见[【事件循环（NodeJS）】](../node/loop.md)
 
 
 

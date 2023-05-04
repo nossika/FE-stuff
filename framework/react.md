@@ -136,7 +136,7 @@ Hooks相比传统的class组件写法：
 
 
 - 去掉生命周期的概念，不再关心组件处于didMount还是didUpdate中，副作用统一放到useEffect管理。
-- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【Hooks实现】](/react/principle.html#hooks实现)）。
+- 去掉类和实例的概念，不再使用this，不再用实例来保存状态。（把状态转移到fiber上，详见[【Hooks实现】](#hooks实现)）。
 - 组件状态粒度更细，useState使“状态”与“修改状态的逻辑”配对，而非统一用一个大的state和setState来管理，使state能以更细的粒度划分管理。
 - 事件配对，useEffect把“绑定事件”和“解绑事件”配对，而非把两者分散写到didMount和willUnmount中，使相关代码能够以更统一的方式组织。
 
@@ -193,7 +193,7 @@ const MyContext = React.createContext(defaultValue);
 
 transaction模型，batchedUpdates(ReactDOM.unstable_batchedUpdates)
 
-> 详见[【setState的异步】](/react/principle.html#setstate的异步)
+> 详见[【setState的异步】](#setstate的异步)
 
 ### pureComponent/memo
 
@@ -227,7 +227,7 @@ ReactDOM.render(
 
 因为组件中的Hook函数被调用时，经React内部处理，状态被保存在**组件的FiberNode**中，在其memoizedState属性以**链表**形式依次保存每个Hook对应的状态；组件下次render时，按序取出状态和各个Hook**一一对应**，即实现状态保存。这也是Hook函数不能写在条件或循环中的原因，因为同个组件中的每次render必须保证各Hook调用的**顺序一致**，否则对应关系就乱了。
 
-> FiberNode详见[【FiberNode】](/react/principle.html#fibernode)。
+> FiberNode详见[【FiberNode】](#fibernode)。
 
 ### Fiber
 
@@ -442,7 +442,7 @@ render() {
 
 状态更新时，则通过更新前后虚拟DOM的diff比较，来按需更新真实DOM。
 
-> diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](/vue/principle.html#dom-diff)。
+> diff实现上，React因为Fiber用链表来表示DOM树，是对链表遍历而非对树遍历，但diff的策略和Vue大致相同，可以参考[【DOM-diff（Vue）】](./vue.md#dom-diff)。
 
 
 ### React element中的Symbol

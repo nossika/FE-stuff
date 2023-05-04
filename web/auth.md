@@ -20,7 +20,7 @@
 
 ## 集中式认证服务（CAS）
 
-![event loop](../resources/auth/cas.png)
+![event loop](../.resources/auth/cas.png)
 
 - 当Client没有Server的有效session，也没有CAS的有效session：1 -> 11。
 
