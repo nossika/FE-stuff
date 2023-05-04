@@ -1,0 +1,1 @@
+const e=JSON.parse('{"key":"v-1a3826c6","path":"/engineer/module.html","title":"模块化","lang":"zh-CN","frontmatter":{},"headers":[{"level":2,"title":"模块化方案","slug":"模块化方案","link":"#模块化方案","children":[]}],"git":{"updatedTime":1683199905000,"contributors":[{"name":"nossika","email":"476492581@qq.com","commits":1}]},"filePathRelative":"engineer/module.md"}');export{e as data};
