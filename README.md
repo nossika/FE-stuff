@@ -1,6 +1,3 @@
-
 # 前端工程师的自我修养
 
-[github page](https://nossika.github.io/FE-stuff/dist/)
-
-
+[在线阅读](https://nossika.github.io/FE-stuff/)

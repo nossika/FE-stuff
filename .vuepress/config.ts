@@ -1,19 +1,15 @@
-module.exports = {
+import { defaultTheme, defineUserConfig } from 'vuepress';
+
+export default defineUserConfig({
+  lang: 'zh-CN',
   title: '前端工程师的自我修养',
-  description: '一本关于前端开发领域知识的书',
-  base: '/FE-stuff/dist/', // for github pages
-  dest: './dist',
-  themeConfig: {
-    sidebarDepth: 3,
-    serviceWorker: {
-      updatePopup: true,
-    },
-    lastUpdated: '最近更新',
-    repo: 'nossika/FE-stuff',
+  description: '前端工程师的自我修养',
+  base: '/FE-stuff/',
+  dest: './FE-stuff/',
+  theme: defaultTheme({
     sidebar: [
       {
-        title: 'JS',
-        collapsable: false,
+        text: 'JS',
         children: [
           '/js/ecma.md',
           '/js/dom',
@@ -22,16 +18,14 @@ module.exports = {
         ],
       },
       {
-        title: 'HTML/CSS',
-        collapsable: false,
+        text: 'HTML/CSS',
         children: [
           '/htmlcss/html.md',
           '/htmlcss/css.md',
         ],
       },
       {
-        title: 'WEB',
-        collapsable: false,
+        text: 'WEB',
         children: [
           '/web/protocol.md',
           '/web/cache.md',
@@ -42,16 +36,14 @@ module.exports = {
         ],
       },
       {
-        title: '性能',
-        collapsable: false,
+        text: '性能',
         children: [
           '/performance/render.md',
           '/performance/analysis.md',
         ],
       },
       {
-        title: '框架',
-        collapsable: false,
+        text: '框架',
         children: [
           '/framework/react.md',
           '/framework/vue.md',
@@ -59,8 +51,7 @@ module.exports = {
         ],
       },
       {
-        title: '算法',
-        collapsable: false,
+        text: '算法',
         children: [
           '/algorithm/structure.md',
           '/algorithm/concept.md',
@@ -68,8 +59,7 @@ module.exports = {
         ],
       },
       {
-        title: '计算机科学',
-        collapsable: false,
+        text: '计算机科学',
         children: [
           '/cs/concept.md',
           '/cs/lang.md',
@@ -78,8 +68,7 @@ module.exports = {
         ],
       },
       {
-        title: '工程化',
-        collapsable: false,
+        text: '工程化',
         children: [
           '/engineer/module.md',
           '/engineer/build.md',
@@ -91,8 +80,7 @@ module.exports = {
         ],
       },
       {
-        title: 'NodeJS',
-        collapsable: false,
+        text: 'NodeJS',
         children: [
           '/node/loop.md',
           '/node/dep.md',
@@ -101,16 +89,14 @@ module.exports = {
         ],
       },
       {
-        title: 'GoLang',
-        collapsable: false,
+        text: 'GoLang',
         children: [
           '/go/main.md',
           '/go/diff-js.md',
         ],
       },
       {
-        title: 'others',
-        collapsable: false,
+        text: '其他',
         children: [
           '/others/electron.md',
           '/others/pwa.md',
@@ -124,5 +110,5 @@ module.exports = {
         ],
       },
     ],
-  },
-};
+  }),
+});
