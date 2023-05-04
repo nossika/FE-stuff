@@ -1,0 +1,1 @@
+const t=JSON.parse('{"key":"v-d15bb12a","path":"/web/cache.html","title":"缓存","lang":"zh-CN","frontmatter":{},"headers":[{"level":2,"title":"HTTP协议的缓存","slug":"http协议的缓存","link":"#http协议的缓存","children":[]}],"git":{"contributors":[{"name":"nossika","email":"476492581@qq.com","commits":1}]},"filePathRelative":"web/cache.md"}');export{t as data};

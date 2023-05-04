@@ -1,0 +1,1 @@
+const e=JSON.parse('{"key":"v-66f1f5f2","path":"/others/webassembly.html","title":"WebAssembly","lang":"zh-CN","frontmatter":{},"headers":[{"level":2,"title":"在浏览器中使用","slug":"在浏览器中使用","link":"#在浏览器中使用","children":[]}],"git":{"contributors":[{"name":"nossika","email":"476492581@qq.com","commits":1}]},"filePathRelative":"others/webassembly.md"}');export{e as data};
