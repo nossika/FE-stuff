@@ -10,6 +10,7 @@ export default defineUserConfig({
   theme: defaultTheme({
     repo: 'nossika/FE-stuff',
     docsBranch: 'master',
+    lastUpdated: false, // @fixme: github action 工作流中拿不到正确的 commit 时间，暂关闭此功能
     sidebar: [
       {
         text: 'JS',
