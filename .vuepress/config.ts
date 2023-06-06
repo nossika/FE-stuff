@@ -18,6 +18,7 @@ export default defineUserConfig({
           '/js/dom',
           '/js/engine',
           '/js/thread',
+          '/js/examination',
         ],
       },
       {

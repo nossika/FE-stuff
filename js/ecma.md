@@ -572,7 +572,9 @@ WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有�
 
 这也是WeakMap不可遍历的一个原因，因为它不保留对key的引用，内部的值可以随时被GC清除。
 
-## with会隐式调用in操作
+## 其他场景
+
+### with 语法
 	
 ```js
 const proxy = new Proxy({}, {
@@ -598,84 +600,6 @@ with (proxy2) {
 ```
 
 `with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
-
-
-
-
-## 经典函数实现
-
-### Array.prototype.reduce
-
-```js
-Array.prototype.reduce = function(fn, initial) {
-  const arr = this;
-  initial = initial === undefined ? arr.shift() : initial;
-  let total = initial;
-  for (let i = 0; i < arr.length; i++) {
-    total = fn(total, arr[i], i, arr);
-  }
-  return total;
-}
-```
-
-### Function.prototype.bind
-
-```js
-Function.prototype.bind = function(scope) {
-  const fn = this;
-  const bindArgs = [].slice.call(arguments, 1);
-  return function() {
-    const args = [].slice.call(arguments);
-    return fn.apply(scope, bindArgs.concat(args));
-  };
-}
-
-// or
-
-Function.prototype.bind = function(scope, ...bindArgs) {
-  return (...args) => this.call(scope, ...bindArgs, ...args);
-}
-```
-
-### String.prototype.indexOf
-
-```js
-String.prototype.indexOf = function(match, startIndex) {
-  if (match === '') return startIndex || 0;
-  const str = this;
-  strLoop: for (let i = startIndex || 0; i < str.length; i++) {
-    if (str[i] === match[0]) {
-      matchLoop: for (let j = 1; j < match.length; j++) {
-        if (str[i + j] !== match[j]) {
-          break strLoop;
-        }
-      }
-      return i;
-    }
-  }
-  return -1;
-}
-```
-
-### Array.prototype.flat
-
-```js
-Array.prototype.flat = function(depth = 1) {
-  const arr = this;
-  const newArr = [];
-  function flat(curArr, curDepth = 0) {
-    curArr.forEach(item => {
-      if (!(item instanceof Array) || (curDepth >= depth)) {
-        newArr.push(item);
-        return;
-      }
-      flat(item, curDepth + 1);
-    });
-  }
-  flat(arr);
-  return newArr;
-}
-```
 
 
 ### 对象拷贝
