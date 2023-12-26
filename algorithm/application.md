@@ -512,6 +512,107 @@ function getMax(arr) {
 ```
 ## 子串问题
 
+### 求是否存在某子串
+
+给定一个字符串s，和一个子串t，求s中是否存在完全匹配t的子串。
+
+常规暴力解法：
+
+```js
+const s = 'BBC ABCDAB ABCDABCDABDE';
+const t = 'ABCDABD'; 
+
+function indexOf(s, t) {
+  // 第一层查找：遍历 s 中的每个字符，尝试以其为开头来匹配 t
+  for (let i = 0; i <= s.length - t.length; i++) {
+    // 第二层查找：遍历 t，判断 s 与其对应位置的字符是否匹配
+    for (let j = 0; j < t.length; j++) {
+      // 如果匹配成功，则继续匹配 t 的下一个字符
+      if (s[i + j] === t[j]) {
+        // 如果已经匹配到 t 的最后一个字符，则说明 t 已经匹配成功
+        if (j >= t.length - 1) {
+          return i;
+        }
+
+        continue;
+      } else {
+        // 如果匹配失败，则退出当前 t 的遍历，继续进行 s 的遍历
+        break;
+      }
+    }
+  }
+
+  return -1;
+}
+
+console.log(indexOf(s, t));
+```
+
+KMP算法：
+
+简而言之，是对子串t提前做模式分析，得到一些子串模式的数据（Partial Match Table - 部份匹配表），后续在对主串s的查找中应用这些数据，以优化在主串查找过程中回溯的次数，来达到总体效率的提升。
+
+```js
+const s = 'BBC ABCDAB ABCDABCDABDE';
+const t = 'ABCDABD'; 
+
+function kmpIndexOf(s, t) {
+  // 获取字符串 p 最长公共前后缀的长度
+  function getPMTValue (p) {
+    let max = 0;
+    for (let i = 1; i < p.length; i++) {
+      const prefix = p.slice(0, i);
+      const surfix = p.slice(p.length - i, p.length);
+      if (prefix === surfix) {
+        max = i;
+      }
+    }
+
+    return max;
+  }
+
+  // 构造部份匹配表（pmt），计算出 t 中每个字符位置对应的 pmt 值
+  const pmt = [];
+  for (let i = 0; i < t.length; i++) {
+    pmt[i] = getPMTValue(t.slice(0, i + 1));
+  }
+
+  // 第一层查找：遍历 s 中的每个字符，尝试以其为开头来匹配 t
+  for (let i = 0; i <= s.length - t.length; i++) {
+    // 第二层查找：遍历 t，判断 s 与其对应位置的字符是否匹配
+    for (let j = 0; j < t.length; j++) {
+      if (s[i + j] === t[j]) {
+        // 如果已经匹配到 t 的最后一个字符，则说明 t 已经匹配成功
+        if (j >= t.length - 1) {
+          return i;
+        }
+
+        continue;
+      } else {
+        // 匹配失败，则尝试回退到上一个 j（即 t 中已匹配成功的部份字符串）并查看 pmt 表对应的值
+        const pmtValue = pmt[j - 1];
+        // 若无值或为 0，说明已匹配成功的串中，没有可复用的串
+        if (!pmtValue) {
+          // 此时正常退出当前 t 的遍历，继续进行 s 的遍历
+          break;
+        }
+
+        // 若 pmt 有值，说明已匹配成功的串中，有可复用的串
+        // 对 s 的遍历位置 i：基于当前 j 的位置，往前回溯 pmt 个位置即可，而非回溯到下一个 i
+        i = i + (j - pmtValue) - 1;
+        // 对 t 的遍历位置 j：直接挪到 pmt 的位置，而非清 0 重新匹配
+        j = pmtValue - 1;
+        continue;
+      }
+    }
+  }
+
+  return -1;
+}
+
+console.log(kmpIndexOf(s, t));
+```
+
 ### 求最小覆盖子串
 
 给一个字符串s和一个目标字符串t，求s中包含全部t中字符（包括字符数量）的最小子串。
