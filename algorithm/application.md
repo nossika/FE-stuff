@@ -955,6 +955,8 @@ console.log(res);
 
 给定一个无序整数数组 nums ，找到其中最长严格递增子序列的长度。
 
+动态规划：
+
 ```js
 /**
  * @param {number[]} nums
@@ -998,7 +1000,62 @@ var lengthOfLIS = function (nums) {
 
 时间复杂度 O(n<sup>2</sup>)，空间复杂度 O(n)。
 
-TODO: 贪心+二分的O(nlogn)解法。
+贪心+二分解法：
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var lengthOfLISGreedy = function (nums) {
+  // 构建 greedyLIS 缓存，其长度表示当前最长上升子序列的长度
+  // 注意是“长度”而非“内容”对应最长上升子序列，其子元素并不代表真实的子序列，因为会随着迭代不断优化替换局部元素
+  const greedyLIS = [];
+
+  // 二分查找 greedyLIS 中第一个比 num 大的数的位置
+  const findPlace = (num, start = 0, end = greedyLIS.length - 1, arr = greedyLIS) => {
+    if (start > end) {
+      throw new Error('range invalid');
+    }
+    
+    if (start === end) {
+      return start;
+    }
+
+    const mid = Math.ceil((start + end) / 2);
+
+    if (greedyLIS[mid - 1] < num && greedyLIS[mid] >= num) {
+      return mid;
+    }
+
+    if (greedyLIS[mid] >= num) {
+      return findPlace(num, mid + 1, end, arr);
+    } else {
+      return findPlace(num, start, mid - 1, arr);
+    }
+  };
+
+  // 遍历 nums
+  nums.forEach(num => {
+    // 如果 num 大于 greedyLIS 尾部，直接将其加入以得到更长的上升子序列
+    if (!greedyLIS.length || num > greedyLIS[greedyLIS.length - 1]) {
+      greedyLIS.push(num);
+      return;
+    }
+
+    // 将 num 替换 greedyLIS 中第一个比它大的元素，以达成更优的局部序列，供后续使用
+    // 比如 num 替换了 greedyLIS 中间的第 4 个元素
+    // 则内部原本长度为 4 的子序列就优化：为 num 结尾的，比原来更优的，同样长度是 4 的子序列
+    // 因为前面长度为 3 的子序列不变的情况下，结尾的 num 比原来更小，更易于后续拼接
+    // 注意，经过了这种优化后的 greedyLIS 不再表示真正的上升子序列，仅表示其可能的长度
+    greedyLIS[findPlace(num)] = num;
+  });
+
+  return greedyLIS.length;
+}
+```
+
+时间复杂度 O(n * log<sup>n</sup>)，空间复杂度 O(n)。
 
 ## 回文问题
 
