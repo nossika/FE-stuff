@@ -1061,6 +1061,119 @@ var lengthOfLISGreedy = function (nums) {
 
 ### 字符串的最大回文子串
 
+暴力求解：
+
+```js
+const testStr = 'fwefwefweabbbffbbba33fef';
+
+const longestPalindromeSubstr = (str) => {
+  // 表示以数组下标 i 为中心（blank 表示以 i 后边的空隙为中心）的最长回文长度
+  const longestPalindromeLength = (i, blank) => {
+    let left = blank ? i : i - 1;
+    let right = i + 1;
+
+    let length = blank ? 0 : 1;
+
+    while (str[left] && str[right] && (str[left] === str[right])) {
+      length += 2;
+      left -= 1;
+      right += 1;
+    }
+    
+    return length;
+  };
+
+  let max = 0;
+
+  // 依次计算 str 所有可能的回文串长度
+  for (let i = 0; i < str.length; i++) {
+    const maxI = longestPalindromeLength(i, false);
+    const maxIBlank = longestPalindromeLength(i, true);
+
+    max = Math.max(max, maxI, maxIBlank);
+  }
+
+  return max;
+}
+
+console.log(longestPalindromeSubstr(testStr));
+```
+
+循环字符串 2n，计算回文 n，总复杂度O(n<sup>2</sup>)
+
+
+
+Manacher 算法：
+
+利用回文串的性质，实时维护一个“右边界”和其对应的“中心点”，遍历时可利用已有信息来快速确定初始值及左右节点，省去多余的计算。
+
+```js
+const testStr = 'fwefwefweabbbfffbbba33fef';
+
+const longestPalindromeSubstr = (str) => {
+  // 把原始字符串空隙填满 #，省去处理对称轴为空隙的情况。filledStr 的对称半径减 1 即为原始 str 的对称长度。
+  const filledStr = `#${str.split('').join('#')}#`;
+  // 数组下标 i，表示对称轴为 i 的对称半径
+  const radiusCache = [];
+  // 当前访问过的最大右边边界，其对应的回文串临时称为“边界回文串”
+  let maxRight = 0;
+  // “边界回文串”对应的对称轴
+  let maxRightMid = 0;
+
+  // 遍历 filledStr 的每项
+  for (let i = 0; i < filledStr.length; i++) {
+    // 初始对称半径，左右下标
+    let radius = 1;
+    let left = i - 1;
+    let right = i + 1;
+
+    // 如果 i 位于访问过的最大右边界内，则说明其处于“边界回文串”的对称轴的右臂。
+    // 基于回文特性，可以直接以对称轴左臂上对应的值，作为其初始半径，并且左右访问点直接从边界开始。
+    if (i < maxRight)  {
+      radius = radiusCache[maxRightMid - (i - maxRightMid)] || 0;
+
+      // 如果以 i 为对称轴的初始对称半径小于 i 离右边边界的距离，则无需继续计算直接返回
+      // 否则继续计算，并尝试拓展边界
+      if (radius < maxRight - i) {
+        radiusCache[i] = radius;
+        continue;
+      }
+
+      right = maxRight + 1;
+      left = i - (maxRight - i) - 1;
+    } else {
+      // 如果 i 超出了访问过的最大右边界，则重置这个最大右边界，并继续计算
+      maxRightMid = i;
+      maxRight = right;
+    }
+
+    // 正常进行回文判断，如果成功拓展，则更新最大右边界以及其对应的对称轴（即更新“边界回文串”）
+    while (filledStr[left] && filledStr[right] && filledStr[left] === filledStr[right]) {
+      maxRightMid = i;
+      maxRight = right;
+      radius += 1;
+      left -= 1;
+      right += 1;
+    }
+
+    // 记录 i 对应的对称半径
+    radiusCache[i] = radius;
+  }
+
+  console.log(radiusCache);
+
+  // 找出最大对称半径，减 1 即为原始字符串的最大回文长度
+  return Math.max(...radiusCache) - 1;
+}
+
+console.log(longestPalindromeSubstr(testStr));
+```
+
+虽然有两层循环，但实际上内层循环利用已知信息跳过了多余的比对，理论上字符串的每个位置只需访问 1 次。
+
+时间复杂度O(n)，空间复杂度O(n)。
+
+
 ### 字符串的最大回文子序列
 
 1、以dp[i][j]表示i到j的回文子序列长度
