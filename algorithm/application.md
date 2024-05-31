@@ -1729,136 +1729,8 @@ console.log(consoleStr, ...consoleColors);
     
 todo：Myers差分算法
 
-## 二叉树和链表
 
-### 二叉搜索树转有序双向链表
-
-```js
-/**
- * // Definition for a Node.
- * function Node(val,left,right) {
- *    this.val = val;
- *    this.left = left;
- *    this.right = right;
- * };
- */
-/**
- * @param {Node} root
- * @return {Node}
- */
-var treeToDoublyList = function(root) {
-  if (!root) return null;
-
-  // 中序遍历，对二叉搜索树即是从小到大遍历
-  function dfs(node) {
-    if (!node) return;
-    dfs(node.left);
-    handle(node);
-    dfs(node.right);
-  }
-
-  let preNode;
-  let firstNode;
-
-  // 把当前节点与上一个节点建立连接，并缓存当前节点
-  function handle(node) {
-    if (preNode) {
-      node.left = preNode;
-      preNode.right = node;
-    } else {
-      firstNode = node;
-    }
-
-    preNode = node;
-  }
-
-  // 执行遍历
-  dfs(root);
-
-  // 首尾节点相连，构造出循环链表
-  firstNode.left = preNode;
-  preNode.right = firstNode;
-
-  return firstNode;
-};
-```
-
-时间复杂度O(n)，空间复杂度O(1)，未使用额外空间。
-
-### 有序单向链表转平衡二叉搜索树
-
-```js
-/**
- * Definition for singly-linked list.
- * function ListNode(val, next) {
- *     this.val = (val === undefined ? 0 : val)
- *     this.next = (next === undefined ? null : next)
- * }
- */
-/**
- * Definition for a binary tree node.
- * function TreeNode(val, left, right) {
- *     this.val = (val === undefined ? 0 : val)
- *     this.left = (left === undefined ? null : left)
- *     this.right = (right === undefined ? null : right)
- * }
- */
-/**
- * @param {ListNode} head
- * @return {TreeNode}
- */
-var sortedListToBST = function(head) {
-  if (!head) return null;
-
-  // 获取链表长度
-  function getListLen(listHead) {
-    let len = 0;
-    let node = head;
-    while (node) {
-      len += 1;
-      node = node.next;
-    }
-    return len;
-  }
-
-  // 用分治法构建树，不断二分链表，作为树的左右子树
-  function buildTree(start, end) {
-    if (end < start) {
-      return null;
-    }
-
-    const mid = start + (((end - start) / 2) | 0);
-
-    // 用中序遍历构建树，正好构建顺序就是链表顺序
-    const root = new TreeNode(0, null, null);
-    root.left = buildTree(start, mid - 1);
-    root.val = popList();
-    root.right = buildTree(mid + 1, end);
-
-    return root;
-  }
-
-  // 从链表中按序取出节点
-  let node = head;
-  function popList() {
-    const val = node.val;
-    node = node.next;
-    return val;
-  }
-
-  // 启动构建
-  const listLen = getListLen(head);
-  const root = buildTree(0, listLen - 1);
-
-  return root;
-};
-```
-
-时间复杂度：O(n)
-
-空间复杂度：节点数O(n)，栈深度O(log<sup>n</sup>)
-
-## 缓存淘汰算法
+## 链表
 
 ### LRU（Least Recently Used）
 
@@ -2119,7 +1991,7 @@ O(n)解法中复杂度主要来源是，双向链表的更新节点需要逐个�
 
 空间复杂度是O(capacity)，需要维护一个 节点-位置 的哈希表，一个 频次-链表头 的哈希表，多条双向链表（总长度为capacity）。
 
-## 反转链表的指定部分
+### 反转链表的指定部分
 
 给定一组链表，要求把链表m到n的部分反转，返回新链表，只扫描一趟。
 
@@ -2160,7 +2032,54 @@ const reverseBetween = function(head, m, n) {
 };
 ```
 
-## 两节点的最小公共祖先
+### 合并两个有序链表
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} list1
+ * @param {ListNode} list2
+ * @return {ListNode}
+ */
+var mergeTwoLists = function(list1, list2) {
+  // 构造一个最终 list 的头节点，便于返回结果
+  const finalListHead = new ListNode(-Infinity, list1);
+  let list1Node = finalListHead;
+  let list2Node = list2;
+
+  // 将 list2 的 node 逐个插入 list1 中的合适位置
+  while (list2Node) {
+    const nextList2Node = list2Node.next;
+
+    // 找到 list1 中合适的位置，使得 list2Node 的值大于 list1Node 但不大于 list1Node.next
+    while (list1Node.next && (list1Node.next.val < list2Node.val)) {
+      list1Node = list1Node.next;
+    }
+
+    // 此时将 list2Node 插入 list1Node 后面
+    const nextList1Node = list1Node.next;
+    list1Node.next = list2Node;
+    list2Node.next = nextList1Node;
+
+    // 移动 list1Node、list2Node 到下个遍历位置，此时 list1Node 必定不大于 list2Node，可满足下次循环的前置条件
+    list1Node = list2Node;
+    list2Node = nextList2Node;
+  }
+
+  return finalListHead.next;
+};
+```
+
+
+## 二叉树
+
+### 两节点的最小公共祖先
 
 ```js
 /**
@@ -2204,7 +2123,7 @@ var lowestCommonAncestor = function(root, p, q) {
 };
 ```
 
-## 距离接近的叶子节点对数
+### 距离接近的叶子节点对数
 
 给定一个root节点和distance，求root下满足两者距离小于等于distance的所有叶子节点对。
 
@@ -2248,6 +2167,136 @@ var countPairs = function(root, distance) {
   return count;
 };
 ```
+
+
+## 二叉树和链表互转
+
+### 二叉搜索树转有序双向链表
+
+```js
+/**
+ * // Definition for a Node.
+ * function Node(val,left,right) {
+ *    this.val = val;
+ *    this.left = left;
+ *    this.right = right;
+ * };
+ */
+/**
+ * @param {Node} root
+ * @return {Node}
+ */
+var treeToDoublyList = function(root) {
+  if (!root) return null;
+
+  // 中序遍历，对二叉搜索树即是从小到大遍历
+  function dfs(node) {
+    if (!node) return;
+    dfs(node.left);
+    handle(node);
+    dfs(node.right);
+  }
+
+  let preNode;
+  let firstNode;
+
+  // 把当前节点与上一个节点建立连接，并缓存当前节点
+  function handle(node) {
+    if (preNode) {
+      node.left = preNode;
+      preNode.right = node;
+    } else {
+      firstNode = node;
+    }
+
+    preNode = node;
+  }
+
+  // 执行遍历
+  dfs(root);
+
+  // 首尾节点相连，构造出循环链表
+  firstNode.left = preNode;
+  preNode.right = firstNode;
+
+  return firstNode;
+};
+```
+
+时间复杂度O(n)，空间复杂度O(1)，未使用额外空间。
+
+### 有序单向链表转平衡二叉搜索树
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val === undefined ? 0 : val)
+ *     this.next = (next === undefined ? null : next)
+ * }
+ */
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val === undefined ? 0 : val)
+ *     this.left = (left === undefined ? null : left)
+ *     this.right = (right === undefined ? null : right)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {TreeNode}
+ */
+var sortedListToBST = function(head) {
+  if (!head) return null;
+
+  // 获取链表长度
+  function getListLen(listHead) {
+    let len = 0;
+    let node = head;
+    while (node) {
+      len += 1;
+      node = node.next;
+    }
+    return len;
+  }
+
+  // 用分治法构建树，不断二分链表，作为树的左右子树
+  function buildTree(start, end) {
+    if (end < start) {
+      return null;
+    }
+
+    const mid = start + (((end - start) / 2) | 0);
+
+    // 用中序遍历构建树，正好构建顺序就是链表顺序
+    const root = new TreeNode(0, null, null);
+    root.left = buildTree(start, mid - 1);
+    root.val = popList();
+    root.right = buildTree(mid + 1, end);
+
+    return root;
+  }
+
+  // 从链表中按序取出节点
+  let node = head;
+  function popList() {
+    const val = node.val;
+    node = node.next;
+    return val;
+  }
+
+  // 启动构建
+  const listLen = getListLen(head);
+  const root = buildTree(0, listLen - 1);
+
+  return root;
+};
+```
+
+时间复杂度：O(n)
+
+空间复杂度：节点数O(n)，栈深度O(log<sup>n</sup>)
 
 
 
