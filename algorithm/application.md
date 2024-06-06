@@ -1,6 +1,8 @@
 # 算法题
 
-## 背包最大价值问题
+## 动态规划
+
+### 背包最大价值问题
 
 有n个有各自价值和重量的物品，以及一个固定容量的背包，可以自由选择物品来放入背包，求背包能达到的最大价值。
 
@@ -15,7 +17,7 @@ const capacity = 39;
 ```
 
 
-### 1. 求最大值
+#### 1. 求最大值
 
 对于前i个物品而言（假设第i个物品的价值为v[i]，重量为w[i]），此时最大值等于不放入第i个物品时的最大值和放入第i个物品时的最大值两者中取大。可以如下状态转移方程表示：
 
@@ -34,7 +36,7 @@ function getVal(i, capacity) {
 getVal(items.length - 1, capacity); // 75
 ```
 
-### 2. 求最大值及其方案
+#### 2. 求最大值及其方案
 
 在算法1的基础上加入bag数组来记录当前解法用到的物品
 
@@ -66,7 +68,7 @@ function getVal(i, capacity, bag) {
 getVal(items.length - 1, capacity, []); // [75, [0, 1, 4, 8, 9]]
 ```
 
-### 3. 物品带数量时的最大值
+#### 3. 物品带数量时的最大值
 
 基于算法1作拓展，此时物品i不再是放入或者不放入（放入0个或1个），而是可以放入k个，k是一个有限整数集合，满足`0 <= k <= limit`且`w[i] * k <= capacity`，则状态转移方程应该改为
 
@@ -91,7 +93,7 @@ function getVal(i, capacity) {
 getVal(itemsWithLimit.length - 1, capacity); // 58
 ```
 
-## 硬币凑整问题
+### 硬币凑整问题
 
 有i种面值不同的硬币，数量不限，需要用这i种硬币凑出刚好为n的数额
 
@@ -105,7 +107,7 @@ const coins = [1, 2, 5, 10, 20];
 const n = 98;
 ```
 
-### 1. 求全部解法数量
+#### 1. 求全部解法数量
 
 使用前i种coin的解法数 = 仅使用前i-1种coin的解法数 + 用上第i种coin的解法数
 
@@ -147,9 +149,9 @@ function coinsSolutions(coins, n) {
 } 
 ```
 
-### 2. 求最少使用的硬币数
+#### 2. 求最少使用的硬币数
 
-#### 动态规划解法
+动态规划解法：
 
 此问题解法和背包问题类似，每个硬币数量对应的value为1，求最小value。
 
@@ -182,7 +184,7 @@ function coinsMinSolution(coins, n) {
 }
 ```
 
-#### 循环解法
+循环解法：
 
 ```js
 const coinsMinSolution2 = function(coins, n) {
@@ -382,7 +384,7 @@ function twoSum(nums, target) {
 twoSum([2,5,9,6], 11); // [0, 2]
 ```
 
-### nums有序的情况
+nums有序的情况：
 
 双指针解法，需要理清为何该解法不会漏过唯一解，时间复杂度O(n)，空间复杂度O(1)。
 
@@ -476,7 +478,7 @@ var threeSum = function (nums) {
 };
 ```
 
-## 连续子数组的最大和
+### 连续子数组的最大和
 
 
 用f(i)表示arr中以第i项为结尾的连续子数组的最大和，则其状态转移方程如下
@@ -1236,9 +1238,12 @@ var longestPalindromeSubseq = function(s) {
 console.log(longestPalindromeSubseq('aaazgergaa'));
 ```
 
-## 阿拉伯数字和中文数字互转
+## 模拟计算
+
+### 阿拉伯数字转中文数字
 
 ```ts
+
 const numChars = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const unitChars = ['', '十', '百', '千'];
 const sectionChars = ['', '万', '亿', '万亿'];
@@ -1301,7 +1306,7 @@ export function num2Str(num: number): string {
   let int = Math.floor(num);
 
   let str = '';
-  
+
   let section = 0;
   let isContinuousZero = false;
   let isLastUnit = true;
@@ -1312,7 +1317,6 @@ export function num2Str(num: number): string {
   }
 
   while (int) {
-    debugger;
     const sectionInt = int % 10000;
 
     if (isLastUnit && sectionInt === 0) {
@@ -1344,7 +1348,7 @@ export function num2Str(num: number): string {
     }
 
     str = sectionStr(sectionInt) + sectionChar + str;
-    
+
     // 不足 1000 的，补上前置零
     if (sectionInt < 1000) {
       isContinuousZero = true;
@@ -1362,13 +1366,18 @@ export function num2Str(num: number): string {
   return str;
 }
 
-interface CharMeanings {
-  [str: string]: { 
-    value: number;
-    unit?: boolean;
-    section?: boolean;
-  };
-}
+console.log(num2Str(12314000342));
+```
+
+### 中文数字转阿拉伯数字
+
+```ts
+
+type CharMeanings = Record<string, {
+  value: number;
+  unit?: boolean;
+  section?: boolean;
+}>;
 
 const charMeanings: CharMeanings = {
   '零': { value: 0 },
@@ -1416,12 +1425,16 @@ export function str2Num(str: string): number {
   });
 
   num += tempNum;
-  
+
   return sectionYi + num;
 }
+
+console.log(str2Num('一百二十三亿一千四百万零三百四十二'));
 ```
 
-## 约瑟夫环
+## 特殊遍历
+
+### 约瑟夫环
 
 n个人围成一个圆圈，随机选定某人为1号，顺时针依次对每个人编号到n，并且选定一个数m。从1号开始，顺时针依次报数，报到m的人被淘汰，接着淘汰者的下个人重新从1开始报数，继续下一轮淘汰。如此往复直到只剩1人，求此人的编号。
 
@@ -1491,7 +1504,58 @@ function winner(n, m) {
 winner(5, 3); // 4
 ```
 
-## 满足条件的最小速度
+### 矩阵以对角线遍历
+
+```js
+const data = [
+  [1,1,1,1,1],
+  [1,1,1,1,1],
+  [1,1,1,1,1],
+];
+
+const n = data[0].length; // 矩阵宽度
+const m = data.length; // 矩阵高度
+let i = 0; // i表示第i行
+let j = 0; // j表示第j列
+let direction = 1; // 遍历方向：1表示往右上，-1表示往左下
+
+while (!(i === n - 1 && j === m - 1)) {
+  console.log(i, j);
+
+  if (direction === 1) {
+    if (i + 1 >= n) {
+      direction = -1;
+      j++;
+      continue;
+    } else if (j - 1 < 0) {
+      direction = -1;
+      i++;
+      continue;
+    }
+    i++;
+    j--;
+  } else {
+    if (j + 1 >= m) {
+      direction = 1;
+      i++;
+      continue;
+    } else if (i - 1 < 0) {
+      direction = 1;
+      j++;
+      continue;
+    }
+    i--;
+    j++;
+  }
+}
+
+console.log(i, j);
+
+```
+
+## 二分法
+
+### 满足条件的最小速度
 
 问题：
 
@@ -1544,56 +1608,9 @@ var minEatingSpeed = function (piles, h) {
 };
 ```
 
-## 矩阵以对角线遍历
+## 抽样
 
-```js
-const data = [
-  [1,1,1,1,1],
-  [1,1,1,1,1],
-  [1,1,1,1,1],
-];
-
-const n = data[0].length; // 矩阵宽度
-const m = data.length; // 矩阵高度
-let i = 0; // i表示第i行
-let j = 0; // j表示第j列
-let direction = 1; // 遍历方向：1表示往右上，-1表示往左下
-
-while (!(i === n - 1 && j === m - 1)) {
-  console.log(i, j);
-
-  if (direction === 1) {
-    if (i + 1 >= n) {
-      direction = -1;
-      j++;
-      continue;
-    } else if (j - 1 < 0) {
-      direction = -1;
-      i++;
-      continue;
-    }
-    i++;
-    j--;
-  } else {
-    if (j + 1 >= m) {
-      direction = 1;
-      i++;
-      continue;
-    } else if (i - 1 < 0) {
-      direction = 1;
-      j++;
-      continue;
-    }
-    i--;
-    j++;
-  }
-}
-
-console.log(i, j);
-
-```
-
-## 蓄水池抽样算法
+### 蓄水池抽样算法
 
 数据集长度为N，从中随机选取M(M <= N)个项，要求每个项被抽取的概率都为M/N。
 
@@ -2297,8 +2314,6 @@ var sortedListToBST = function(head) {
 时间复杂度：O(n)
 
 空间复杂度：节点数O(n)，栈深度O(log<sup>n</sup>)
-
-
 
 ## 海量数据下的算法
 
