@@ -1240,6 +1240,106 @@ console.log(longestPalindromeSubseq('aaazgergaa'));
 
 ## 模拟计算
 
+### 大数相加
+
+```js
+/**
+ * @param {string} num1
+ * @param {string} num2
+ * @return {string}
+ */
+var addStrings = function(num1, num2) {
+  // 翻转后都从个位开始
+  const n1List = num1.split('').reverse();
+  const n2List = num2.split('').reverse();
+
+  // 结果数组，也从个位开始
+  let resultList = [];
+  // 进位
+  let carry = 0;
+
+  // 模拟加法过程，记录每一位相加的结果，大于 10 的结果需要进位，给下一轮处理
+  for (let i = 0; i < n1List.length || i < n2List.length || carry; i++) {
+    const n1 = n1List[i];
+    const n2 = n2List[i];
+
+    let sum = (parseInt(n1) || 0) + (parseInt(n2) || 0) + carry;
+
+    if (sum >= 10) {
+      sum -= 10;
+      carry = 1;
+    } else {
+      carry = 0;
+    }
+
+    resultList[i] = String(sum);
+  }
+
+  // 翻转结果数据，使个位在末尾
+  return resultList.reverse().join('');
+};
+
+console.log(
+  addStrings('5551343412352345212342134', '551245123431451214512323451425')
+);
+```
+
+### 大数相乘
+
+```js
+/**
+ * @param {string} num1
+ * @param {string} num2
+ * @return {string}
+ */
+var multiply = function(num1, num2) {
+  // 翻转后都从个位开始
+  const n1List = num1.split('').reverse();
+  const n2List = num2.split('').reverse();
+
+  // 乘法的每行数据
+  const rows = [];
+
+  // 模拟乘法过程，num2 整体与 num1 每个数相乘，得到 num1 长度的行数据，记录这些行数据，最后相加得到最终结果
+  for (let i = 0; i < n1List.length; i++) {
+    // 遍历 num1 的每个数 n1 作为乘数
+    const n1 = n1List[i];
+    let carry = 0;
+    // 根据当前 n1 的位数给结果补零
+    let row = new Array(i).fill(0);
+
+    // num2 逐个数与 n1 相乘，记录每一位的结果到行数据，carry 用于记录进位
+    for (let j = 0; j < n2List.length || carry; j++) {
+      const n2 = n2List[j];
+      let sum = (parseInt(n1) || 0) * (parseInt(n2) || 0) + carry;
+
+      carry = 0;
+      while (sum >= 10) {
+        sum -= 10;
+        carry += 1;
+      }
+
+      row.push(sum);
+    }
+    
+    // 格式化行数据并记录
+    rows.push(row.reverse().join(''));
+  }
+
+  // 将乘法过程得到的所有行数据相加，得到最终结果
+  return add(...rows);
+};
+
+// 大数相加单独实现，本题不关心
+var add = (...nums) => {
+  return nums.reduce((result, num) => result + BigInt(num), 0n).toString();
+};
+
+console.log(
+  multiply('123', '789')
+);
+```
+
 ### 阿拉伯数字转中文数字
 
 ```ts
