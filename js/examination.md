@@ -87,7 +87,9 @@ function uniqueArr(arr) {
 }
 ```
 
-## 异步顺序判断
+## 异步编程
+
+### 执行顺序判断
 
 ```js
 console.log(1);
@@ -119,7 +121,89 @@ console.log(6);
 // 第二轮事件循环：[宏任务] 3 [微任务] 2
 ```
 
-## 异步语法使用
+### Promise 超时
+
+```js
+// 超时实现
+const timeLimit = (fn, timeout) => {
+  return async (...args) => {
+    return Promise.race([
+      fn(...args),
+      new Promise((_, reject) => {
+        setTimeout(reject, timeout, 'Time Limit Exceeded');
+      }),
+    ]);
+  };
+};
+
+// 测试用例
+(async () => {
+  const testFn = async (value, delay = 0) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(value);
+      }, delay);
+    });
+  };
+
+  const limitedFn = timeLimit(testFn, 500);
+
+  const a = await limitedFn('in limit', 100);
+  console.log(a);
+  const b = await limitedFn('exceed limit', 1000);
+  console.log(b);
+})();
+```
+
+### Promise 重试
+
+```js
+
+// retry 实现
+Promise.retry = (fn, times = 0) => {
+  return new Promise(async (resolve, reject)=> {
+    let remainTimes = times;
+
+    const tryFn = async () => {
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        if (remainTimes) {
+          remainTimes -= 1;
+          return tryFn();
+        }
+        reject(error);
+      }
+    };
+
+    return tryFn();
+  });
+};
+
+
+// 测试用例
+(async () => {
+  const fn = async () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const value = Math.random();
+        if (value > 0.5) {
+          resolve(value);
+        } else {
+          reject(value);
+        }
+      }, Math.random() * 1000);
+    })
+  };
+
+  const a = await Promise.retry(fn, 5);
+  console.log(a);
+})();
+
+```
+
+### 等待异步操作
 
 ```js
 // 假设你的本地机器不支持小数的加减乘除（但整数支持），需要借用远程 api 来实现。
@@ -184,7 +268,7 @@ async function add(...nums) {
 }
 ```
 
-## 异步并发控制
+### 并发控制
 
 ```js
 /**
@@ -278,3 +362,4 @@ const test = async () => {
 
 test();
 ```
+
