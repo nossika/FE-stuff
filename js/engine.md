@@ -18,7 +18,59 @@ V8中做的性能优化有：
 
 > 一个可调试V8的库：https://github.com/GoogleChromeLabs/jsvu
 
-## Just-In-Time编译（内联缓存）
+## 查阅 V8 源码
+
+V8 源码仓库：[https://github.com/v8/v8](https://github.com/v8/v8)
+
+JS 大部分内置的 API 实现都在 [/src/builtins](https://github.com/v8/v8/tree/14bc07d1427de50421a672cfac5ded5ae2ee7bda/src/builtins) 目录内，可通过 API 名搜索到源码。
+
+比如数组的 map 方法，可以用 Array.prototype.map 关键字搜索，找到其源码位于 [/src/builtins/array-map.tq](https://github.com/v8/v8/blob/14bc07d1427de50421a672cfac5ded5ae2ee7bda/src/builtins/array-map.tq#L227)，注释处附有对应的 ecma 的标准文件 [sec-array.prototype.map](https://tc39.github.io/ecma262/#sec-array.prototype.map)。
+
+其中 .tq 结尾的文件是以 Torque 语言编写（一种 V8 内部的 DSL），实际构建时会先被 [Torque 编译器](https://github.com/v8/v8/tree/14bc07d1427de50421a672cfac5ded5ae2ee7bda/src/torque) 转化为 C++ 代码，再最终编译为二进制的机器码。
+
+### mac 搭建源码调试环境
+
+参考 v8 官方指引：[https://v8.dev/docs/source-code](https://v8.dev/docs/source-code)
+
+1、下载调试工具 [depot_tools](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up)
+
+2、安装 v8，关联依赖
+
+```bash
+$ cd depot_tools
+$ fetch v8
+$ gclient sync
+```
+
+3、编译
+
+```bash
+$ cd depot_tools/v8
+$ tools/dev/gm.py arm64
+```
+
+编译产物默认在 `out/` 中，可用 `out/arm64.release/d8` 执行 JS 脚本。
+
+4、输出 xcode 文件
+
+```bash
+$ cd depot_tools/v8
+$ gn gen out/gn --ide="xcode"
+```
+
+输出的文件在 `out/gn`。
+
+5、使用 xcode 调试
+
+用 xcode 打开上一步输出的 `out/gn/all.xcodeproj` 文件。
+
+xcode 工具栏 product -> scheme -> d8，启动编译并运行。
+
+等待编译成功后，即可在 xcode 中的命令行执行 JS 脚本，并且可以用 xcode 在 v8 源码断点调试。
+
+## V8 特性
+
+### Just-In-Time编译（内联缓存）
 
 JS是弱类型动态语言，在源码生成AST以后，就开始边解释边执行，且因为变量类型不固定，运行时需边判断类型边操作，由此有了优化空间。
 
@@ -30,7 +82,7 @@ JIT加入**监视器**来分析代码片段的运行情况，如果某代码片�
 
 代码编译的优化也称**内联缓存**，根据数据结构的类型是单一还是多个，分为单态和多态，单态的效率大于多态，也就是说对于同个函数调用，其数据结构越单一越好。
 
-## 隐藏类（快属性）
+### 隐藏类（快属性）
 
 因为JS的对象只有原型，没有严格意义上的类，所以无法在编译时就为对象分配好固定的空间。
 
@@ -95,7 +147,7 @@ for (let i = 0; i < 10000; i++) {
 
 在chrome的memory抓取内存快照，查看对象的结构，其中`system / Map`指向的就是其隐藏类。
 
-## 快数组
+### 快数组
 
 通常意义的数组是指元素类型一致、占用空间一致、内存上连续的一组数据。这样初始化时，通过容量大小即可确定分配的内存空间；通过数组下标访问元素时，仅需通过下标值乘以占用空间就能得到内存偏移量，即可获取到对应元素。
 
@@ -105,7 +157,7 @@ for (let i = 0; i < 10000; i++) {
 
 V8会尽可能地将数组以FixedArray的形式实现，来使数组有更好的性能。但需要满足一些条件：元素都为某几类元素、大部分元素排列紧密等。V8运行过程中会适时根据条件，把数组实现在FixedArray和HashTable互相切换。
 
-### 稀疏数组
+#### 稀疏数组
 
 前面提到”数组紧密排列“，数组有紧密数组（PACKED）和稀疏数组（HOLEY）的区别。比如下面方式即可构造出一个稀疏数组：
 
@@ -120,7 +172,7 @@ arr.forEach(n => console.log(n)); // 1, 1
 
 如果一个FixedArray数组中加入大量稀疏元素，则V8会将底层结构切换为HashTable，来减少内存空间占用。
 
-## 垃圾回收
+### 垃圾回收
 
 V8采用了分代GC，将内存划分为：
 
@@ -129,7 +181,7 @@ V8采用了分代GC，将内存划分为：
 - 大对象区：占用空间较大的对象
 - 代码区：唯一拥有执行权限的区域
 
-### 新生代区
+#### 新生代区
 
 采用复制算法（scavenge）做垃圾回收（GC）
 
@@ -139,7 +191,7 @@ V8采用了分代GC，将内存划分为：
 
 当此区的对象经过多次GC依然存活，说明其生命周期较长，对象会被移动到老生代区，此过程称为对象晋升。
 
-### 老生代区
+#### 老生代区
 
 采用标记-清除算法（mark-sweep）做GC
 
