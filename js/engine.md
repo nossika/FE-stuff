@@ -1,26 +1,18 @@
 
 
-# V8引擎
+# V8 引擎
 
-## 简介
+## V8 是什么
 
-V8是google开源的JS引擎，由C++编写，被应用于Chrome、NodeJS等，其他JS引擎有Rhino、JavaScriptCore、Chakra等。
+JS 有 ECMA 标准来指引它的一系列标准行为，比如模块加载规范、异步事件流程、各 API 不同输入下的表现等。但如何实现 JS 的标准行为，则由 JS 运行的宿主实现，宿主中管理和执行 JS 的模块称为 JS 引擎，而 V8 则是其中之一，其他 JS 引擎还有 Rhino、JavaScriptCore、Chakra 等。
 
-V8中做的性能优化有：
-
-- JIT编译优化
-
-- 隐藏类
-
-- 高效垃圾回收
-
-- etc.
-
-> 一个可调试V8的库：https://github.com/GoogleChromeLabs/jsvu
+V8 是 google 开源的 JS 引擎，由 C++ 编写，被应用于 Chrome、NodeJS 等应用，是目前应用最广泛的 JS 引擎。
 
 ## 查阅 V8 源码
 
 V8 源码仓库：[https://github.com/v8/v8](https://github.com/v8/v8)
+
+### JS API 对应的源码
 
 JS 大部分内置的 API 实现都在 [/src/builtins](https://github.com/v8/v8/tree/14bc07d1427de50421a672cfac5ded5ae2ee7bda/src/builtins) 目录内，可通过 API 名搜索到源码。
 
@@ -28,7 +20,7 @@ JS 大部分内置的 API 实现都在 [/src/builtins](https://github.com/v8/v8/
 
 其中 .tq 结尾的文件是以 Torque 语言编写（一种 V8 内部的 DSL），实际构建时会先被 [Torque 编译器](https://github.com/v8/v8/tree/14bc07d1427de50421a672cfac5ded5ae2ee7bda/src/torque) 转化为 C++ 代码，再最终编译为二进制的机器码。
 
-### mac 搭建源码调试环境
+### Mac 搭建调试环境
 
 参考 v8 官方指引：[https://v8.dev/docs/source-code](https://v8.dev/docs/source-code)
 
@@ -68,15 +60,26 @@ xcode 工具栏 product -> scheme -> d8，启动编译并运行。
 
 等待编译成功后，即可在 xcode 中的命令行执行 JS 脚本，并且可以用 xcode 在 v8 源码断点调试。
 
-## V8 特性
+## 调试 V8
 
-### JIT（Just-In-Time）编译优化
+V8 原生提供了 debug API，[runtime.h](https://github.com/v8/v8/blob/master/src/runtime/runtime.h)中列出了所有的调试命令。
 
-#### 原理
+对于以 V8 引擎实现的应用，加上`--allow-natives-syntax`启动参数即可允许调试。
+
+- node 可以通过`node --allow-natives-syntax`命令执行程序
+- chromium 可以通过`open -a Chromium --args --js-flags="--allow-natives-syntax"`启动
+
+有个 [jsvu](https://github.com/GoogleChromeLabs/jsvu) 开源库，可方便地下载不同 JS 引擎到本地进行调试。
+
+## JIT（Just-In-Time）编译优化
+
+### 解释执行 JS 过程
 
 JS 是非编译型语言，其运行是直接执行源码，运行时在 JS 引擎内部实现”源码 -> AST -> 字节码 -> 汇编（机器码）“编译过程。
 
 但如果在运行前，就对全部代码执行上述编译过程，会占用较长时间，且需要较大内存来保存编译后的机器码（越底层的代码越冗长）。所以通常 JS 引擎的实现是翻译到“字节码”这一层，然后边运行边翻译成“机器码”来执行。
+
+### 预编译（TurboFan）
 
 V8 引擎对这个过程做了 JIT 优化，即适时将某些较常运行的“字节码”优化并缓存，省去后续的编译耗时。
 
@@ -88,9 +91,7 @@ V8 初步优化“字节码”的动作叫 Baseline，它会尝试将“字节�
 
 对于编写代码的参考意义是：对于热点代码片段，可将其抽离成独立函数，并使其入参类型保持稳定。这样才能最大化利用 JIT 的优化。
 
-#### 例子
-
-可以通过`node --allow-natives-syntax`命令（允许使用 V8 debug API）执行以下代码：
+`%GetOptimizationStatus`可以获取函数的优化状态，得到结果是一个最多 20 位的二进制数字，每一位的含义可参考 V8 源码的 [OptimizationStatus](https://github.com/v8/v8/blob/c8fad7737ced5c262dee11610164f27a8ca155fe/src/runtime/runtime.h#L1012)。比如 `100001` 表示进入了 TurboFan 优化（倒数第 6 位为 1）。
 
 ```js
 const add = (a, b) => a + b;
@@ -114,31 +115,52 @@ add('1', '2');
 console.log(%GetOptimizationStatus(add).toString(2)); // 1 --- 回退到无优化
 ```
 
-`%GetOptimizationStatus`可以获取函数的优化状态，得到结果是一个最多 20 位的二进制数字，每一位的含义可参考 V8 源码的 [OptimizationStatus](https://github.com/v8/v8/blob/c8fad7737ced5c262dee11610164f27a8ca155fe/src/runtime/runtime.h#L1012)。比如 `100001` 表示进入了 TurboFan 优化（倒数第 6 位为 1）。
+破坏优化的一个例子，同样的两段逻辑，破坏优化后执行效率会显著降低：
 
-### 隐藏类（快属性）
+```js
+const add = (a, b) => a + b;
 
-#### 原理
+console.time('loop 1');
+for (let i = 0; i < 1000000000; i++) {
+  add(i, i);
+}
+console.timeEnd('loop 1'); // 477.609ms
 
-因为 JS 里实现同一类对象的手段是”原型“，没有严格意义上的类，且对象属性（甚至其原型）可以在运行时变化，所以无法在编译时就为对象分配好固定的空间。所以只能在运行时，动态为对象每个属性分配空间，那么从对象中取值时就有了查找的消耗。
+// 破坏入参稳定性，回退到无优化状态
+add('1', '1');
 
-V8 的对象以 3 类结构来存储数据
+console.time('loop 2');
+for (let i = 0; i < 1000000000; i++) {
+  add(i, i);
+}
+console.timeEnd('loop 2'); // 2.044s
+```
 
-- elements: 以数字为下标的数据
-- properties: 常规命名属性的数据
-- inline-object properties: 同 properties，直接存储于对象本身，查找更快，但仅能存下少量数据，超出部份就存 properties
+## 对象成员的存储优化
 
-对于 properties 数据，每次访问都要O(n)遍历，找到需要的 key 来取出数据，对于同一类对象，每次都执行这样的操作有点多余。
+### 成员分类
 
-V8 为每个对象创造了“隐藏类”，“隐藏类”中保存了 key 和其对应的内存偏移值，知道 key 就能直接根据内存偏移值取到数据，只需要O(1)。对于有相同“隐藏类”的对象，其取值可省去一次遍历查找的过程。“隐藏类”本身是类数组结构，编译期 V8 会把对象的 key 编译为数字，“隐藏类”的下标会与 key 的数字关联，所以对“隐藏类”本身的查找是O(1)。
+因为 JS 里实现同一类对象的手段是”原型“，没有严格意义上的类，且对象成员（甚至其原型）可以在运行时变化，所以无法在编译时就为对象分配好固定的空间。所以只能在运行时，动态为对象每个成员分配空间，所以访问对象成员就有了位置查找的消耗。
+
+V8 的对象以 3 类结构来存储成员数据
+
+- elements: 索引属性，以数字为下标的成员
+- properties: 命名属性，以常规字符串命名的成员
+- inline-object properties: 直接存储于对象本身，线性空间，查找更快，但仅能存下少量数据，有较多限制。无法使用 inline-object properties 就会自动转存 properties
+
+> 遍历对象的成员时（比如`Object.keys(obj)`），ECMA 标准规定一定是先遍历 elements，并且以数字升序顺序遍历，再遍历 properties，按声明顺序遍历。
+
+### 隐藏类（HiddenClass）
+
+对于 properties 数据，其存储是词典结构，查找成员有一定消耗，对于同一类对象的成员位置是固定的，每次都执行这样的查找有点多余。如果能有个缓存来记住每个成员的位置就好了。
+
+V8 为每个对象创造了“隐藏类”，“隐藏类”中保存了 key（成员命名）和其对应的内存偏移值，知道 key 就能直接根据内存偏移值取到数据。对于有相同“隐藏类”的对象，其取值可省去一次查找的过程。“隐藏类”本身是线性空间，编译期 V8 会把对象的 key 编译为索引，与“隐藏类”的线性结构关联，所以对“隐藏类”本身的访问极快。
 
 隐藏类是有序创建的，比如对于同样的一个初始对象，先赋值 a 再赋值 b，和先赋值 b 再赋值 a，两者最终得到的隐藏类是不同的。
 
-对于编写代码的参考意义是：对于同一类对象，属性声明顺序应保持稳定，如果有空值也显式用 undefined 声明。这样才能尽可能利用隐藏类。
+对于编写代码的参考意义是：对于同一类对象，成员声明顺序应保持稳定，如果有空值也显式用 undefined 声明。这样才能尽可能利用隐藏类。
 
-#### 例子
-
-可以通过`node --allow-natives-syntax`执行以下代码，观察隐藏类（`%DebugPrint` 返回的 map 地址）的复用情况：
+可以执行以下代码，观察隐藏类（`%DebugPrint` 返回的 map 地址）的复用情况：
 
 ```js
 console.log('a -> b');
@@ -214,47 +236,83 @@ const obj8 = {
 };
 // 🌟 复用隐藏类 Map(ab)
 %DebugPrint(obj8); // - map: 0x36c5d97f7749 <Map(HOLEY_ELEMENTS)> [FastProperties]
-
-
 ```
 
 也可以在 chrome 的 memory 抓取内存快照，查看对象的结构，其中`system / Map`指向的就是其隐藏类。
 
-### 快数组
 
-通常意义的数组是指元素类型一致、占用空间一致、内存上连续的一组数据。这样初始化时，通过容量大小即可确定分配的内存空间；通过数组下标访问元素时，仅需通过下标值乘以占用空间就能得到内存偏移量，即可获取到对应元素。
+### 快属性（FastProperties）
 
-而JS的数组是可以存放不同类型的元素的，且不需要提前声明容量。此类场景更适合用哈希表实现。
+在[成员分类](#成员分类)中有提到，对象的命名成员可能会被存储到 properties 或者 inline-object properties，当成员都被存储到 inline-object properties 时，即称这个对象拥有“快属性”。
 
-所以V8内部对于数组有两种实现：FixedArray（快数组） / HashTable（慢数组）。FixedArray即通常意义的数组，有元素空间大小一致、内存连续等特性；HashTable即哈希表封装而成的数组，也提供了pop、push等方法，但内存非连续。V8还对FixedArray做了自动扩缩容，在数组操作过程中动态改变数组容量。
+“快属性”是以线性空间存储，直接可通过索引访问，因此访问最快。通常对对象成员的删除操作会破坏这个线性空间，此时 V8 会把成员全部转存到 properties 中，导致查找变慢。
 
-V8会尽可能地将数组以FixedArray的形式实现，来使数组有更好的性能。但需要满足一些条件：元素都为某几类元素、大部分元素排列紧密等。V8运行过程中会适时根据条件，把数组实现在FixedArray和HashTable互相切换。
+执行以下代码，通过`%HasFastProperties`追踪此时对象是否具有“快属性”：
 
-#### 稀疏数组
+```js
+const obj = {
+  a: 1,
+  b: 2,
+  c: 3,
+};
 
-前面提到”数组紧密排列“，数组有紧密数组（PACKED）和稀疏数组（HOLEY）的区别。比如下面方式即可构造出一个稀疏数组：
+console.log(%HasFastProperties(obj)); // true - 简单对象初始拥有快属性
 
+obj.xxx = 123;
+
+console.time('loop 1');
+for (let i = 0; i < 100000000; i++) {
+  obj.c;
+}
+console.timeEnd('loop 1'); // 49.585ms
+
+console.log(%HasFastProperties(obj)); // true - 增加一个成员后，依然拥有快属性
+
+Reflect.deleteProperty(obj, 'a');
+
+console.log(%HasFastProperties(obj)); // false - 删除一个成员后，破坏快属性
+
+console.time('loop 2');
+for (let i = 0; i < 100000000; i++) {
+  obj.c;
+}
+console.timeEnd('loop 2'); // 472.515ms
 ```
-const arr = [1];
-arr[1000] = 1;
-console.log(arr); // [1, empty × 999, 1]
-arr.forEach(n => console.log(n)); // 1, 1
+
+### 快数组（FixedArray）
+
+JS 中的数组其实也是对象的一种特殊表现形式，其主要使用对象的 elements 结构来存储数组数据。
+
+V8 内部的数组有两种模式
+
+- FixedArray：快数组，以类似传统数组的结构存储成员，有连续的空间，通过索引查找极快
+
+- HashTable：慢数组，以字典表的结构存储成员，索引仅是字典的键，查找有一定消耗
+
+V8 会尽量地以“快数组”的模式实现数组，但如果数组并非紧密排列，则其可能会降级为“慢数组”模式，以节省不必要的空间占用。
+
+```js
+const arr = [1, 2, 3]; // 分配长度为 3 的 FixedArray
+%DebugPrint(arr); // - elements: 0x1e013b9910e1 <FixedArray[3]>
+
+arr.push(4, 5); // 加入两个成员，并自动预扩容为 23 的 FixedArray，剩下部份留空备用
+%DebugPrint(arr); // - elements: 0x250961a49611 <FixedArray[23]> ... 5-22: 0x20b7a4681669 <the_hole>
+
+arr[2000] = 2000; // 转化为稀疏数组，以 NumberDictionary 结构存储
+%DebugPrint(arr); // - elements: 0x250961a497c9 <NumberDictionary[52]>
 ```
 
-数组中未被初始化的元素即为稀疏元素，用empty表示，并且遍历时会被跳过。
 
-如果一个FixedArray数组中加入大量稀疏元素，则V8会将底层结构切换为HashTable，来减少内存空间占用。
+## 自动垃圾回收（Garbage Collection）
 
-### 垃圾回收
-
-V8采用了分代GC，将内存划分为：
+V8采用了分代 GC，将内存划分为：
 
 - 新生代区：大部分对象在此区，区域小但垃圾回收频繁
 - 老生代区：从新生代晋升而来的生存周期长的对象
 - 大对象区：占用空间较大的对象
 - 代码区：唯一拥有执行权限的区域
 
-#### 新生代区
+### 新生代区
 
 采用复制算法（scavenge）做垃圾回收（GC）
 
@@ -264,7 +322,7 @@ V8采用了分代GC，将内存划分为：
 
 当此区的对象经过多次GC依然存活，说明其生命周期较长，对象会被移动到老生代区，此过程称为对象晋升。
 
-#### 老生代区
+### 老生代区
 
 采用标记-清除算法（mark-sweep）做GC
 
