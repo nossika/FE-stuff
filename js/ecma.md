@@ -1,28 +1,38 @@
 # JS(ECMA)
 
+## JS 和 ECMA 的关系
+
+JavaScript（JS）是一种编程语言。
+
+European Computer Manufacturers Association（ECMA）是一个制定计算机标准的组织。ECMAScript 是 ECMA 制定的编程标准，有跨平台特性。
+
+JS 是 ECMAScript 的一种实现，JS 遵循 ECMAScript 标准之外，还基于平台特性提供一些额外 API，比如在浏览器内的 JS 有 DOM 操作相关的 API。
+
+此章仅讨论 ECMAScript 标准下的 JS，不包括平台相关的特性。
+
 ## 类型转换
 
 ### 数字转字符串
 
 ```js
-number + '';
-number.toString();
-String(number);
+1 + ''; // '1'
+(1).toString(); // '1'
+String(1); // '1'
 ```
 
 ### 字符串转数字
 
 ```js
-+string;
-Number.parseFloat(string);
-Number(string);
++'1'; // 1
+Number.parseFloat('1'); // 1
+Number(1); // 1
 ```
 
-### 对基本类型调用方法
+### 对基本类型的属性读写
 
-我们可以直接对某个基本类型调用方法，比如`'asd'.indexOf('s')`。
+我们可以直接对某个基本类型调用方法，比如`'string'.indexOf('s')`。
 
-JS解析执行时，如果发生了对基本类型的字段读取，则解析器会先将其包装为对应的对象再执行，比如
+JS 引擎在编译阶段，如果发现有对基本类型的属性读取，则会先将其包装为对应的对象再执行，比如：
 
 ```js
 'asd'.indexOf('s'); // 1
@@ -38,24 +48,26 @@ Number.prototype.asd = 123;
 new Number(1).asd; // 123
 ```
 
-但如果是写，则无效，但也不报错：
+但如果是对属性的写入，则无效，但也不报错：
 
 ```js
 const str = 'asd';
-str.prop = 'f';
+str.prop = 'f'; // 写入失败，但不报错
 str.prop; // undefined
 ```
-### 隐式转换
+### 类型的隐式转换
 
-对需要转换的值`foo`调用其内部方法`[Symbol.toPrimitive](hint)`，根据上下文决定hint取值（string/number/default）
+每个类型的数据都有一个内部的`[Symbol.toPrimitive]`方法，当需要对数据类型隐式转换时会调用它。
 
-默认的toPrimitive试着调用foo的toString和valueOf转换为基本值，转换失败则抛错：
+此方法接收一个`hint`参数，即`[Symbol.toPrimitive](hint)`，运行时根据上下文自动按规则决定 hint 取值（string/number/default）。
 
-string: try `foo.toString()` => try `foo.valueOf()` => throw error
+内置的`[Symbol.toPrimitive](hint)`调用流程如下：
 
-number/default: try `foo.valueOf()` => try `foo.String()` => throw error
+- string 场景: try `data.toString()` -> try `data.valueOf()` -> throw error
 
-搬运一个MDN上的例子：
+- number/default场景: try `data.valueOf()` -> try `data.String()` -> throw error
+
+也可以对`[Symbol.toPrimitive]`进行改写，搬运一个MDN上的例子：
 
 ```js
 // An object without Symbol.toPrimitive property.
@@ -89,27 +101,35 @@ console.log(obj2 + ''); // "true"    -- hint is "default"
 0.1 + 0.2; // 0.30000000000000004
 ```
 
-JS中能转换成整数的值都会用整数来存储，而小数在底层则用**IEEE-754标准**的双精度（64位）浮点数来存储。所以此问题不仅出现于JS，而是使用这个标准的所有语言。
+0.1 + 0.2 的结果为何不是 0.3?
 
-64位的组成：1符号位 + 11指数位 + 52有效数字位。
+### IEEE-754
 
-小数x转化成二进制的过程是：把x分解成`x = 1/2*a + 1/4*b + 1/8*c + 1/16*d + ...`，用其中的abcd等因子来作为二进制数。
+JS 会将能转换成整数的数据都以整数存储。对于小数，使用的是 [**IEEE-754**](https://zh.wikipedia.org/wiki/IEEE_754) 标准，其底层是用双精度（64 位）浮点数来存储。
 
-以小数0.1为例，`0.1 = 1/2*0 + 1/4*0 + 1/8*0 + 1/16*1 + 1/32*1 + 1/64*0 + ...` ，则0.1的二进制表示为00011001100...，去掉头部的0，从1开始算（头部的0有多少可以用指数表示），则有效数字为11001100...
+此问题是由底层存储结构带来，所有使用 IEEE-754 处理浮点数的语言都有此问题。
 
-因此大部分小数无法精确存储，除了0.5/0.125/0.375这类数字（有效数字有限）。
+### 底层存储
 
-回到最开始的问题，因为0.1和0.2本身就不是精确的0.1和0.2，所以他们相加的结果也不是精确的0.3。
+64 位浮点数的组成：1 符号位 + 11 指数位 + 52 有效数字位。
 
-为何0.1本身不精确，还能正常显示0.1？
+如何用 0 和 1 表示小数？对于小数 x，其以二进制表示的方式为：把 x 分解成`x = 1/2 * n1 + 1/4 * n2 + 1/8 * n3 + 1/16 * n4 + ...`，用其中的 n1n2n3n4... 等因子来作为二进制数字。
 
-因为JS做了自动凑整处理，toPrecision(16)。如果执行`(0.1).toPrecision(20)`得到的是`0.10000000000000000555`。
+以小数 0.1 为例，`0.1 = 1/2 * 0 + 1/4 * 0 + 1/8 * 0 + 1/16 * 1 + 1/32 * 1 + 1/64 * 0 + ...` ，则 0.1 的二进制表示为 00011001100...，去掉头部 0，从 1 开始算（头部的 0 有多少可以在指数位表示），则有效数字为 11001100...
 
-toPrecision(16)的16是哪来的？
+因此大部分小数无法精确存储，除了 0.5/0.125/0.375 这类数字（有效数字刚好有限）。
 
-因为有效数字部分能显示的最大数字`2^53`是`9007199254740992`，即16位有效数字，超过这个精度的部分会被舍去。所以`0.1`实际存储的二进制再翻译回来就是`0.1000000000000000`，把尾部的连续0凑整后就是`0.1`。
+回到开头的例子，因为 0.1 和 0.2 本身就不是精确的 0.1 和 0.2，所以他们相加的结果也不是精确的 0.3。
 
-所以如何判断 0.1 + 0.2 === 0.3 呢？ES6提供了Number.EPSILON（1和大于1的最小浮点数的差值，即JS里数字的最小精度），可以写成 0.1 + 0.2 - 0.3 < Number.EPSILON。
+### 为何 0.1 本身不精确，还能正常显示 0.1？
+
+因为 JS 做了自动凑整处理：toPrecision(16)。如果执行`(0.1).toPrecision(20)`，实际得到的不是`0.1`，而是`0.10000000000000000555`。
+
+### toPrecision(16) 的 16 是哪来的？
+
+因为有效数字部分能显示的最大数字`2^53`是`9007199254740992`，即十进制下的 16 位有效数字，超过这个精度的部分会被舍去。所以`0.1`实际存储的二进制再翻译回来就是`0.1000000000000000`，把尾部的连续 0 凑整后就是`0.1`。
+
+那么如何判断 0.1 + 0.2 === 0.3 呢？ES6 提供了 Number.EPSILON（1 和大于 1 的最小浮点数的差值，即 JS 里数字的最小精度），可以写成 0.1 + 0.2 - 0.3 < Number.EPSILON。
 
 ## Array
 
@@ -125,7 +145,9 @@ toPrecision(16)的16是哪来的？
 
 ### 禁止修改属性
 
-Object.freeze(obj)（Object.seal：同样禁止增删属性，但允许修改现有属性）
+Object.freeze(obj)
+
+> Object.seal(obj)：同样禁止增删属性，但允许修改现有属性
 
 Reflect.defineProperty(obj, 'prop', { writable: false })
 
