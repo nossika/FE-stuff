@@ -330,6 +330,16 @@ V8 为便于 GC，采用了分代内存：
 > - 大部分对象在内存的存活时间很短，可能只被用一次即可废弃
 > - 活跃的对象，预期其后续存活时间也会更长
 
+
+nodeJS 中允许手动触发 GC：
+
+```bash
+$ node --expose-gc
+> process.memoryUsage(); // 查看内存
+> global.gc(); // 触发 GC
+> process.memoryUsage(); // 再次查看内存
+```
+
 ### 新生代区
 
 采用复制算法（scavenge）做 GC

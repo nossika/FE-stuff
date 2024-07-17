@@ -2,11 +2,9 @@
 
 ## JS 和 ECMA 的关系
 
-JavaScript（JS）是一种编程语言。
+European Computer Manufacturers Association（ECMA）是一个制定计算机标准的机构。[ECMAScript（ECMA-262）](https://tc39.es/ecma262/) 是 ECMA 制定的一种编程语言规范，有跨平台特性。此规范主要由 TC39 团队维护。
 
-European Computer Manufacturers Association（ECMA）是一个制定计算机标准的组织。ECMAScript 是 ECMA 制定的编程标准，有跨平台特性。
-
-JS 是 ECMAScript 的一种实现，JS 遵循 ECMAScript 标准之外，还基于平台特性提供一些额外 API，比如在浏览器内的 JS 有 DOM 操作相关的 API。
+JavaScript（JS） 是 ECMAScript 的一种实现，广义的 JS 除了遵循 ECMAScript 标准之外，还基于平台特性提供一些额外 API，比如在浏览器内的 JS 有 DOM 操作相关的 API。
 
 此章仅讨论 ECMAScript 标准下的 JS，不包括平台相关的特性。
 
@@ -549,58 +547,44 @@ function fib(n, result = 1, total = 1) {
 
 尾调用优化在支持ES6的环境中（严格模式下）默认开启。
 
-## 垃圾回收
+## WeakMap/WeakSet
 
-JS会自动在合适时机对内存中不再可以被访问的数据回收，来省出内存。
+es6 提供了一种特殊的 key-value 数据结构 WeakMap，其特点是不会对 key 造成引用，因而在垃圾回收时允许对 key 回收。
 
-nodeJS中允许手动触发GC：
+一个比较典型的例子是用于给 DOM 节点缓存数据：
 
-```bash
-$ node --expose-gc
-> process.memoryUsage()
-> global.gc()
-> process.memoryUsage()
-```
-
-具体策略可以参考[垃圾回收](./engine.md#垃圾回收)
-
-### WeakMap对GC的影响
-
+Map 写法：
 ```js
 const map = new Map();
-let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-map.set(el, 'some info'); // 给#title加上自定义信息，map对#title再次引用
-
-map.get(el); // 读取#title的信息
-
-el = null; // el变量清空
+let el = document.querySelector('#title'); // el 变量引用 #title 这个 DOM 元素
+map.set(el, 'some info'); // 给 #title 加上自定义信息，map 对 #title 再次引用
+map.get(el); // 读取 #title 的信息
+el = null; // el 变量清空
 ```
+后续如果 #title DOM 元素本身被删除，但 map 依然保留对它的引用，所以垃圾回收机制不会清理 #title 节点。
 
-以上例子里，垃圾回收机制（GC）会发现，虽然#title节点已经不再被el变量引用，但是依然被活动的变量map引用着，所以#title节点还会被维持在内存中不会被释放。
-
-如果用WeakMap写法：
-
+WeakMap 写法：
 ```js
 const weakMap = new WeakMap();
-let el = document.querySelector('#title'); // el变量引用#title这个DOM元素
-weakMap.set(el, 'some info'); // 给#title加上自定义信息，weakMap对#title是弱引用
-
-weakMap.get(el); // 读取#title的信息
-
-el = null; // el变量清空
+let el = document.querySelector('#title'); // el 变量引用 #title 这个 DOM 元素
+weakMap.set(el, 'some info'); // 给 #title 加上自定义信息，但 weakMap 对 #title 是弱引用
+weakMap.get(el); // 读取 #title 的信息
+el = null; // el 变量清空
 ```
 
-WeakMap的例子里，GC触发时，遍历后会认为#title节点已经没有被任何活动对象引用，可以清除。
+后续如果 #title DOM 元素本身被删除，而 weakMap 不计入对它的引用，其他地方也没有对它的引用，则垃圾回收机制会清理 #title 节点。
 
-这也是WeakMap不可遍历的一个原因，因为它不保留对key的引用，内部的值可以随时被GC清除。
+这也是 WeakMap 不可遍历的一个原因，因为它不保留对 key 的引用，内部的值可以随时被 GC 清除。
 
-## 其他场景
+es2021 更进一步，提供了 [WeakRef](https://github.com/tc39/proposal-weakrefs)，可以对用于对任意对象的弱引用。
 
-### with 语法
+## with 语法
+
+`with(source){prop}`被调用时：实际上会先调用`prop in source`，若返回 true，则`prop`取`source[prop]`的值；若false，则跳出 with 作用域继续往上查找，直到找到 prop 或者报错`prop is not defined`。
 	
 ```js
 const proxy = new Proxy({}, {
-  get () { return 1; }
+  get() { return 1; }
 });
 
 proxy.a; // 1
@@ -610,8 +594,8 @@ with (proxy) {
 }
 
 const proxy2 = new Proxy({}, {
-  has (key) { console.log(`has ${key} ?`); return true; },
-  get () { return 1; }
+  has(target, key) { console.log(`has ${key} ?`); return true; },
+  get() { return 1; }
 });
 
 proxy2.a; // 1
@@ -621,10 +605,8 @@ with (proxy2) {
 }
 ```
 
-`with(source){prop}`被调用时，实际上会先调用`prop in source`，若返回true，则`prop`取`source[prop]`的值；若false则沿着作用域链继续往上查找。
 
-
-### 对象拷贝
+## 对象拷贝
 
 JS内的对象是引用类型，当一个对象需要被多个地方使用，但又不希望它们相互影响时，需要对对象作克隆。
 
