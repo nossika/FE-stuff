@@ -58,7 +58,7 @@ export default defineUserConfig({
         text: '算法',
         children: [
           '/algorithm/structure.md',
-          '/algorithm/concept.md',
+          '/algorithm/topic.md',
           '/algorithm/application.md',
         ],
       },
