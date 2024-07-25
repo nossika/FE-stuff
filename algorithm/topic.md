@@ -4,7 +4,9 @@
 
 ### 快速排序
 
-普通快排 平均时间复杂度O(n*log<sup>n</sup>)，最坏O(n<sup>2</sup>)，空间复杂度O(log<sup>n</sup>)
+普通快排：
+
+平均时间复杂度O(n*log<sup>n</sup>)，最坏O(n<sup>2</sup>)，空间复杂度O(log<sup>n</sup>)
 
 此实现是稳定排序，多个相同元素排序后的相对位置不变。如果 benchmark 值随机取则为不稳定排序。
 
@@ -33,7 +35,11 @@ function quickSort(arr) {
 quickSort(arr);
 ```
     
-原地快排 平均时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)
+原地快排：
+
+平均时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(1)，非稳定排序（挪动基准数时可能会把它挪到相等元素的后面）。
+
+> 数据量大的时候适合用。取基准数前可以先取 3 个值，以中间大小的值作为基准数，防止基准数太小或太大导致时间复杂度劣化。
 
 ```js
 function betterQuickSort(arr, begin = 0, end = arr.length - 1) {
@@ -66,7 +72,7 @@ betterQuickSort(arr);
 
 ### 归并排序
 
-时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(n)。稳定排序。
+时间复杂度O(n*log<sup>n</sup>)，空间复杂度O(n)，稳定排序。
 
 ```js
 function mergeSort(arr) {
@@ -101,7 +107,7 @@ function mergeArr(left, right) {
 
 ### 冒泡排序
 
-时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)，稳定排序（相等元素不交换）。
 
 ```js
 function bubbleSort(arr) {
@@ -121,7 +127,9 @@ function bubbleSort(arr) {
 
 ### 插入排序
 
-时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(1)，稳定排序（后选择的插入到最后，相对位置不变）。
+
+> 数据量小的时候很适合用，甚至优于O(n*log<sup>n</sup>)的算法，因为基础消耗小。
 
 ```js
 const arr = [4,2,56,37,21,43,673,5,4,63,45,345,66,74,63,646,457,48,74,234,45];
@@ -179,6 +187,8 @@ console.log(shellSort(arr.slice()));
 
 设mod为进制，rad为数组元素在该进制下的最大位数。则时间复杂度为O(rad * n)，空间复杂度为O(mod * n)。
 
+> 适合值为固定位数的数据，比如身份证号
+
 ```js
 function radixSort(arr) {
   const mod = 10; // 进制
@@ -221,6 +231,10 @@ console.log(radixSort(arr.slice()));
 ```
 
 ### 堆排序
+
+时间复杂度：构建堆需要O(n * log<sub>2</sub><sup>n</sup>)，调整堆需要O(n * log<sub>2</sub><sup>n</sup>)，总的复杂度O(n * log<sub>2</sub><sup>n</sup>)；空间复杂度O(1)。非稳定排序。
+
+> 适合数据量大，数据流式输入的情况
 
 ```js
 function heapSort(arr) {
@@ -265,15 +279,17 @@ function swap(i, j, arr) {
 }
 ```
 
-时间复杂度：构建堆需要O(n * log<sub>2</sub><sup>n</sup>)，调整堆需要O(n * log<sub>2</sub><sup>n</sup>)，总的复杂度O(n * log<sub>2</sub><sup>n</sup>)；空间复杂度O(1)
+
 
 ### 桶排序
 
-1、按序设置一定数量的桶，将数组元素按大小落入对应桶
+1、按序设置一定数量(k)的桶，将数组元素按大小落入对应桶
 
 2、桶内各自排序
 
 3、按序把桶内元素取出，成为有序数组
+
+时间复杂度取决于排序算法，O(n * log<sub>2</sub><sup>n</sup>)算法下的平均复杂度为O(k * n * log<sub>2</sub><sup>n</sup><sup>/</sup><sup>k</sup>)，空间复杂度O(n+k)，稳定性也取决于排序算法。
 
 
 ## 动态规划
