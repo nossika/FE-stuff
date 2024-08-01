@@ -770,6 +770,86 @@ var threeSum = function (nums) {
 };
 ```
 
+### 多个数字之和
+
+给定一个有序数组 nums，寻找和刚好为 target 的全部可能组合：
+
+```js
+const nums = [1, 3, 3, 3, 4, 5, 6];
+
+const subsetSum = (nums, target) => {
+  const result = [];
+
+  const sum = (arr) => {
+    return arr.reduce((sum, n) => sum + n, 0);
+  };
+
+  const travel = (nums, start, path) => {
+    // 如果 cache 和已经大于等于 target，则剪枝，没必要继续遍历，因为后续结果已不可能满足条件
+    if (sum(path) >= target) {
+      if (sum(path) === target) {
+        result.push(path);
+      }
+
+      return;
+    }
+
+    // 从给定位置开始遍历
+    for (let i = start; i < nums.length; i++) {
+      // 组装当前结果为 path，下标后移一位，进入下一层遍历
+      travel(nums, i + 1, path.concat(nums[i]));
+    }
+  }
+
+  // 启动遍历
+  travel(nums, 0, []);
+
+  return result;
+};
+
+console.log(subsetSum(nums, 9));
+```
+
+nums 中的元素不重复，但可被重复选择：
+
+```js
+const nums = [3, 4, 5, 6];
+
+const subsetSum = (nums, target) => {
+  const result = [];
+
+  const sum = (arr) => {
+    return arr.reduce((sum, n) => sum + n, 0);
+  };
+
+  const travel = (nums, start, path) => {
+    // 如果 cache 和已经大于等于 target，则没必要继续遍历
+    if (sum(path) >= target) {
+      if (sum(path) === target) {
+        result.push(path);
+      }
+
+      return;
+    }
+
+    // 从给定位置开始遍历
+    for (let i = start; i < nums.length; i++) {
+      // 组装当前结果为 path，下标不动（使当前元素可以重复被选择），进入下一层遍历
+      travel(nums, i, path.concat(nums[i]));
+    }
+  }
+
+  // 启动遍历
+  travel(nums, 0, []);
+
+  return result;
+};
+
+console.log(subsetSum(nums, 9));
+
+```
+
+
 ### 连续子数组的最大和
 
 
@@ -2575,6 +2655,59 @@ var countPairs = function(root, distance) {
 
   return count;
 };
+```
+
+### 二叉树构建
+
+给定一棵二叉树的前序遍历和中序遍历的数组（无重复节点），通过数组还原这棵二叉树。
+
+```js
+// 前序数组
+const preorder = [1, 2, 3, 4, 5];
+// 中序数组
+const inorder = [2, 1, 4, 3, 5];
+
+class Node {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+  }
+}
+
+const buildTree = (preorder, inorder) => {
+  // 树的前序数组和中序数组长度必须一致，不一致就是数据有问题
+  if (preorder.length !== inorder.length) {
+    throw new Error('Invalid Tree');
+  }
+
+  if (!preorder.length) return null;
+
+  // 前序数组的第一个一定是根节点
+  const root = preorder[0];
+  // 找到中序数组中根节点的位置
+  const inorderRootIndex = inorder.findIndex(n => n === root);
+
+  // 中序数组的左子树：根节点的左边数组
+  const leftInorder = inorder.slice(0, inorderRootIndex);
+  // 中序数组的右子树：根节点的右边数组
+  const rightInorder = inorder.slice(inorderRootIndex + 1, inorder.length);
+
+  // 前序数组的左子树：中序数组的根节点位置代表了左子树的长度，从剩余数组中按长度取出数组，即为左子树
+  const leftPreorder = preorder.slice(1, 1 + inorderRootIndex);
+  // 前序数组的右子树：上一步剩余的数组即为右子树
+  const rightPreorder = preorder.slice(1 + inorderRootIndex, preorder.length);
+
+  // 递归建立根节点及左右子树
+  const rootNode = new Node(root);
+  rootNode.left = buildTree(leftPreorder, leftInorder);
+  rootNode.right = buildTree(rightPreorder, rightInorder);
+
+  return rootNode;
+};
+
+console.log(buildTree(preorder, inorder));
+
 ```
 
 
