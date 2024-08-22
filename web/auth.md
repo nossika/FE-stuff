@@ -1,4 +1,4 @@
-# 权限 & 认证
+# 登录 & 身份验证
 
 ## OAuth2.0
 
@@ -30,37 +30,42 @@
 
 实际场景中一条链路上可能有多层的Server，可以把此架构中的Client和Server看成整体，作为上层的Client，继续往下层的Server拓展。
 
-## 登陆
+## 用户凭据存储
 
-登陆的一种实现：
+http 是无状态协议，如果需要用户身份，则必须每次请求都将身份信息带上。
 
-Client
-```
-gen randomKey
+### 凭据存储位置：cookie vs storage
 
-encodeKey = psw
+登录后，用户凭据可以被存储在浏览器的不同位置：
 
-H(id+randomKey)
-```
-Server
-```
-decodeKey = psw
+- cookie：存储在网站 cookie，浏览器提供的内置能力，每次发起请求都会自动带上，可通过控制 http 响应的字段来自动设置，简单易用；仅能在同域名场景下使用，需要注意防范 csrf 问题。
 
-decode id + randomKey
+- storage：包含 localStorage、页面内存等其他存储，需要手动管理存储，需要在请求时手动拼到某个 header 里；可跨域使用，无 csrf 问题。
 
-encodeKey = randomKey
+### 身份数据获取：session vs token
 
-gen syncKey
+登录后，用户的身份信息可以存在服务端或客户端：
 
-H(syncKey)
-```
-Client
-```
-decodeKey = randomKey
+- session：即存储在服务端，客户端只会拿到 session id，每次请求带上这个 id，服务端再根据 id 去查询对应用户身份。用户控制力强，可随时对用户续期或过期；但有服务压力，每次都需要查询用户身份，需要有一个中心服务。
 
-decode syncKey
-```
+- token：即存储在客户端，身份数据以密文+签名存储，客户端无法篡改，每次请求带上 token，服务端只保存解密方法，可直接解密出身份数据，不需要额外查询。性能优，减少服务端存储和查询压力；但用户控制力弱，主动废弃一个有效 token 较难；且有冗余网络请求，因为每次请求都携带了完整用户信息。
 
-票据的一种实现：
+实际应用中一般是 cookie-session 或者 storage-token 的配对。
 
-登陆后，服务端生成票据，传给客户端保存，票据中记录登陆序列。若客户端数据泄露被copy进行登陆，服务端序列增加，下次客户端再次登陆，则因为序列对不上要求客户端输入密码重新登陆，重新生成票据。
+### refresh token
+
+用上述 token 方式存储身份数据会带来一些问题，由于有效 token 废弃难度大，如果设置长的有效期，则泄露的后果会很严重；如果设置短的有效期，则用户需要经常登录，破坏用户体验。
+
+双 token 是一种兼顾安全和体验的 token 使用方式，将 token 分为日常请求使用的 access token（有效期短）和凭据续期用的 refresh token（有效期稍长）。
+
+客户端平时请求仅带 access token，它带有访问所需的用户数据。
+
+如果 access token 处于有效期内，则服务端直接放行；若 access token 过期，服务端会要求客户端发送 refresh token。
+
+如果这个 refresh token 处于有效期内，则服务端签发新的 access token，客户端使用新 access token 重新发起请求，整个过程可以是自动完成，对用户无感；若 refresh token 已过期，则服务端会要求用户重新去登陆。
+
+因此服务端只需要维护 refresh token 的状态。refresh token 也可能是以 session 方式管理，如果需要使用户过期，删除此 session 即可。
+
+
+
+

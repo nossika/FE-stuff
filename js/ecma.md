@@ -624,22 +624,50 @@ with (proxy2) {
 
 ## 对象拷贝
 
-JS内的对象是引用类型，当一个对象需要被多个地方使用，但又不希望它们相互影响时，需要对对象作克隆。
+JS 内的对象是引用类型，当一个对象需要被多个地方使用，但又不希望它们相互影响时，需要对对象作拷贝处理。
 
-浅拷贝：
+> Object.assign(newObj, obj) 可实现浅拷贝，只拷贝对象第一层。
 
-- Object.assign(newObj, obj)
+> JSON.parse(JSON.stringify(obj)) 可以实现简单的深拷贝，但会丢失除了基本类型以外的其他数据。
 
-深拷贝：
+深拷贝实现例子：
 
-- JSON.parse(JSON.stringify(obj))：丢失object、array和基本类型以外的其他值
+```js
+function deepClone(data) {
+  // 未考虑循环引用，可增加一个 WeakMap 缓存原值对应的克隆值，优先从缓存取值使用
 
-- 手动对obj的key递归遍历，赋值到newObj：对引用类型（Set、Map、RegExp等）要手动生成新的
+  if (data instanceof Date) {
+    return new Date(data);
+  }
+
+  if (data instanceof RegExp) {
+    return new RegExp(data);
+  }
+
+  // 补充对 Set、Map 等其他w特殊类型的处理
+
+  if (Array.isArray(data)) {
+    return data.map(item => deepClone(item));
+  }
+
+  if (Object.prototype.toString.call(data) === '[object Object]') {
+    const copied = {};
+    // 注意对对象的遍历方式，简单的 for in 会遍历到其原型上的属性
+    Object.keys(data).forEach(key => {
+      // 可根据 Object.getOwnPropertyDescriptor(data, key) 设置新值的 descriptor
+      copied[key] = deepClone(data[key]);
+    });
+    return copied;
+  }
+
+  return data;
+}
+```
 
 
 结构化克隆：
 
-HTML5定义的概念。对象可能通过其他信道传递，对对象序列化，再解析。结构化克隆可以保持除Function、Symbol外的所有类型。
+HTML5定义的概念。对象可能通过其他信道传递，对对象序列化，再解析。结构化克隆是浏览器的内置实现，可以保留除 Function、Symbol 外的，和上下文无关的全部类型的数据。
 
 > 参考文献 [【Safe passing of structured data】](https://www.w3.org/TR/html5/infrastructure.html#safe-passing-of-structured-data)
 
@@ -649,8 +677,3 @@ HTML5定义的概念。对象可能通过其他信道传递，对对象序列化
 
 - history.pushState
 
-
-函数拷贝：
-
-JS里的函数实例，除了自身逻辑代码，还有包含外部环境的作用域，拷贝函数需要把其整个作用域链也拷贝下来，才能构成一个同样的函数，所以在各种拷贝方式中都没有实现函数拷贝。
-	
