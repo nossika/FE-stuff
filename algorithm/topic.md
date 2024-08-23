@@ -2080,6 +2080,76 @@ var minEatingSpeed = function (piles, h) {
 };
 ```
 
+## 栈
+
+### 高温天气
+
+给定一组 temperatures 数组，每项元素表示当天的气温。
+
+要求返回同样长度的数组，其中每项元素 x 表示后续第一个比当前气温高的日子是 x 天后，若后续没有比当前气温高的日子，则 x 为 0。
+
+暴力解法：
+
+```js
+const temperatures = [35, 30, 31, 32, 30, 29, 34, 33, 30, 31];
+
+const firstHigherTemperatures = (temperatures) => {
+  // 独立计算查找每一天
+  return temperatures.map((t, i) => {
+    // 逐个往后查找，直到有一个更高温的天
+    for (let j = i + 1; j < temperatures.length; j++) {
+      if (temperatures[j] > t) {
+        return j - i;
+      }
+    }
+
+    return 0;
+  });
+};
+
+console.log(firstHigherTemperatures(temperatures));
+```
+
+时间复杂度 O(n<sup>2</sup>)，空间复杂度 O(n)。
+
+单调栈解法：
+
+```js
+const temperatures = [35, 30, 31, 32, 30, 29, 34, 33, 30, 31];
+
+const firstHigherTemperatures = (temperatures) => {
+  // 单调递增栈
+  const stack = [];
+  const result = new Array(temperatures.length).fill(0);
+
+  // 对每个元素尝试入栈
+  temperatures.forEach((t, i) => {
+    const current = [i, t];
+
+    // 从栈顶元素逐个往下对比，将比当前元素小的都取出来，如果遇到比它大的就停止
+    while (stack[0] && stack[0][1] < t) {
+      const poped = stack.shift();
+      // 元素被取出后，此时当前元素就是被取出元素遇到的第一个比它大的元素，计算两者下标的距离得到结果
+      result[poped[0]] = i - poped[0];
+    }
+
+    // 当前元素入栈，此时栈依然是单调递增
+    stack.unshift(current);
+  });
+
+  return result;
+};
+
+
+console.log(firstHigherTemperatures(temperatures));
+```
+
+原始数组长度为 n，有 n 次栈的插入，每次插入的对比次数是 1 + x（遇到比当前元素小的，需要取出的元素个数）。
+
+其中 x 在全部插入过程的累计和不会超过 n，因为元素最多就 n 个，每个元素最多只会被取出 1 次，x 的平均值不大于 1。所以插入对比次数为常数级别。
+
+时间复杂度 O(n)，空间复杂度 O(n)。
+
 ## 抽样
 
 ### 蓄水池抽样算法
@@ -2109,7 +2179,6 @@ function ReservoirSampling(data, m) {
 }
 
 console.log(ReservoirSampling([1,2,3,4,5,6,7,8,9,10,11,12], 3));
-
 ```
 
 ## 最小文本编辑距离
