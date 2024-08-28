@@ -516,6 +516,42 @@ const coinsMinSolution2 = function(coins, n) {
 
 ```
 
+
+### 连续子数组的最大和
+
+
+用f(i)表示arr中以第i项为结尾的连续子数组的最大和，则其状态转移方程如下
+
+`f(i) = max{ f(i - 1) + arr[i], arr[i] }`
+
+求出每一个f(i)的值，再从中取最大值作为最后结果
+
+`result = max{ f(i) } (0 <= i <= arr.length - 1)`
+
+```js
+function getMax(arr) {
+
+  // 设置缓存数组，cache[i]表示以第i项为结尾的连续子数组的最大和
+  const cache = [];
+
+  function getMaxEndWithIndex(i) {
+    if (i === 0) {
+      cache[i] = arr[i];
+    }
+    if (!cache[i]) {
+      cache[i] = Math.max(getMaxEndWithIndex(i - 1) + arr[i], arr[i]);
+    }
+    return cache[i];
+  }
+
+  // 计算包含最后一项的子数组的最大和，因为每一项的结果都依赖于前一项，利用此过程递归求出所有项的结果
+  getMaxEndWithIndex(arr.length - 1);
+  
+  return Math.max(...cache);
+
+}
+```
+
 ## 多个有序数组合并
 
 ```js
@@ -644,7 +680,7 @@ var majorityElement = function(nums) {
 2、遍历数组，如果当前数字是top3里重复的，对应次数加1；如果未重复且top3未满，则把此数字加入top3，次数初始化为1；如果未重复且top3已满，则把全部top3数字的次数减1（视为消去4个不同数字），如果降为0的则从top3移除。
 3、遍历完数组后，最终留下的top3即为结果。
 
-## 寻找数字之和
+## 双指针
 
 ### 两数之和
 
@@ -849,41 +885,43 @@ console.log(subsetSum(nums, 9));
 
 ```
 
+### 移动 0
 
-### 连续子数组的最大和
-
-
-用f(i)表示arr中以第i项为结尾的连续子数组的最大和，则其状态转移方程如下
-
-`f(i) = max{ f(i - 1) + arr[i], arr[i] }`
-
-求出每一个f(i)的值，再从中取最大值作为最后结果
-
-`result = max{ f(i) } (0 <= i <= arr.length - 1)`
+给定一个数字数组，将其中的 0 全部挪到数组末尾，但其他元素的相对位置保持不变，返回移动后的数组。
 
 ```js
-function getMax(arr) {
-
-  // 设置缓存数组，cache[i]表示以第i项为结尾的连续子数组的最大和
-  const cache = [];
-
-  function getMaxEndWithIndex(i) {
-    if (i === 0) {
-      cache[i] = arr[i];
+var moveZeroes = function(nums) {
+  let right = 0; // 连续 0 的左边界
+  let left = 0; // 连续 0 的右边界
+  // 左右边界的中间，是目前数组遇到的全部 0
+  // 不断把右边界的遇到的第一个非 0 值换到左边届，并推进左右边界，直到触碰数组末尾
+  while (right < nums.length) {
+    // 将左右边界推进到第一个 0 值的位置
+    while (nums[left] && nums[left] !== 0) {
+      left++;
+      right++;
     }
-    if (!cache[i]) {
-      cache[i] = Math.max(getMaxEndWithIndex(i - 1) + arr[i], arr[i]);
+    // 推进右边界到一个非 0 值的位置
+    while (nums[right] === 0) {
+      right++;
     }
-    return cache[i];
+    // 此时 [left, right) 区间是连续的 0 
+    if (right >= nums.length) {
+      break;
+    }
+    // 交换右边界的非 0 和左边界的 0
+    [nums[left], nums[right]] = [nums[right], nums[left]];
+    // 继续推进左右边界
+    left++;
+    right++;
   }
+};
 
-  // 计算包含最后一项的子数组的最大和，因为每一项的结果都依赖于前一项，利用此过程递归求出所有项的结果
-  getMaxEndWithIndex(arr.length - 1);
-  
-  return Math.max(...cache);
-
-}
+console.log(moveZeroes[[0,1,0,3,12]]);
 ```
+
+时间复杂度O(n)，空间复杂度O(1)
+
 ## 子串问题
 
 ### 求是否存在某子串
