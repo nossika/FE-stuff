@@ -294,6 +294,34 @@ function swap(i, j, arr) {
 
 ## 动态规划
 
+### 打家劫舍
+
+你是一位专业小偷，计划偷窃沿街一组房屋，房屋有相连的报警器，如果相邻的房屋都遭到入侵，就会触发报警。
+
+给定一组正数数组 nums 表示每间房屋中的可偷窃金额，求在不触发报警的前提下，能偷到的最大金额。
+
+```js
+var rob = function(nums) {
+  // dp[i] 表示前 i 间屋子的最大可偷金额
+  const dp = [nums[0]];
+
+  for (let i = 0; i < nums.length; i++) {
+    // dp[i] 的值由以下两者取大：
+    // - 偷了第 i 间屋子的情况：(第 i 间屋子金额) + (前 i - 2 间屋子总金额)
+    // - 不偷第 i 间屋子的情况：(前 i - 1 间屋子总金额)
+    dp[i] = Math.max(
+      nums[i] + (dp[i - 2] || 0),
+      (dp[i - 1] || 0),
+    );
+  }
+
+  // 最后一个 dp[i] 即为所求
+  return dp[dp.length - 1];
+};
+```
+
+时间复杂度 O(n)，空间复杂度 O(n)，空间复杂度可进一步优化为 O(1)，因为 dp[i] 只和 dp[i - 1] & dp[i - 2] 有关，可以不使用完整 dp 数组，只滚动记录 i - 1 和 i - 2 的值。
+
 ### 背包最大价值问题
 
 有n个有各自价值和重量的物品，以及一个固定容量的背包，可以自由选择物品来放入背包，求背包能达到的最大价值。
@@ -922,6 +950,254 @@ console.log(moveZeroes[[0,1,0,3,12]]);
 
 时间复杂度O(n)，空间复杂度O(1)
 
+## 滑动窗口
+
+### 求最小覆盖子串
+
+给一个字符串s和一个目标字符串t，求s中包含全部t中字符（包括字符数量）的最小子串。
+
+双指针滑动窗口法：
+
+```js
+/**
+ * @param {string} s
+ * @param {string} t
+ * @return {string}
+ */
+var minWindow = function (s, t) {
+  // 构造一个 key 为字符的哈希表，value 表示该字符还欠缺多少个
+  const needs = {};
+  for (let i = 0; i < t.length; i++) {
+    const char = t[i];
+    if (!needs[char]) {
+      needs[char] = 0;
+    }
+
+    needs[char] -= 1;
+  }
+
+  // 判断当下是否满足 t 所需
+  function isInNeed() {
+    for (let key in needs) {
+      if (needs[key] < 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function updateNeed(char, count) {
+    if (char in needs) {
+      needs[char] += count;
+    }
+  }
+
+  // 用于记录全部的最小情况，最后再遍历取最小中的最小。
+  const results = [];
+
+  let left = 0;
+  let right = 0;
+
+  // 右指针不断向右，扩大窗口，直到窗口的字符满足t，然后开始把左指针不断右移，缩小窗口，直到刚好不满足t，此时的窗口作为一种最小情况记录，然后重复前面右指针右移的步骤。
+  while (right < s.length) {
+    const addChar = s[right];
+    updateNeed(addChar, 1);
+
+    while (!isInNeed()) {
+      const removeChar = s[left];
+
+      // 如果左指针的字符，在所需列表中刚好是 0，表示再往左移就会处于不够的状态了，此时作为一种最小情况记录下来
+      if (needs[removeChar] === 0) {
+        results.push(s.slice(left, right + 1));
+      }
+
+      updateNeed(removeChar, -1);
+      left += 1;
+    }
+
+    right += 1;
+  }
+
+  if (!results.length) return '';
+
+  return results.reduce((min, result) => {
+    if (result.length < min.length) {
+      return result;
+    }
+
+    return min;
+  }, results[0]);
+};
+```
+
+
+### 求刚好包含的子串
+
+给一个字符串s2和一个目标字符串s1，求s2中是否存在刚好包含全部s1中字符（包括字符数量）的子串。
+
+和“最小覆盖子串”在于这里必须刚好包含，不得有多余的字符。
+
+```js
+var checkInclusion = function (s1, s2) {
+  // 维护一个 s1 字符计数器。
+  // 在 s2 中使用滑动窗口遍历，使得滑动窗口中的字段刚好能全部消耗完 s1 字符计数器。
+  // 如果 s2 存在这个满足条件的窗口，则认为 s2 包含 s1 的一个排列。
+
+  // 构造初始 s1 字符计数器。
+  const s1Chars = {};
+  for (let i = 0; i < s1.length; i++) {
+    const char = s1[i];
+    if (!s1Chars[char]) {
+      s1Chars[char] = 0;
+    }
+    s1Chars[char] += 1;
+  }
+
+  // 初始化滑动窗口的左右指针。
+  let left = 0;
+  let right = 0;
+
+  // 初始化判断结果。
+  let result = false;
+
+  // 在 s2 中使用滑动窗口遍历：
+  // 1、尝试使右指针右移，并把右指针字符从计数器中扣除。
+  // 2、如果 1 失败，则把左指针字符交还给计数器，并将左指针右移。
+  // 3、如果左右指针重叠，则左右指针同时右移，从新起点开始上述判断。
+  while (true) {
+    if (right >= s2.length) {
+      break;
+    }
+    if (s1Chars[s2[right]]) {
+      s1Chars[s2[right]] -= 1;
+      right += 1;
+      if (right - left >= s1.length) {
+        result = true;
+        break;
+      }
+    } else if (left < right) {
+      s1Chars[s2[left]] += 1;
+      left += 1;
+    } else {
+      left += 1;
+      right += 1;
+    }
+  }
+
+  return result;
+};
+```
+
+
+
+### 求字符串不重复的最长子串
+
+暴力计算：
+
+1. 定义start、end两个指针，起始位置为0，初始化max为0
+2. 将start、end指向起始位置，初始化缓存列表
+3. end不断向后移动，并将指向的值存入缓存，直到end指向的字母已存在缓存中（说明出现了重复字符），计算end - start的值并与max比较，保留大者
+4. 起始位置+1（即start+1），重复步骤2，直到 str.length - start > max 时（此时再继续下去也不会出现更大的max），停止循环，输出max
+
+时间复杂度O(n<sup>2</sup>)，空间复杂度O(chars)，chars表示字符集空间大小。
+
+```js
+function lengthOfLongestSubstring(str) {
+  let start = 0;
+  let end = 0;
+  let max = 0;
+  while (str.length - start > max) {
+    end = start;
+    const charCache = new Set();
+    while (true) {
+      const char = str[end];
+      if (!char || charCache.has(char)) {
+        max = Math.max(max, end - start);
+        break;
+      }
+      charCache.add(char);
+      end++;
+    }
+    start++;
+  }
+  return max;
+};
+```
+
+滑动窗口解法:
+
+上面的解法，左指针+1时，右指针也重置，重新计算不重复子串。事实上，不重复子串可以利用上一步的结果，左指针+1前，把左指针对应的字符从set清除，右指针不需要重置，此时左右指针内的子串依然是不重复子串，在这基础上继续计算即可。
+
+左右指针之间的空间形成一个不断往右滑动的窗口，空间内的字符串就是不重复子串。对于整个字符串，左右指针只需要各遍历一次。
+
+时间复杂度O(n)，空间复杂度O(chars)，chars表示字符集空间大小。
+
+```js
+var lengthOfLongestSubstring = function(s) {
+  let left = 0;
+  let right = 0;
+  const chars = new Set();
+
+  let max = 0;
+
+  // 左指针为起点，不断往右平移，得出各次的最长不重复子串，左指针离尾部的距离小于max时即可停止，因为这时怎么计算都不会得到大于max的结果。
+  while (left < s.length - max) {
+    // 将右指针不断往右平移，直到出现重复字符就停止。
+    while (s[right] && !chars.has(s[right])) {
+      chars.add(s[right]);
+      right += 1;
+    }
+
+    max = Math.max(max, right - left);
+
+    // 左指针平移前，从set里去除左指针指向的字符。
+    chars.delete(s[left]);
+    left += 1;
+  }
+
+  return max;
+};
+```
+
+### 长度最小的子数组
+
+给定一个元素全部为正整数的数组 nums 以及一个正整数 target，求 nums 中满足和大于等于 target 的长度最小的子数组。
+
+```js
+var minSubArrayLen = function(target, nums) {
+  let left = 0; // 子数组窗口左边界
+  let right = 0; // 子数组窗口右边界
+  let sum = 0; // 子数组当前总和
+  let minLen = Infinity; // 最小长度
+
+  // 当子数组右边界达到数组边界时停止
+  while (right < nums.length) {
+
+    // 不断尝试拓展右边界，直到 sum 刚好达到要求，或者右边界越界
+    while (sum < target && nums[right]) {
+      sum += nums[right];
+      right++;
+    }
+
+    // 如果此时 sum 还未达到要求，直接结束
+    if (sum < target) break;
+
+    // 不断尝试缩短左边界，直到 sum 刚好不满足要求
+    while (sum >= target) {
+      sum -= nums[left];
+      left++;
+    }
+
+    // 此时 sum 为刚好不满足要求的状态，左右边界距离 +1 则为刚好满足要求的长度，记录此刻子数组长度
+    minLen = Math.min(minLen, right - left + 1);
+  }
+
+  return Number.isFinite(minLen) ? minLen : 0;
+};
+
+console.log(minSubArrayLen(7, [2, 3, 1, 2, 4, 3])); // 2
+```
+
 ## 子串问题
 
 ### 求是否存在某子串
@@ -1023,208 +1299,6 @@ function kmpIndexOf(s, t) {
 }
 
 console.log(kmpIndexOf(s, t));
-```
-
-### 求最小覆盖子串
-
-给一个字符串s和一个目标字符串t，求s中包含全部t中字符（包括字符数量）的最小子串。
-
-双指针滑动窗口法：
-
-```js
-/**
- * @param {string} s
- * @param {string} t
- * @return {string}
- */
-var minWindow = function (s, t) {
-  // 构造一个 key 为字符的哈希表，value 表示该字符还欠缺多少个
-  const needs = {};
-  for (let i = 0; i < t.length; i++) {
-    const char = t[i];
-    if (!needs[char]) {
-      needs[char] = 0;
-    }
-
-    needs[char] -= 1;
-  }
-
-  // 判断当下是否满足 t 所需
-  function isInNeed() {
-    for (let key in needs) {
-      if (needs[key] < 0) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function updateNeed(char, count) {
-    if (char in needs) {
-      needs[char] += count;
-    }
-  }
-
-  // 用于记录全部的最小情况，最后再遍历取最小中的最小。
-  const results = [];
-
-  let left = 0;
-  let right = 0;
-
-  // 右指针不断向右，扩大窗口，直到窗口的字符满足t，然后开始把左指针不断右移，缩小窗口，直到刚好不满足t，此时的窗口作为一种最小情况记录，然后重复前面右指针右移的步骤。
-  while (right < s.length) {
-    const addChar = s[right];
-    updateNeed(addChar, 1);
-
-    while (!isInNeed()) {
-      const removeChar = s[left];
-
-      // 如果左指针的字符，在所需列表中刚好是 0，表示再往左移就会处于不够的状态了，此时作为一种最小情况记录下来
-      if (needs[removeChar] === 0) {
-        results.push(s.slice(left, right + 1));
-      }
-
-      updateNeed(removeChar, -1);
-      left += 1;
-    }
-
-    right += 1;
-  }
-
-  if (!results.length) return '';
-
-  return results.reduce((min, result) => {
-    if (result.length < min.length) {
-      return result;
-    }
-
-    return min;
-  }, results[0]);
-};
-```
-
-### 求刚好包含的子串
-
-给一个字符串s2和一个目标字符串s1，求s2中是否存在刚好包含全部s1中字符（包括字符数量）的子串。
-
-和“最小覆盖子串”在于这里必须刚好包含，不得有多余的字符。
-
-```js
-var checkInclusion = function (s1, s2) {
-  // 维护一个 s1 字符计数器。
-  // 在 s2 中使用滑动窗口遍历，使得滑动窗口中的字段刚好能全部消耗完 s1 字符计数器。
-  // 如果 s2 存在这个满足条件的窗口，则认为 s2 包含 s1 的一个排列。
-
-  // 构造初始 s1 字符计数器。
-  const s1Chars = {};
-  for (let i = 0; i < s1.length; i++) {
-    const char = s1[i];
-    if (!s1Chars[char]) {
-      s1Chars[char] = 0;
-    }
-    s1Chars[char] += 1;
-  }
-
-  // 初始化滑动窗口的左右指针。
-  let left = 0;
-  let right = 0;
-
-  // 初始化判断结果。
-  let result = false;
-
-  // 在 s2 中使用滑动窗口遍历：
-  // 1、尝试使右指针右移，并把右指针字符从计数器中扣除。
-  // 2、如果 1 失败，则把左指针字符交还给计数器，并将左指针右移。
-  // 3、如果左右指针重叠，则左右指针同时右移，从新起点开始上述判断。
-  while (true) {
-    if (right >= s2.length) {
-      break;
-    }
-    if (s1Chars[s2[right]]) {
-      s1Chars[s2[right]] -= 1;
-      right += 1;
-      if (right - left >= s1.length) {
-        result = true;
-        break;
-      }
-    } else if (left < right) {
-      s1Chars[s2[left]] += 1;
-      left += 1;
-    } else {
-      left += 1;
-      right += 1;
-    }
-  }
-
-  return result;
-};
-```
-
-### 求字符串最长不重复子串
-
-1. 定义start、end两个指针，起始位置为0，初始化max为0
-2. 将start、end指向起始位置，初始化缓存列表
-3. end不断向后移动，并将指向的值存入缓存，直到end指向的字母已存在缓存中（说明出现了重复字符），计算end - start的值并与max比较，保留大者
-4. 起始位置+1（即start+1），重复步骤2，直到 str.length - start > max 时（此时再继续下去也不会出现更大的max），停止循环，输出max
-
-时间复杂度O(n<sup>2</sup>)，空间复杂度O(chars)，chars表示字符集空间大小。
-
-```js
-function lengthOfLongestSubstring(str) {
-  let start = 0;
-  let end = 0;
-  let max = 0;
-  while (str.length - start > max) {
-    end = start;
-    const charCache = new Set();
-    while (true) {
-      const char = str[end];
-      if (!char || charCache.has(char)) {
-        max = Math.max(max, end - start);
-        break;
-      }
-      charCache.add(char);
-      end++;
-    }
-    start++;
-  }
-  return max;
-};
-```
-
-#### 滑动窗口解法
-
-上面的解法，左指针+1时，右指针也重置，重新计算不重复子串。事实上，不重复子串可以利用上一步的结果，左指针+1前，把左指针对应的字符从set清除，右指针不需要重置，此时左右指针内的子串依然是不重复子串，在这基础上继续计算即可。
-
-左右指针之间的空间形成一个不断往右滑动的窗口，空间内的字符串就是不重复子串。对于整个字符串，左右指针只需要各遍历一次。
-
-时间复杂度O(n)，空间复杂度O(chars)，chars表示字符集空间大小。
-
-```js
-var lengthOfLongestSubstring = function(s) {
-  let left = 0;
-  let right = 0;
-  const chars = new Set();
-
-  let max = 0;
-
-  // 左指针为起点，不断往右平移，得出各次的最长不重复子串，左指针离尾部的距离小于max时即可停止，因为这时怎么计算都不会得到大于max的结果。
-  while (left < s.length - max) {
-    // 将右指针不断往右平移，直到出现重复字符就停止。
-    while (s[right] && !chars.has(s[right])) {
-      chars.add(s[right]);
-      right += 1;
-    }
-
-    max = Math.max(max, right - left);
-
-    // 左指针平移前，从set里去除左指针指向的字符。
-    chars.delete(s[left]);
-    left += 1;
-  }
-
-  return max;
-};
 ```
 
 
@@ -2012,6 +2086,72 @@ function winner(n, m) {
 }
 
 winner(5, 3); // 4
+```
+
+### 顺时针遍历矩阵
+
+```js
+var spiralArray = function (array) {
+  const h = array.length || 0; // 矩阵高
+  const w = array[0]?.length || 0; // 矩阵宽
+  let x = 0; // 当前 x 坐标
+  let y = 0; // 当前 y 坐标
+  let count = w * h; // 总数
+  let round = 0; // 顺时针轮次
+  const result = [];
+
+  // 不断顺时针遍历，直到 result 全部装满才结束
+  while (true) {
+    // 左上角往右上角
+    while (x < (w - round)) {
+      result.push(array[y][x]);
+      x++;
+    }
+    x--;
+    y++;
+    if (result.length >= count) break;
+
+    // 右上角往右下角
+    while (y < (h - round)) {
+      result.push(array[y][x]);
+      y++;
+    }
+    y--;
+    x--;
+    if (result.length >= count) break;
+
+    // 右下角往左下角
+    while (x >= round) {
+      result.push(array[y][x]);
+      x--;
+    }
+    x++;
+    y--;
+    if (result.length >= count) break;
+
+    // 左下角往左上角
+    while (y >= (1 + round)) {
+      result.push(array[y][x]);
+      y--;
+    }
+    y++;
+    x++;
+    if (result.length >= count) break;
+
+    // 进入下一个轮次
+    round++;
+  }
+
+  return result;
+};
+
+console.log(
+  spiralArray([
+    [1, 2, 3],
+    [8, 9, 4],
+    [7, 6, 5],
+  ])
+)
 ```
 
 ### 矩阵以对角线遍历
