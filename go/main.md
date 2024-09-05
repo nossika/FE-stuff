@@ -266,3 +266,83 @@ func main() {
   fmt.Println(p2) // {A, 20}
 }
 ```
+
+
+## debounce
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"reflect"
+	"sync"
+	"time"
+)
+
+func Debounce(fn interface{}, wait int) func(...interface{}) {
+	var cf context.CancelFunc
+	var mu sync.Mutex
+	return func(args ...interface{}) {
+		// 需注意并发安全，因为 cf 的判断 & 赋值不是原子操作，多协程同时访问可能有问题，比如协程 1 可能已经设置了新 cf，而协程 2 取消的是旧的 cf
+		// 需要加锁以保证同时只有一个协程能对 cf 操作
+		mu.Lock()
+		if cf != nil {
+			cf()
+		}
+		cf = setTimeout(fn, wait, args...)
+		mu.Unlock()
+	}
+}
+
+func setTimeout(fn interface{}, timeout int, args ...interface{}) context.CancelFunc {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	// 新起协程执行任务
+	go func() {
+		// 轮询以下情况
+		select {
+		// ctx 结束，直接退出
+		case <-ctx.Done():
+		// time 达到要求，调用 fn
+		case <-time.After(time.Duration(timeout) * time.Second):
+			callFunc(fn, args...)
+		}
+	}()
+
+	return cancelFunc
+}
+
+// fn 的函数类型和参数不确定，需通过反射调用函数
+func callFunc(fn interface{}, args ...interface{}) {
+	f := reflect.ValueOf(fn)
+	if len(args) != f.Type().NumIn() {
+		panic("The number of arguments does not match the function")
+	}
+
+	inputs := make([]reflect.Value, len(args))
+	for i := range args {
+		inputs[i] = reflect.ValueOf(args[i])
+	}
+
+	f.Call(inputs)
+}
+
+func testDebounce() {
+	foo := Debounce(func(id int) {
+		fmt.Println("foo", id)
+	}, 1)
+
+	for i := range 100 {
+		go foo(i)
+	}
+
+	time.Sleep(100 * time.Second)
+}
+
+func main() {
+	testDebounce()
+}
+
+```

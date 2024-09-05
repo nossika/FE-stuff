@@ -1,6 +1,6 @@
 # 笔试题
 
-## 经典函数实现
+## JS 常用内置函数实现
 
 ### String.prototype.indexOf
 
@@ -75,7 +75,9 @@ Array.prototype.flat = function(depth = 1) {
 }
 ```
 
-## 数组去重
+## 数组
+
+### 数组去重
 
 ```js
 function uniqueArr(arr) {
@@ -85,9 +87,171 @@ function uniqueArr(arr) {
 function uniqueArr(arr) {
   return arr.filter((num, index) => arr.indexOf(num) === index);
 }
+
+function uniqueArr(arr) {
+  const map = new Map();
+  arr.forEach(data => {
+    map.set(data, 1);
+  });
+
+  return [...map.keys()];
+}
 ```
 
+- 基本 api 运用
+
+- 如果用 arr.includes，追问复杂度理解、数组的底层存储结构
+
+- 如果用 obj 的 key 缓存，追问数组元素有不同类型的场景
+
+- 如果用 map，追问和 obj 的区别
+
+### 数组打平
+
+```js
+const flatten = (arr) => {
+  return arr.reduce((result, item) => {
+    return Array.isArray(item)
+      ? result.concat(...flatten(item))
+      : result.concat(item);
+  }, []);
+};
+```
+
+- 递归使用
+
+- 是否数组的判断
+
+## 对象
+
+### 对象深拷贝
+
+```js
+// 实现对一个复杂对象的深拷贝，可能包含 Date 等数据类型
+function deepClone(data) {
+  // todo
+}
+  
+// const original = {
+//   name: 'Joe',
+//   age: 30,
+//   info: {
+//     hobby: ['coding', 'singing'],
+//     birthday: new Date('2000-01-02'),
+//   },
+// };
+
+// const copied = deepClone(original);
+// console.log(copied);
+// console.log(copied.info.birthday === original.info.birthday); // false
+
+// 
+```
+
+- 注意对特殊对象的处理，可能还有 Set、Map 等
+
+- 注意对 Object 类型的 key 遍历方式，简单 for in 会带上原型上的属性
+
+- instanceof 和原型相关概念
+
+- 可追问有循环引用的场景（比如对象引用了自身），可以增加一个 WeakMap 缓存已处理的值，deepClone 优先从缓存取值
+
+
+```js
+function deepClone(data) {
+  if (data instanceof Date) {
+    return new Date(data);
+  }
+
+  if (data instanceof RegExp) {
+    return new RegExp(data);
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(item => deepClone(item));
+  }
+
+  if (Object.prototype.toString.call(data) === '[object Object]') {
+    const copied = {};
+    Object.keys(data).forEach(key => {
+      copied[key] = deepClone(data[key]);
+    });
+    return copied;
+  }
+
+  return data;
+}
+```
+
+## 函数
+
+### 函数防抖
+
+```js
+// 实现一个防抖函数，当它在一定时间内被连续触发时，只会执行一次
+function debounce(fn, timeout) {
+  // todo
+}
+
+// const fn = debounce((num) => console.log(num), 1000);
+// fn(1);
+// fn(2);
+// 延迟 1000 毫秒后输出一次 2
+```
+
+- call/apply 方法的使用
+
+- this 指向
+
+- 对闭包的理解
+
+```js
+function debounce(fn, timeout) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.call(this, ...args);
+    }, timeout);
+  }
+}
+```
+
+
+
 ## 异步编程
+
+### 异步循环打印
+
+```js
+// 要求按顺序每隔 1 秒打印 arr 中的内容，完成打印后调用 callback 函数
+function asyncConsole(arr, callback) {
+  // todo
+}
+
+// asyncConsole([1, 2, 3, 4, 5], () => console.log('done'));
+```
+
+- setTimout 的使用
+
+- async/await 结合 Promise 的使用
+
+- 可追问主线程、事件循环
+
+```js
+function asyncConsole(arr, callback) {
+  const sleep = (timeout) => new Promise(r => setTimeout(r, timeout));
+
+  return new Promise(async (resolve) => {
+    for (const item of arr) {
+      await sleep(1000);
+      console.log(item);
+    }
+
+    resolve(callback());
+  });
+}
+```
 
 ### 执行顺序判断
 
@@ -203,7 +367,7 @@ Promise.retry = (fn, times = 0) => {
 
 ```
 
-### 等待异步操作
+### 远程异步调用
 
 ```js
 // 假设你的本地机器不支持小数的加减乘除（但整数支持），需要借用远程 api 来实现。

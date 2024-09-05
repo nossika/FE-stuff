@@ -1722,7 +1722,7 @@ var longestPalindromeSubseq = function(s) {
 console.log(longestPalindromeSubseq('aaazgergaa'));
 ```
 
-## 模拟计算
+## 数字问题
 
 ### 大数相加
 
@@ -2015,6 +2015,73 @@ export function str2Num(str: string): number {
 
 console.log(str2Num('一百二十三亿一千四百万零三百四十二'));
 ```
+
+### 最大交换
+
+给定一个非负整数，你至多可以交换一次数字中的任意两位。返回你能得到的最大值。
+
+暴力循环：
+
+```js
+
+const maximumSwap = (num) => {
+const nums = num.toString().split('');
+const swap = (i, j, nums) => {
+const copiedNums = nums.slice();
+[copiedNums[i], copiedNums[j]] = [copiedNums[j], copiedNums[i]];
+return +copiedNums.join('');
+}
+
+let max = num;
+
+// 暴力尝试两两交换，记录过程中的最大值
+for (let i = 0; i < nums.length; i++) {
+for (let j = i + 1; j < nums.length; j++) {
+max = Math.max(max, swap(i, j, nums));
+}
+}
+
+return max;
+};
+```
+
+复杂度O(n<sup>2</sup>)，n 为数字的位数。
+
+单次遍历：
+
+```js
+const maximumSwap = (num) => {
+const nums = num.toString().split('').map(n => +n).reverse(); // 将数字拆开并倒置，使低位数字在前
+let maxIndex = 0; // 当前最大值的下标
+let needSwap = []; // 当前需要交换的两个值的下标，下称交换组
+
+// 让高位数字与比它低位的最大值交换（如果最大值同时出现在多个低位，则应取最低位的那个），并让这个交换尽可能发生在更高位
+// 从低位开始往高位遍历，逐位记录当前的有效交换组，最后记录的交换组就是位数最高的交换
+for (let i = 0; i < nums.length; i++) {
+// 如果遇到的值比最大值大，则记录这个新最大值的下标
+if (nums[i] > nums[maxIndex]) {
+maxIndex = i;
+}
+
+// 如果遇到的值比最大值小，则可以把当前位和当前最大值交换来得到更大的值，先记录此时的交换组
+if (nums[i] < nums[maxIndex]) {
+needSwap = [maxIndex, i];
+}
+}
+
+// 如果存在有效交换组，则进行交换
+if (needSwap.length) {
+[nums[needSwap[0]], nums[needSwap[1]]] = [nums[needSwap[1]], nums[needSwap[0]]];
+}
+
+// 倒置结果回原始顺序
+return +nums.reverse().join('');
+};
+```
+
+复杂度O(n)，n 为数字的位数。
+
+
 
 ## 特殊遍历
 

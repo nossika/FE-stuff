@@ -100,6 +100,12 @@ export default defineUserConfig({
         ],
       },
       {
+        text: 'Python',
+        children: [
+          '/py/main.md',
+        ],
+      },
+      {
         text: '其他',
         children: [
           '/others/electron.md',
