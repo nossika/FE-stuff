@@ -1,5 +1,34 @@
 # Docker
 
+## 常用命令
+
+构建镜像：
+```
+docker build -t <image>:<tag> -f <path/to/Dockerfile> .
+docker build -t my-app:latest -f ./Dockerfile .
+```
+
+
+按镜像启动容器：
+```bash
+docker run -p <local_port>:<docker_expose_port> <image>
+docker run -p 8080:8000 my-app
+```
+
+命令行调试容器：
+```bash
+docker run --platform <platform> -it <image> /bin/sh
+docker run --platform linux/amd64 -it my-app /bin/sh
+```
+
+推送镜像：
+```
+docker push <image>:<tag>
+docker push my-app:latest
+```
+
+涉及远程资源获取或更新的操作，需要先执行docker login。
+
 ## 概念
 
 ### 仓库 registry
@@ -13,13 +42,13 @@
 从仓库拉取镜像（registry_url未指定时从默认镜像源拉取；tag_name未指定时，默认为latest标签）：
 
 ```
-docker pull [registry_url]registry_name[:tag_name]
+docker pull [registry_url]<registry_name>[:tag_name]
 ```
 
 根据本地Dockerfile构建镜像：
 
 ```
-docker build dockerfile_path -t image_name
+docker build <dockerfile_path> -t <image_name>
 ```
 
 列出已安装的镜像：
@@ -31,7 +60,7 @@ docker image ls
 删除某镜像：
 
 ```
-docker image rm image_id
+docker image rm <image_id>
 ```
 
 ### 容器 container
@@ -41,7 +70,7 @@ docker image rm image_id
 运行容器：
 
 ```
-docker run -p outer_port:inner_port image_name
+docker run -p <outer_port>:<inner_port> <image_name>
 ```
 
 查看所有容器（-a表示包括已停止容器）：
@@ -53,13 +82,13 @@ docker container ls -a
 停止容器（容器停止后默认不会被自动删除，因为可能还要查看日志文件）：
 
 ```
-docker container stop container_id
+docker container stop <container_id>
 ```
 
 删除容器：
 
 ```
-docker container rm container_id
+docker container rm <container_id>
 ```
 
 
@@ -105,6 +134,8 @@ EXPOSE 8888
 对外暴露8888端口
 
 
-## 分层存储
+## 镜像分层
   
+在构建镜像时，Dockerfile 中的一条指令会对应创建一个镜像层，下次构建会尽量复用之前的镜像层，来加速构建和节省空间。
 
+如果检测到某一层的结果有变动，则 docker 会复用之前的层，但重新构建变动层及其之后的层。
