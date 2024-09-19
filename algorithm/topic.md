@@ -234,7 +234,9 @@ console.log(radixSort(arr.slice()));
 
 时间复杂度：构建堆需要O(n * log<sub>2</sub><sup>n</sup>)，调整堆需要O(n * log<sub>2</sub><sup>n</sup>)，总的复杂度O(n * log<sub>2</sub><sup>n</sup>)；空间复杂度O(1)。非稳定排序。
 
-> 适合数据量大，数据流式输入的情况
+> 适合数据量大，数据流式输入的情况。比如经典的海量数据找 TOP K 的问题。
+
+
 
 ```js
 function heapSort(arr) {
@@ -562,6 +564,99 @@ function maxSubArray(nums) {
 }
 ```
 
+### 被 3 整除的最大和
+
+给定一个数组 nums，求找出可被 3 整除的最大子元素和。
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxSumDivThree = function(nums) {
+  // 用 dp[i][mod] 表示前 i 项被 3 除后余 mod 情况的最大和
+  // 比如 dp[2][1] 表示前 2 项被 3 除后余数为 1 情况的最大和
+  const dp = [
+    [0, -Infinity, -Infinity], // 需要注意 dp[0][1]、dp[0][2] 默认为非法值，因为后续取 max，所以可以设为最小值表示非法
+  ];
+  
+  dp[0][nums[0] % 3] = nums[0];
+
+  for (let i = 1; i < nums.length; i++) {
+    const num = nums[i];
+    const remains = [];
+    const lastRemains = dp[i - 1];
+
+    // dp[i] 和 dp[i - 1] 的关系如下，分别讨论 nums[i] 被 3 除后余 0、1、2 的情况：
+    if (num % 3 === 0) {
+      remains[0] = lastRemains[0] + num;
+      remains[1] = lastRemains[1] + num;
+      remains[2] = lastRemains[2] + num;
+    }
+
+    if (num % 3 === 1) {
+      remains[0] = Math.max(lastRemains[0], lastRemains[2] + num);
+      remains[1] = Math.max(lastRemains[1], lastRemains[0] + num);
+      remains[2] = Math.max(lastRemains[2], lastRemains[1] + num);
+    }
+
+    if (num % 3 === 2) {
+      remains[0] = Math.max(lastRemains[0], lastRemains[1] + num);
+      remains[1] = Math.max(lastRemains[1], lastRemains[2] + num);
+      remains[2] = Math.max(lastRemains[2], lastRemains[0] + num);
+    }
+
+    dp[i] = remains;
+  }
+
+  // dp 最后一项的 0 即为整个数组被 3 整除的最大和
+  return dp[dp.length - 1][0];
+};
+
+console.log(maxSumDivThree([3,6,5,1,8]))
+```
+
+时间复杂度O(n)，空间复杂度可优化到O(1)，i 只和 i - 1 有关，可以只滚动保留最新两项。
+
+拓展为被 n 整除的最大和：
+
+给定一个数组 nums，求找出可被 n 整除的最大子元素和。
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxSumDivN = function(nums, mod = 3) {
+  const firstRemains = new Array(mod).fill(-Infinity);
+  firstRemains[0] = 0;
+  firstRemains[nums[0] % mod] = nums[0];
+
+  const dp = [
+    firstRemains,
+  ];
+
+  for (let i = 1; i < nums.length; i++) {
+    const num = nums[i];
+    const remains = [];
+    const lastRemains = dp[i - 1];
+
+    // 根据 mod 为 3 的情况推导通项公式：
+    // dp[i][remain] = max(dp[i - 1][remain], dp[i - 1][(mod + remain - (num % mod)) % mod] + num)
+    for (let remain = 0; remain < mod; remain++) {
+      remains[remain] = Math.max(lastRemains[remain], lastRemains[(mod + remain - (num % mod)) % mod] + num);
+    }
+
+    dp[i] = remains;
+  }
+
+  return dp[dp.length - 1][0];
+};
+
+console.log(maxSumDivN([3,6,5,1,8], 5))
+
+```
+
 ## 多个有序数组合并
 
 ```js
@@ -728,9 +823,9 @@ nums有序的情况：
 
 1、left和right都会不断往中间移动。
 
-2、假设left已经移动到目标位置，但right还未移动到目标位置，此时因为数组有序，和一定大于target，之后的移动只会把right左移，不会动left。
+2、假设left已经移动到目标位置，但right还未移动到目标位置，此时因为数组有序，和一定大于target，之后的移动只会把right左移，不会动left。仅当left未移动到目标位置时才会动。
 
-3、假设right已经移动到目标位置，同理right不会再动。
+3、同理right也是，当right已到目标位置时不会再动，仅当未到目标时才动。
 
 4、继续查找，一定能找到解，或者得出无解。
 
@@ -2067,6 +2162,89 @@ return +nums.reverse().join('');
 
 ## 特殊遍历
 
+### 水杯倒水
+
+给定 3 个容量分别为 a、b、c 的水杯。判断是否可以通过相互倾倒，来得到 t 容量的水。
+
+你可以
+1、将某一水杯倒满水
+2、将某一水杯倒空
+3、将某一水杯的水倒往另一水杯
+
+```js
+function check(a, b, c, t) {
+  if ([a, b, c].every(n => n > t)) {
+    return false;
+  }
+
+  return dfs(a, b, c, t, [0, 0, 0], {});
+}
+
+function dfs(a, b, c, t, state, visited) {
+  const key = state.join();
+  if (visited[key]) {
+    return false;
+  }
+
+  // 用 visited 记录某个状态是否已判断过
+  visited[key] = true;
+
+  if (state.find(s => s === t)) {
+    return true;
+  }
+
+  // 将 3 个瓶子中的某个倒满
+  for (let i = 0; i < 3; i++) {
+    newState = state.slice();
+    newState[i] = [a, b, c][i];
+    if (dfs(a, b, c, t, newState, visited)) {
+      return true;
+    }
+  }
+
+  // 将 3 个瓶子中的某个倒空
+  for (let i = 0; i < 3; i++) {
+    newState = state.slice();
+    newState[i] = 0;
+    if (dfs(a, b, c, t, newState, visited)) {
+      return true;
+    }
+  }
+
+  // 将 3 个瓶子中的某个倒往另一个
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (i === j) continue;
+      newState = state.slice();
+      let pour = [a, b, c][j] - newState[j];
+      if (pour > newState[i]) {
+        pour = newState[i];
+      }
+
+      newState[i] -= pour;
+      newState[j] += pour;
+
+      if (dfs(a, b, c, t, newState, visited)) {
+        return true;
+      }
+    }
+  }
+
+
+  return false;
+}
+
+
+console.log(
+  check(3, 4, 6, 5),
+  check(2, 4, 6, 5),
+);
+```
+
+时间复杂度O(a * b * c)，最坏情况需要遍历所有可能的组合。
+
+如果改为需要返回达到目标状态的操作记录，则把 dfs 参数中的 state 从单个状态改为历史状态数组，每次拼接上当前状态后再给下个 dfs 使用。
+
 ### 约瑟夫环
 
 n个人围成一个圆圈，随机选定某人为1号，顺时针依次对每个人编号到n，并且选定一个数m。从1号开始，顺时针依次报数，报到m的人被淘汰，接着淘汰者的下个人重新从1开始报数，继续下一轮淘汰。如此往复直到只剩1人，求此人的编号。
@@ -2861,6 +3039,71 @@ var mergeTwoLists = function(list1, list2) {
 };
 ```
 
+### 排序链表
+
+归并排序
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {ListNode}
+ */
+var sortList = function(head) {
+    if (!head) {
+        return null;
+    }
+    const [left, right] = split(head);
+    if (!right) {
+        return left;
+    }
+    return merge(sortList(left), sortList(right));
+};
+
+// 链表一分为二
+var split = function(head) {
+  let fast = head;
+  let slow = head;
+  while (fast?.next?.next) {
+    fast = fast.next.next;
+    slow = slow.next;
+  }
+
+  const right = slow.next;
+  slow.next = null;
+
+  return [head, right];
+}
+
+// 合并有序链表
+var merge = function(head1, head2) {
+  const head = new ListNode();
+  head.val = -Infinity;
+  head.next = head1;
+  let insertNode = head2;
+  let currentNode = head;
+  while (insertNode) {
+    while (currentNode.next?.val < insertNode.val) {
+        currentNode = currentNode.next;
+    }
+    const nextInsertNode = insertNode.next
+    insertNode.next = currentNode.next;
+    currentNode.next = insertNode;
+    insertNode = nextInsertNode;
+  }
+
+  return head.next;
+}
+```
+
+时间复杂度O(n * log<sup>n</sup>)，空间复杂度O(log<sup>n</sup>)，有递归展开的栈空间
+
 
 ## 二叉树
 
@@ -3168,6 +3411,10 @@ var sortedListToBST = function(head) {
 然后将本次的二进制向量存储到存储器，原本为 0 的位置变为 1，原本为 1 的位置不变。
 
 布隆过滤器可以用固定的空间和较少的时间完成插入和查询操作。缺点是有误判，且删除数据麻烦。
+
+### 找 TOP K
+
+参考[堆排序](#堆排序)，数据可逐个输入，内存中仅维护 K 个数。
 
 
 
