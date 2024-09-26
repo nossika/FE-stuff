@@ -2523,7 +2523,7 @@ console.log(firstHigherTemperatures(temperatures));
 const temperatures = [35, 30, 31, 32, 30, 29, 34, 33, 30, 31];
 
 const firstHigherTemperatures = (temperatures) => {
-  // 单调递增栈
+  // 单调递增栈（从栈顶到栈底是递增趋势）
   const stack = [];
   const result = new Array(temperatures.length).fill(0);
 
@@ -2554,6 +2554,65 @@ console.log(firstHigherTemperatures(temperatures));
 其中 x 在全部插入过程的累计和不会超过 n，因为元素最多就 n 个，每个元素最多只会被取出 1 次，x 的平均值不大于 1。所以插入对比次数为常数级别。
 
 时间复杂度 O(n)，空间复杂度 O(n)。
+
+### 行星碰撞
+
+给定一个整数数组 asteroids，表示在同一行的小行星。
+
+对于数组中的每一个元素，其绝对值表示小行星的大小，正负表示小行星的移动方向（正表示向右移动，负表示向左移动）。每一颗小行星以相同的速度移动。
+
+找出碰撞后剩下的所有小行星。碰撞规则：两个小行星相互碰撞，较小的小行星会爆炸。如果两颗小行星大小相同，则两颗小行星都会爆炸。两颗移动方向相同的小行星，永远不会发生碰撞。
+
+```js
+// 是否会碰撞，只有左边向右且右边向左时碰撞
+const willCollision = (left, right) => {
+  const leftToRight = left === Math.abs(left);
+  const rightToLeft = -right === Math.abs(right);
+  return leftToRight && rightToLeft;
+};
+
+// 碰撞后的结果，0 表示消失
+const afterCollision = (a, b) => {
+  if (Math.abs(a) === Math.abs(b)) {
+    return 0;
+  }
+
+  return Math.abs(a) > Math.abs(b) ? a : b;
+}
+
+/**
+ * @param {number[]} asteroids
+ * @return {number[]}
+ */
+var asteroidCollision = function(asteroids) {
+  // 用栈保存结果，保持从左到右结构
+  const stack = [];
+
+  const addAsteroid = (asteroid) => {
+    if (!asteroid) {
+      return;
+    }
+
+    // 如果不会碰撞，直接入栈
+    if (!stack.length || !willCollision(stack[stack.length - 1], asteroid)) {
+      stack.push(asteroid);
+      return;
+    }
+
+    // 计算碰撞结果，并递归调用 addAsteroid
+    const result = afterCollision(stack.pop(), asteroid);
+    addAsteroid(result);
+  };
+  
+  // 逐个遍历 asteroids，将各个 asteroid 计算进结果
+  for (const asteroid of asteroids) {
+    addAsteroid(asteroid);
+  }
+
+  // 最后的栈就是结果
+  return stack;
+};
+```
 
 ## 抽样
 
