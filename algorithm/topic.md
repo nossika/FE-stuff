@@ -3100,6 +3100,74 @@ console.log(buildTree(preorder, inorder));
 
 ```
 
+### 二叉树的最大宽度
+
+给你一棵二叉树的根节点 root ，返回树的 最大宽度 。
+
+树的 最大宽度 是所有层中最大的 宽度 。
+
+每一层的 宽度 被定义为该层最左和最右的非空节点（即，两个端点）之间的长度。将这个二叉树视作与满二叉树结构相同，两端点间会出现一些延伸到这一层的 null 节点，这些 null 节点也计入长度。
+
+输入：root = [1,3,2,5,3,null,9]
+
+输出：4
+
+解释：最大宽度出现在树的第 3 层，宽度为 4 (5,3,null,9) 。
+
+```js
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var widthOfBinaryTree = function (root) {
+  let result = 0;
+
+  // 计算这一层的宽度
+  const getWidth = (nodes) => {
+    let start;
+    let end;
+
+    nodes.forEach((_, i) => {
+      if (start === undefined) {
+        start = i;
+      }
+
+      end = i;
+    });
+
+    return end - start + 1;
+  };
+
+  // 广度优先逐层遍历
+  const bfs = (nodes) => {
+    result = Math.max(getWidth(nodes), result);
+
+    const nextNodes = [];
+    // 使用稀疏数组结构
+    nodes.forEach((node, i) => {
+      node.left && (nextNodes[i * 2] = node.left);
+      node.right && (nextNodes[i * 2 + 1] = node.right);
+    });
+
+    if (!nextNodes.length) return;
+
+    // 尾递归优化
+    return bfs(nextNodes);
+  };
+
+  bfs([root]);
+
+  return result;
+};
+```
 
 ## 二叉树和链表互转
 
