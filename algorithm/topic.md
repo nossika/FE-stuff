@@ -2614,6 +2614,56 @@ var asteroidCollision = function(asteroids) {
 };
 ```
 
+### 接雨水
+
+给定一个数组 heights 表示的紧密排列的二维柱子，其值表示对应柱子的高度。
+
+求这堆柱子能接到的雨水面积。
+
+```js
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var trap = function (heights) {
+  let sum = 0;
+
+  // 维护一个元素为 heights 下标的单调栈，其中下标对应 heights 里的值为单调递减
+  const stack = [];
+
+  const push = (i) => {
+    // 如果值是递减：直接 push 就完事
+    if (!stack.length || heights[stack[stack.length - 1]] >= heights[i]) {
+      return stack.push(i);
+    }
+
+    // 如果非递减：新元素为右边界，取出栈中最后一个元素作为底部，计算这个底部能接到的水的面积
+    const right = i; // 新元素为右边界
+    const cur = stack.pop(); // 最后一个元素为底部
+    if (stack.length) {
+      const left = stack[stack.length - 1]; // 再上一个元素为左边界
+      const minH = Math.min(heights[right], heights[left]) - heights[cur]; // 左右边界的较小值，减去基底，得出相对高度
+      const w = right - left - 1; // 宽度
+      sum += minH * w; // 加上面积
+    }
+
+    // 继续尝试入栈
+    return push(i);
+  };
+
+  for (let i = 0; i < heights.length; i += 1) {
+    push(i);
+  }
+
+  return sum;
+};
+
+console.log(
+  trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]),
+  trap([4, 2, 0, 3, 2, 5]),
+)
+```
+
 ## 抽样
 
 ### 蓄水池抽样算法
