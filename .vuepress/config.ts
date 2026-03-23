@@ -29,6 +29,14 @@ export default defineUserConfig({
         ],
       },
       {
+        text: 'AI',
+        children: [
+          '/ai/machine.md',
+          '/ai/llm.md',
+          '/ai/transfomer.md',
+        ],
+      },
+      {
         text: 'WEB',
         children: [
           '/web/protocol.md',
