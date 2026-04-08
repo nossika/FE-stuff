@@ -80,6 +80,14 @@ export default defineUserConfig({
         ],
       },
       {
+        text: 'DevOps',
+        children: [
+          '/devops/overview.md',
+          '/devops/docker.md',
+          '/devops/k8s.md',
+        ],
+      },
+      {
         text: '工程化',
         children: [
           '/engineer/module.md',
@@ -88,7 +96,6 @@ export default defineUserConfig({
           '/engineer/test.md',
           '/engineer/deploy.md',
           '/engineer/monitor.md',
-          '/engineer/devops.md',
         ],
       },
       {
@@ -121,7 +128,7 @@ export default defineUserConfig({
           '/others/graphql.md',
           '/others/rxjs.md',
           '/others/webassembly.md',
-          '/others/docker.md',
+          '/devops/docker.md',
           '/others/database.md',
           '/others/nginx.md',
           '/others/linux.md',
