@@ -32,8 +32,10 @@ export default defineUserConfig({
         text: 'AI',
         children: [
           '/ai/machine.md',
+          '/ai/tokenizer.md',
+          '/ai/transformer.md',
+          '/ai/inference.md',
           '/ai/llm.md',
-          '/ai/transfomer.md',
         ],
       },
       {
