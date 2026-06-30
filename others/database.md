@@ -183,6 +183,37 @@ ZRANK key m1                            # 查询成员排名
 
 事务通过 `MULTI / EXEC` 将多条命令打包执行（不支持回滚，且执行期间不会被其他命令打断）；更复杂的原子逻辑一般用 **Lua 脚本**（`EVAL`）。
 
+### 有序集合与跳表
+
+**Sorted Set（ZSET）** 底层是 **跳表（skiplist）+ 哈希表（dict）** 的组合：
+
+- **dict**：`member → score`，支撑 `ZSCORE` 等按成员名的 O(1) 查找。
+- **跳表**：按 score 排序，支撑 `ZRANGE`、`ZRANGEBYSCORE`、`ZRANK` 等范围与排名操作。
+
+**跳表是什么**：多层有序链表——底层（Level 0）包含全部节点，更高层是稀疏「索引层」，查找时从高层尽量往前跳、不行再下降，平均复杂度 O(log n)，实现比红黑树简单，范围遍历也更自然（Level 0 顺序扫即可）。
+
+```
+Level 2:  HEAD ──────────→ 20 ──────────→ 50 ──→ NULL
+Level 1:  HEAD ──→ 10 ──→ 20 ──→ 30 ──→ 50 ──→ 80 ──→ NULL
+Level 0:  HEAD ──→ 10 ──→ 20 ──→ 30 ──→ 50 ──→ 80 ──→ NULL  （全量数据 + 双向链表）
+```
+
+Redis 跳表的几处设计要点：
+
+- **span（跨度）**：每层指针除指向下一个节点外，还记录中间隔了多少个节点，算 `ZRANK` 时不必从表头逐个计数。
+- **排序规则**：先比 score；score 相同再按 member 字符串字典序（因此允许同分不同 member）。
+- **随机层高**：新节点每层有 1/4 概率再升一层，最大 32 层；Level 0 带 backward 指针，倒序查询（`ZREVRANGE`）同样高效。
+- **紧凑编码**：元素少、字符串短时 ZSET 用 **listpack** 存储；超过阈值（`zset-max-listpack-entries` / `zset-max-listpack-value`）才转为跳表 + dict。
+
+| 命令 | 主要走哪个结构 |
+|------|----------------|
+| `ZSCORE` | dict |
+| `ZADD` | 两者都更新 |
+| `ZRANGE` / `ZRANGEBYSCORE` | 跳表 |
+| `ZRANK` | 跳表（利用 span） |
+
+> 选型关联：排行榜、延时队列（按时间戳作 score）、范围榜单等场景选 ZSET，正是因为跳表在「有序 + 范围 + 排名」上兼顾了性能与实现成本。
+
 ### 发布 / 订阅（Pub/Sub）
 
 客户端 `SUBSCRIBE channel` 订阅频道，其他客户端 `PUBLISH channel message` 推送消息。**消息不持久化**：订阅前或断连期间产生的消息不会补发；需要可靠投递时改用 Stream、List 或专门的消息队列。
